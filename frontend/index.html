@@ -1,0 +1,305 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contabiliza.IA - Gestão Contábil Inteligente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #4F46E5 0%, #10B981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white overflow-x-hidden">
+    <div id="vanta-effect" class="fixed inset-0 z-0"></div>
+    
+    <div class="relative z-10">
+        <header class="py-6 px-6 lg:px-12 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="bg-indigo-600 p-2 rounded-lg">
+                    <i class="fas fa-dollar-sign text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold gradient-text">Contabiliza<span class="text-emerald-400">.IA</span></h1>
+            </div>
+            <a href="pages/login.html" class="bg-indigo-600 hover:bg-indigo-700 transition px-6 py-2 rounded-lg flex items-center space-x-2">
+                <i class="fas fa-user w-4 h-4"></i>
+                <span>Login</span>
+            </a>
+        </header>
+
+        <section class="container mx-auto px-6 py-20 text-center">
+            <h2 class="text-5xl lg:text-6xl font-bold mb-6">
+                Gestão Contábil
+                <span class="gradient-text">Inteligente</span>
+            </h2>
+            <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                Automatize sua contabilidade com inteligência artificial. Dashboard completo, alertas em tempo real e integração total.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="pages/login.html" class="bg-indigo-600 hover:bg-indigo-700 transition px-8 py-3 rounded-lg font-semibold">
+                    Começar Agora
+                </a>
+                <a href="#features" class="glass-card hover:bg-white hover:bg-opacity-20 transition px-8 py-3 rounded-lg font-semibold">
+                    Saiba Mais
+                </a>
+            </div>
+        </section>
+
+        <section id="features" class="container mx-auto px-6 py-20">
+            <h3 class="text-3xl font-bold text-center mb-12">Recursos Principais</h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="glass-card p-6 rounded-xl hover:scale-105 transition">
+                    <div class="bg-indigo-600 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-chart-bar text-white"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-2">Painel de BI</h4>
+                    <p class="text-gray-300">Dashboard completo com indicadores financeiros e gráficos em tempo real.</p>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl hover:scale-105 transition">
+                    <div class="bg-emerald-600 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-file-alt text-white"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-2">Contabilidade Completa</h4>
+                    <p class="text-gray-300">Controle de obrigações acessórias, DREs e balancetes automatizados.</p>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl hover:scale-105 transition">
+                    <div class="bg-amber-600 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-receipt text-white"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-2">NF-e Automática</h4>
+                    <p class="text-gray-300">Importação e processamento automático de notas fiscais eletrônicas.</p>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl hover:scale-105 transition">
+                    <div class="bg-pink-600 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-bell text-white"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-2">Alertas Inteligentes</h4>
+                    <p class="text-gray-300">Notificações automáticas via WhatsApp sobre prazos e obrigações.</p>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl hover:scale-105 transition">
+                    <div class="bg-purple-600 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-money-bill-wave text-white"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-2">Fluxo de Caixa</h4>
+                    <p class="text-gray-300">Controle financeiro completo com projeções e análise de tendências.</p>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl hover:scale-105 transition">
+                    <div class="bg-red-600 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-calendar text-white"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-2">Gestão de Prazos</h4>
+                    <p class="text-gray-300">Controle de audiências, processos e obrigações jurídicas.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="container mx-auto px-6 py-20">
+            <h3 class="text-3xl font-bold text-center mb-12">Preview do Dashboard</h3>
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="glass-card p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-gray-400">Receita Total</span>
+                        <i class="fas fa-dollar-sign text-emerald-400"></i>
+                    </div>
+                    <p class="text-3xl font-bold">R$ 187.234,00</p>
+                    <p class="text-sm text-emerald-400 mt-2">+12,5% vs mês anterior</p>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-gray-400">Clientes Ativos</span>
+                        <i class="fas fa-users text-indigo-400"></i>
+                    </div>
+                    <p class="text-3xl font-bold">142</p>
+                    <p class="text-sm text-indigo-400 mt-2">+8 novos este mês</p>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-gray-400">NF-e Processadas</span>
+                        <i class="fas fa-file text-amber-400"></i>
+                    </div>
+                    <p class="text-3xl font-bold">1.234</p>
+                    <p class="text-sm text-amber-400 mt-2">Este mês</p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold mb-4">Receita por Serviço</h4>
+                    <div style="height: 250px; position: relative;">
+                        <canvas id="serviceRevenueChart"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card p-6 rounded-xl">
+                    <h4 class="text-lg font-bold mb-4">Evolução Mensal</h4>
+                    <div style="height: 250px; position: relative;">
+                        <canvas id="monthlyTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="container mx-auto px-6 py-20 text-center">
+            <div class="glass-card p-12 rounded-xl">
+                <h3 class="text-3xl font-bold mb-4">Pronto para Transformar sua Contabilidade?</h3>
+                <p class="text-xl text-gray-300 mb-8">Experimente gratuitamente por 30 dias</p>
+                <a href="pages/login.html" class="bg-gradient-to-r from-indigo-600 to-emerald-600 hover:from-indigo-700 hover:to-emerald-700 transition px-8 py-3 rounded-lg font-semibold inline-block">
+                    Começar Agora
+                </a>
+            </div>
+        </section>
+
+        <footer class="border-t border-gray-800 py-12">
+            <div class="container mx-auto px-6">
+                <div class="grid md:grid-cols-4 gap-8">
+                    <div>
+                        <h5 class="font-bold mb-4">Sobre</h5>
+                        <p class="text-gray-400 text-sm">Sistema completo de gestão contábil com inteligência artificial.</p>
+                    </div>
+                    <div>
+                        <h5 class="font-bold mb-4">Produto</h5>
+                        <ul class="space-y-2 text-gray-400 text-sm">
+                            <li><a href="#" class="hover:text-white transition">Recursos</a></li>
+                            <li><a href="#" class="hover:text-white transition">Preços</a></li>
+                            <li><a href="#" class="hover:text-white transition">API</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="font-bold mb-4">Recursos</h5>
+                        <ul class="space-y-2 text-gray-400 text-sm">
+                            <li><a href="#" class="hover:text-white transition">Documentação</a></li>
+                            <li><a href="#" class="hover:text-white transition">Suporte</a></li>
+                            <li><a href="#" class="hover:text-white transition">Blog</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="font-bold mb-4">Contato</h5>
+                        <ul class="space-y-2 text-gray-400 text-sm">
+                            <li>contato@contabiliza.ia</li>
+                            <li>(11) 9999-9999</li>
+                        </ul>
+                        <div class="flex space-x-4 mt-4">
+                            <a href="#" class="text-gray-400 hover:text-white transition">
+                                <i class="fab fa-facebook"></i>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-white transition">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-white transition">
+                                <i class="fab fa-linkedin"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center text-gray-400 text-sm mt-8 pt-8 border-t border-gray-800">
+                     2025 Contabiliza.IA. Todos os direitos reservados.
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        VANTA.NET({
+            el: "#vanta-effect",
+            color: 0x4f46e5,
+            backgroundColor: 0x111827,
+            points: 8,
+            maxDistance: 18,
+            spacing: 18,
+            showDots: true
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && window.VANTA && window.VANTA.current) {
+                window.VANTA.current.pause();
+            } else if (window.VANTA && window.VANTA.current) {
+                window.VANTA.current.play();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const serviceCtx = document.getElementById('serviceRevenueChart').getContext('2d');
+            new Chart(serviceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Declarações', 'Auditoria', 'Consultoria', 'Legal', 'Outros'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: ['#4F46E5', '#10B981', '#F59E0B', '#EC4899', '#6B7280']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1.5,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#D1D5DB' }
+                        }
+                    }
+                }
+            });
+            
+            const trendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'],
+                    datasets: [{
+                        label: 'Faturamento',
+                        data: [120000, 135000, 142000, 150000, 162000, 175000, 187234],
+                        borderColor: '#4F46E5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    plugins: {
+                        legend: { labels: { color: '#D1D5DB' } }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                color: '#D1D5DB',
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString('pt-BR');
+                                }
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#D1D5DB' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Contabiliza.IA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/src/js/config.js?v=20251124"></script>
+  <script src="/src/js/ui-helper.js?v=20251124"></script>
+  <script src="/src/js/api-service.js?v=20251124"></script>
+  <link rel="stylesheet" href="/src/styles/globals.css?v=20251124">
+</head>
+<body class="bg-gray-900 text-white">
+  <!-- Toast -->
+  <div id="toast" class="toast bg-gray-800 shadow-lg hidden"></div>
+
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+      <!-- Logo -->
+      <div class="p-6 border-b border-gray-700">
+        <div class="flex items-center gap-2 mb-6">
+          <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
+            <i class="fas fa-calculator text-white text-sm"></i>
+          </div>
+          <span class="text-lg font-bold">Contabiliza.IA</span>
+        </div>
+      </div>
+
+      <!-- Navegação -->
+      <nav class="p-4 space-y-2">
+        <a href="/pages/dashboard.html" class="flex items-center gap-3 px-4 py-3 bg-purple-600/20 text-purple-400 rounded-lg border border-purple-600/30">
+          <i class="fas fa-chart-line w-5"></i> Dashboard
+        </a>
+        <a href="/pages/clientes.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-users w-5"></i> Clientes
+        </a>
+        <a href="/pages/notas-fiscais.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-file-invoice w-5"></i> Notas Fiscais
+        </a>
+        <a href="/pages/financeiro.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-chart-bar w-5"></i> Financeiro
+        </a>
+        <a href="/pages/juridico.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-scale-balanced w-5"></i> Jurídico
+        </a>
+        <a href="/pages/relatorios.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-file-pdf w-5"></i> Relatórios
+        </a>
+      </nav>
+
+      <!-- User Menu -->
+      <div class="absolute bottom-0 left-0 w-64 p-4 border-t border-gray-700">
+        <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-sign-out-alt w-5"></i> Sair
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto">
+      <!-- Header -->
+      <header class="bg-gray-800 border-b border-gray-700 px-8 py-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-bold text-white">Dashboard</h2>
+            <p class="text-gray-400 mt-1">Visão geral do sistema</p>
+          </div>
+          <button onclick="loadDashboard()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
+            <i class="fas fa-sync-alt"></i> Atualizar
+          </button>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="p-6 space-y-6">
+        <!-- Metrics Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <!-- Total Clientes -->
+          <div class="glass-card p-6">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-gray-400 text-sm">Total de Clientes</p>
+                <p class="text-3xl font-bold text-white mt-2" id="totalClientes">0</p>
+              </div>
+              <div class="bg-blue-600/20 p-3 rounded-lg">
+                <i class="fas fa-users text-blue-400 text-2xl"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Receita -->
+          <div class="glass-card p-6">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-gray-400 text-sm">Receita Mensal</p>
+                <p class="text-3xl font-bold text-white mt-2" id="totalReceita">R$ 0</p>
+              </div>
+              <div class="bg-green-600/20 p-3 rounded-lg">
+                <i class="fas fa-wallet text-green-400 text-2xl"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notas Fiscais -->
+          <div class="glass-card p-6">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-gray-400 text-sm">Notas Fiscais</p>
+                <p class="text-3xl font-bold text-white mt-2" id="totalNotas">0</p>
+              </div>
+              <div class="bg-amber-600/20 p-3 rounded-lg">
+                <i class="fas fa-file-invoice text-amber-400 text-2xl"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pendências -->
+          <div class="glass-card p-6">
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-gray-400 text-sm">Processos Ativos</p>
+                <p class="text-3xl font-bold text-white mt-2" id="totalPendencias">0</p>
+              </div>
+              <div class="bg-orange-600/20 p-3 rounded-lg">
+                <i class="fas fa-scale-balanced text-orange-400 text-2xl"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Revenue Chart -->
+          <div class="glass-card p-6">
+            <h3 class="text-lg font-bold text-white mb-4">Faturamento Mensal</h3>
+            <div style="height: 300px; position: relative;">
+              <canvas id="revenueChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Pie Chart -->
+          <div class="glass-card p-6">
+            <h3 class="text-lg font-bold text-white mb-4">Distribuição de Serviços</h3>
+            <div style="height: 300px; position: relative;">
+              <canvas id="servicesChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Clients -->
+        <div class="glass-card">
+          <div class="px-6 py-4 border-b border-gray-700">
+            <h3 class="text-lg font-bold text-white">Clientes Recentes</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-800/50 border-b border-gray-700">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Nome</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">CNPJ</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="clientesTable" class="divide-y divide-gray-700">
+                <tr>
+                  <td colspan="4" class="px-6 py-8 text-center text-gray-600">Carregando...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let revenueChart = null;
+    let servicesChart = null;
+    let autoRefreshInterval = null;
+
+    // Verificar autenticação
+    if (!UTILS.isAuthenticated()) {
+      window.location.href = '/pages/login.html';
+    }
+
+    // Iniciar auto-refresh a cada 30 segundos
+    function startAutoRefresh() {
+      if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+      }
+      autoRefreshInterval = setInterval(() => {
+        loadDashboard();
+      }, 30000); // 30 segundos
+    }
+
+    // Parar auto-refresh ao sair da página
+    window.addEventListener('beforeunload', () => {
+      if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+      }
+    });
+
+    // Carregar dados do dashboard
+    async function loadDashboard() {
+      try {
+        // Buscar dados reais das APIs
+        const [clientesData, lancamentosData, notasData, processosData] = await Promise.all([
+          apiService.getClientes().catch(() => []),
+          apiService.getLancamentos().catch(() => []),
+          apiService.getNotasFiscais().catch(() => []),
+          apiService.getProcessos().catch(() => [])
+        ]);
+
+        // Processar clientes
+        const totalClientes = Array.isArray(clientesData) ? clientesData.length : 0;
+        document.getElementById('totalClientes').textContent = totalClientes;
+
+        // Processar lançamentos financeiros
+        const lancamentos = Array.isArray(lancamentosData) ? lancamentosData : [];
+        const receitasMes = lancamentos
+          .filter(l => l.tipo === 'receita' && l.pago)
+          .reduce((sum, l) => sum + (l.valor || 0), 0);
+        document.getElementById('totalReceita').textContent = UTILS.formatarReal(receitasMes);
+
+        // Processar notas fiscais
+        const totalNotas = Array.isArray(notasData) ? notasData.length : 0;
+        document.getElementById('totalNotas').textContent = totalNotas;
+
+        // Processar processos jurídicos ativos
+        const processosAtivos = Array.isArray(processosData) 
+          ? processosData.filter(p => p.status !== 'concluido').length 
+          : 0;
+        document.getElementById('totalPendencias').textContent = processosAtivos;
+
+        // Carregar clientes recentes
+        loadClientes();
+
+        // Inicializar gráficos com dados reais
+        initCharts({
+          lancamentos: lancamentos,
+          servicos: notasData
+        });
+
+      } catch (error) {
+        console.error('Erro ao carregar dashboard:', error);
+        UTILS.showToast('Erro ao carregar dados do dashboard', 'error');
+      }
+    }
+
+    async function loadClientes() {
+      try {
+        const clientes = await apiService.getClientes();
+        const clientesArray = Array.isArray(clientes) ? clientes : [];
+        const clientesRecentes = clientesArray.slice(0, 5);
+        
+        const tbody = document.getElementById('clientesTable');
+        tbody.innerHTML = '';
+
+        if (clientesRecentes.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400">Nenhum cliente encontrado</td></tr>';
+          return;
+        }
+
+        clientesRecentes.forEach(cliente => {
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-gray-700/50 transition-colors';
+          row.innerHTML = `
+            <td class="px-6 py-4 text-sm text-white">${cliente.nome_razao_social || 'N/A'}</td>
+            <td class="px-6 py-4 text-sm text-gray-300">${UTILS.formatarCNPJ(cliente.cnpj_cpf || '')}</td>
+            <td class="px-6 py-4 text-sm">
+              <span class="px-2 py-1 rounded-full text-xs font-semibold ${cliente.ativo ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'}">
+                ${cliente.ativo ? 'Ativo' : 'Inativo'}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-sm">
+              <a href="/pages/clientes.html?id=${cliente.id}" class="text-purple-400 hover:text-purple-300 transition-colors">Ver detalhes</a>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+
+      } catch (error) {
+        console.error('Erro ao carregar clientes:', error);
+        const tbody = document.getElementById('clientesTable');
+        tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-red-400">Erro ao carregar clientes</td></tr>';
+      }
+    }
+
+    function initCharts(data) {
+      // Destruir gráficos antigos se existirem
+      if (revenueChart) {
+        revenueChart.destroy();
+        revenueChart = null;
+      }
+      if (servicesChart) {
+        servicesChart.destroy();
+        servicesChart = null;
+      }
+
+      // Processar dados de lançamentos
+      const lancamentos = data.lancamentos || [];
+      
+      // Agrupar por mês (últimos 6 meses)
+      const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const hoje = new Date();
+      const labels = [];
+      const receitasPorMes = [];
+      const despesasPorMes = [];
+
+      for (let i = 5; i >= 0; i--) {
+        const data = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+        labels.push(meses[data.getMonth()]);
+        
+        const receitas = lancamentos
+          .filter(l => {
+            const lData = new Date(l.data_vencimento);
+            return l.tipo === 'receita' && 
+                   lData.getMonth() === data.getMonth() && 
+                   lData.getFullYear() === data.getFullYear();
+          })
+          .reduce((sum, l) => sum + (l.valor || 0), 0);
+        
+        const despesas = lancamentos
+          .filter(l => {
+            const lData = new Date(l.data_vencimento);
+            return l.tipo === 'despesa' && 
+                   lData.getMonth() === data.getMonth() && 
+                   lData.getFullYear() === data.getFullYear();
+          })
+          .reduce((sum, l) => sum + (l.valor || 0), 0);
+        
+        receitasPorMes.push(receitas);
+        despesasPorMes.push(despesas);
+      }
+
+      // Revenue Chart - Evolução de Faturamento (DARK THEME)
+      const revenueCtx = document.getElementById('revenueChart');
+      if (revenueCtx) {
+        revenueChart = new Chart(revenueCtx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Receitas',
+                data: receitasPorMes,
+                borderColor: '#10B981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2
+              },
+              {
+                label: 'Despesas',
+                data: despesasPorMes,
+                borderColor: '#EF4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                  color: '#E5E7EB',
+                  font: { size: 12 }
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return context.dataset.label + ': ' + UTILS.formatarReal(context.parsed.y);
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(107, 114, 128, 0.2)'
+                },
+                ticks: {
+                  color: '#9CA3AF',
+                  callback: function(value) {
+                    return 'R$ ' + (value / 1000).toFixed(0) + 'k';
+                  }
+                }
+              },
+              x: {
+                grid: {
+                  color: 'rgba(107, 114, 128, 0.2)'
+                },
+                ticks: {
+                  color: '#9CA3AF'
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Services Chart - Distribuição de Serviços (DARK THEME)
+      const servicesCtx = document.getElementById('servicesChart');
+      
+      if (servicesCtx) {
+        const notas = data.servicos || [];
+        
+        // Se houver notas, analisar por valor total
+        let labelsPie = [];
+        let dataPie = [];
+        
+        if (notas.length > 0) {
+          // Calcular valor total por cliente ou serviço
+          const servicosPorValor = {};
+          
+          notas.forEach((nota, index) => {
+            // Usar destinatário ou número da nota como categoria
+            let categoria = nota.destinatario_nome || nota.cliente_nome || `Serviço ${index + 1}`;
+            
+            // Simplificar o nome se for muito longo
+            if (categoria.length > 25) {
+              categoria = categoria.substring(0, 22) + '...';
+            }
+            
+            const valor = nota.valor_total || nota.valor || 0;
+            servicosPorValor[categoria] = (servicosPorValor[categoria] || 0) + valor;
+          });
+          
+          // Pegar os top 5 serviços por valor
+          const sorted = Object.entries(servicosPorValor)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+          
+          labelsPie = sorted.map(s => s[0]);
+          dataPie = sorted.map(s => s[1]);
+        }
+        
+        // Se não houver dados suficientes, usar distribuição de exemplo
+        if (dataPie.length === 0) {
+          labelsPie = ['Contabilidade', 'Fiscal', 'Folha de Pagamento', 'Consultoria', 'Outros'];
+          dataPie = [45, 30, 15, 8, 2];
+        }
+
+        servicesChart = new Chart(servicesCtx, {
+          type: 'doughnut',
+          data: {
+            labels: labelsPie,
+            datasets: [{
+              data: dataPie,
+              backgroundColor: [
+                '#8B5CF6',
+                '#10B981', 
+                '#F59E0B',
+                '#EF4444',
+                '#3B82F6'
+              ],
+              borderColor: '#1F2937',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                  color: '#E5E7EB',
+                  font: { size: 12 },
+                  padding: 15
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percent = ((context.parsed / total) * 100).toFixed(1);
+                    return context.label + ': ' + context.parsed + ' (' + percent + '%)';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function logout() {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/pages/login.html?logout=true';
+    }
+
+    // Carregar dados ao abrir
+    loadDashboard();
+    
+    // Iniciar auto-refresh
+    startAutoRefresh();
+  </script>
+</body>
+</html>

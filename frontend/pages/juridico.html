@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jurídico - Contabiliza.IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/src/styles/globals.css?v=20251124">
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Sidebar -->
+    <div class="flex h-screen bg-gray-900">
+        <aside class="w-64 bg-gray-800 border-r border-gray-700">
+            <div class="p-6 border-b border-gray-700">
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-calculator text-white text-sm"></i>
+                    </div>
+                    <span class="text-lg font-bold">Contabiliza.IA</span>
+                </div>
+            </div>
+
+            <nav class="p-4 space-y-2">
+                <a href="/pages/dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-chart-line w-5"></i> Dashboard
+                </a>
+                <a href="/pages/clientes.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-users w-5"></i> Clientes
+                </a>
+                <a href="/pages/notas-fiscais.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-file-invoice w-5"></i> Notas Fiscais
+                </a>
+                <a href="/pages/financeiro.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-chart-bar w-5"></i> Financeiro
+                </a>
+                <a href="/pages/juridico.html" class="flex items-center gap-3 px-4 py-3 bg-purple-600/20 text-purple-400 rounded-lg border border-purple-600/30">
+                    <i class="fas fa-scale-balanced w-5"></i> Jurídico
+                </a>
+                <a href="/pages/relatorios.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-file-pdf w-5"></i> Relatórios
+                </a>
+            </nav>
+
+            <div class="absolute bottom-0 left-0 w-64 p-4 border-t border-gray-700">
+                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-sign-out-alt w-5"></i> Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto">
+            <!-- Header -->
+            <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
+                <div class="flex justify-between items-center p-6">
+                    <div>
+                        <h1 class="text-3xl font-bold mb-1">Jurídico</h1>
+                        <p class="text-gray-400 text-sm">Gestão de processos e conformidade legal</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="toggleFilters()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all flex items-center gap-2">
+                            <i class="fas fa-sliders-h"></i> Filtros
+                        </button>
+                        <button onclick="openProcessoModal()" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Novo Processo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div id="filters" class="hidden px-6 py-4 bg-gray-700/50 border-t border-gray-700">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <input type="text" id="searchInput" placeholder="Buscar por número..." class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                        <select id="statusFilter" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <option value="">Todos os Status</option>
+                            <option value="ativo">Ativo</option>
+                            <option value="encerrado">Encerrado</option>
+                            <option value="suspenso">Suspenso</option>
+                        </select>
+                        <select id="prioridadeFilter" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <option value="">Todas as Prioridades</option>
+                            <option value="alta">Alta</option>
+                            <option value="media">Média</option>
+                            <option value="baixa">Baixa</option>
+                        </select>
+                        <button onclick="applyFilters()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all">
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="p-6">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Total de Processos</p>
+                                <h3 class="text-2xl font-bold" id="totalProcessos">0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-folder text-blue-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Ativos</p>
+                                <h3 class="text-2xl font-bold text-blue-400" id="processosAtivos">0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-hourglass-start text-blue-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Com Prazo Próximo</p>
+                                <h3 class="text-2xl font-bold text-orange-400" id="prazoProximo">0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-orange-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-orange-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Encerrados</p>
+                                <h3 class="text-2xl font-bold text-green-400" id="processosEncerrados">0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="text-center py-12">
+                    <i class="fas fa-spinner fa-spin text-4xl text-purple-600 mb-4"></i>
+                    <p class="text-gray-400">Carregando processos...</p>
+                </div>
+
+                <!-- Processes Table -->
+                <div id="processosContainer" class="hidden glass-card rounded-xl overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-800/50 border-b border-gray-700">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Número</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Partes</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Prioridade</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Status</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Próximo Prazo</th>
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-300">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="processosTableBody" class="divide-y divide-gray-700">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center py-12">
+                    <i class="fas fa-inbox text-5xl text-gray-700 mb-4"></i>
+                    <p class="text-gray-400 mb-4">Nenhum processo cadastrado</p>
+                    <button onclick="openProcessoModal()" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all">
+                        Criar Primeiro Processo
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Process Modal -->
+    <div id="processoModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+        <div class="bg-gray-800 rounded-xl p-8 max-w-2xl w-full mx-4 my-8 glass-card">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-2xl font-bold">Novo Processo</h2>
+                <button onclick="closeProcessoModal()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form id="processoForm" onsubmit="handleProcessoSubmit(event)">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Número do Processo</label>
+                        <input type="text" id="numeroProcesso" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Tribunal</label>
+                        <input type="text" id="tribunal" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Assunto</label>
+                    <input type="text" id="assunto" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600" placeholder="Resumo do processo">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Parte Contrária</label>
+                        <input type="text" id="partes" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Advogado</label>
+                        <input type="text" id="advogado" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Tipo de Ação</label>
+                        <select id="tipoAcao" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <option value="civel">Cível</option>
+                            <option value="trabalhista">Trabalhista</option>
+                            <option value="tributario">Tributário</option>
+                            <option value="administrativo">Administrativo</option>
+                            <option value="consumerista">Consumerista</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Status</label>
+                        <select id="statusProcesso" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <option value="ativo">Ativo</option>
+                            <option value="suspenso">Suspenso</option>
+                            <option value="encerrado">Encerrado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Prioridade</label>
+                        <select id="prioridade" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <option value="baixa">Baixa</option>
+                            <option value="media">Média</option>
+                            <option value="alta">Alta</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Próximo Prazo</label>
+                        <input type="date" id="proximoPrazo" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="closeProcessoModal()" class="px-6 py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:shadow-lg transition-all">
+                        Salvar Processo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/src/js/config.js?v=20251124"></script>
+    <script src="/src/js/api-service.js?v=20251124"></script>
+    <script>
+        let processos = [];
+        let filteredProcessos = [];
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadProcessos();
+            feather.replace();
+        });
+
+        async function loadProcessos() {
+            const loadingState = document.getElementById('loadingState');
+            const processosContainer = document.getElementById('processosContainer');
+            const emptyState = document.getElementById('emptyState');
+
+            try {
+                const data = await apiService.getProcessos();
+                processos = data || [];
+                filteredProcessos = processos;
+
+                if (processos.length === 0) {
+                    loadingState.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                } else {
+                    loadingState.classList.add('hidden');
+                    updateSummary();
+                    renderProcessosTable();
+                    processosContainer.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar processos:', error);
+                loadingState.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                emptyState.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-exclamation-triangle text-6xl text-yellow-600 mb-4"></i>
+                        <h3 class="text-xl font-semibold mb-2">Erro ao carregar processos</h3>
+                        <p class="text-gray-400 mb-4">${error.message || 'Erro desconhecido'}</p>
+                        <button onclick="loadProcessos()" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all">
+                            Tentar Novamente
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function updateSummary() {
+            const total = processos.length;
+            const ativos = processos.filter(p => p.status === 'ativo').length;
+            const encerrados = processos.filter(p => p.status === 'encerrado').length;
+            const proximoPrazo = processos.filter(p => {
+                if (!p.data_prazo) return false;
+                const prazo = new Date(p.data_prazo);
+                const hoje = new Date();
+                const dias = Math.floor((prazo - hoje) / (1000 * 60 * 60 * 24));
+                return dias >= 0 && dias <= 7;
+            }).length;
+
+            document.getElementById('totalProcessos').textContent = total;
+            document.getElementById('processosAtivos').textContent = ativos;
+            document.getElementById('processosEncerrados').textContent = encerrados;
+            document.getElementById('prazoProximo').textContent = proximoPrazo;
+        }
+
+        function renderProcessosTable() {
+            const tableBody = document.getElementById('processosTableBody');
+
+            tableBody.innerHTML = filteredProcessos.map(processo => {
+                const prioridade = processo.prioridade || 'média';
+                const prioridadeColor = {
+                    'baixa': 'bg-gray-600/20 text-gray-400 border-gray-600/30',
+                    'media': 'bg-yellow-600/20 text-yellow-400 border-yellow-600/30',
+                    'média': 'bg-yellow-600/20 text-yellow-400 border-yellow-600/30',
+                    'alta': 'bg-red-600/20 text-red-400 border-red-600/30'
+                }[prioridade.toLowerCase()] || 'bg-gray-600/20 text-gray-400 border-gray-600/30';
+                
+                return `
+                <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-all">
+                    <td class="px-6 py-4 font-medium">${processo.numero_processo || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${processo.parte_contraria || 'N/A'}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded text-xs font-semibold bg-blue-600/20 text-blue-400">
+                            ${processo.tipo_acao || 'N/A'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                            processo.status === 'ativo'
+                            ? 'bg-blue-600/20 text-blue-400 border border-blue-600/30'
+                            : processo.status === 'encerrado'
+                            ? 'bg-green-600/20 text-green-400 border border-green-600/30'
+                            : 'bg-gray-600/20 text-gray-400 border border-gray-600/30'
+                        }">
+                            ${processo.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold border ${prioridadeColor}">
+                            ${prioridade.charAt(0).toUpperCase() + prioridade.slice(1)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${processo.data_prazo ? new Date(processo.data_prazo).toLocaleDateString('pt-BR') : 'Sem prazo'}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="editProcesso('${processo.id}')" class="text-blue-400 hover:text-blue-300 mr-3">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteProcesso('${processo.id}')" class="text-red-400 hover:text-red-300">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            }).join('');
+        }
+
+        function toggleFilters() {
+            document.getElementById('filters').classList.toggle('hidden');
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const prioridade = document.getElementById('prioridadeFilter').value;
+
+            filteredProcessos = processos.filter(processo => {
+                const matchesSearch = !search || processo.numero.includes(search);
+                const matchesStatus = !status || processo.status === status;
+                const matchesPrioridade = !prioridade || processo.prioridade === prioridade;
+
+                return matchesSearch && matchesStatus && matchesPrioridade;
+            });
+
+            renderProcessosTable();
+        }
+
+        function openProcessoModal() {
+            document.getElementById('modalTitle').textContent = 'Novo Processo';
+            document.getElementById('processoForm').reset();
+            document.getElementById('processoForm').onsubmit = handleProcessoSubmit;
+            document.getElementById('processoModal').classList.remove('hidden');
+        }
+
+        function closeProcessoModal() {
+            document.getElementById('processoModal').classList.add('hidden');
+        }
+
+        async function handleProcessoSubmit(event) {
+            event.preventDefault();
+
+            const processo = {
+                numero_processo: document.getElementById('numeroProcesso').value,
+                vara: document.getElementById('tribunal').value,
+                assunto: document.getElementById('assunto').value,
+                parte_contraria: document.getElementById('partes').value,
+                advogado_responsavel: document.getElementById('advogado').value,
+                tipo_acao: document.getElementById('tipoAcao').value,
+                prioridade: document.getElementById('prioridade').value,
+                status: document.getElementById('statusProcesso').value,
+                data_prazo: document.getElementById('proximoPrazo').value,
+                cliente_id: '00000000-0000-0000-0000-000000000001'
+            };
+
+            try {
+                await apiService.criarProcesso(processo);
+                closeProcessoModal();
+                await loadProcessos();
+                showToast('Processo criado com sucesso!', 'success');
+            } catch (error) {
+                showToast('Erro: ' + error.message, 'error');
+            }
+        }
+
+        function editProcesso(id) {
+            const processo = processos.find(p => p.id === id);
+            if (!processo) {
+                showToast('Processo não encontrado', 'error');
+                return;
+            }
+
+            // Preencher modal com dados do processo
+            document.getElementById('modalTitle').textContent = 'Editar Processo';
+            document.getElementById('numeroProcesso').value = processo.numero_processo || '';
+            document.getElementById('tribunal').value = processo.vara || '';
+            document.getElementById('assunto').value = processo.assunto || '';
+            document.getElementById('partes').value = processo.parte_contraria || '';
+            document.getElementById('advogado').value = processo.advogado_responsavel || '';
+            document.getElementById('tipoAcao').value = processo.tipo_acao || 'outros';
+            document.getElementById('prioridade').value = processo.prioridade || 'baixa';
+            document.getElementById('statusProcesso').value = processo.status || 'ativo';
+            document.getElementById('proximoPrazo').value = processo.data_prazo || '';
+
+            // Mudar comportamento do formulário para atualização
+            document.getElementById('processoForm').onsubmit = async (event) => {
+                event.preventDefault();
+
+                const updateData = {
+                    assunto: document.getElementById('assunto').value,
+                    vara: document.getElementById('tribunal').value,
+                    parte_contraria: document.getElementById('partes').value,
+                    advogado_responsavel: document.getElementById('advogado').value,
+                    tipo_acao: document.getElementById('tipoAcao').value,
+                    status: document.getElementById('statusProcesso').value,
+                    data_prazo: document.getElementById('proximoPrazo').value || null
+                };
+
+                try {
+                    await apiService.atualizarProcesso(id, updateData);
+                    closeProcessoModal();
+                    await loadProcessos();
+                    showToast('Processo atualizado com sucesso!', 'success');
+                } catch (error) {
+                    showToast('Erro ao atualizar processo: ' + error.message, 'error');
+                }
+            };
+
+            document.getElementById('processoModal').classList.remove('hidden');
+        }
+
+        async function deleteProcesso(id) {
+            try {
+                await apiService.excluirProcesso(id);
+                await loadProcessos();
+                showToast('Processo excluído com sucesso!', 'success');
+            } catch (error) {
+                showToast('Erro ao excluir processo: ' + error.message, 'error');
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-6 right-6 px-6 py-3 rounded-lg text-white z-50 ${
+                type === 'success' ? 'bg-green-600' : 
+                type === 'error' ? 'bg-red-600' : 
+                'bg-blue-600'
+            }`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/pages/login.html';
+        }
+    </script>
+</body>
+</html>

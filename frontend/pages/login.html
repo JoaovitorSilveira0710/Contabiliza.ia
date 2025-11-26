@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Contabiliza.IA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+  <script src="/src/js/config.js?v=20251112d"></script>
+  <link rel="stylesheet" href="/src/styles/globals.css?v=20251112d">
+  <style>
+    .glass-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4F46E5 0%, #10B981 100%);
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px 0 rgba(79, 70, 229, 0.4);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-900 min-h-screen flex items-center justify-center overflow-hidden">
+  <!-- Vanta.js Background (mesmo da index) -->
+  <div id="vanta-effect" class="fixed inset-0 z-0"></div>
+  <!-- Toast de notificação -->
+  <div id="toast" class="toast bg-white shadow-lg hidden"></div>
+
+  <div class="w-full max-w-md relative z-10">
+    <!-- Card Principal -->
+    <div class="glass-card p-8 text-white">
+      <!-- Logo -->
+      <div class="text-center mb-8">
+        <div class="inline-block bg-white/20 p-3 rounded-lg mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold">Contabiliza.IA</h1>
+        <p class="text-white/70 text-sm mt-2">Gestão Contábil Inteligente</p>
+      </div>
+
+      <!-- Formulário -->
+      <form id="loginForm" class="space-y-6">
+        <div>
+          <label for="email" class="block text-sm font-medium mb-2">Email</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="seu@email.com"
+            class="input input-dark"
+            required
+          />
+        </div>
+
+        <div>
+          <label for="senha" class="block text-sm font-medium mb-2">Senha</label>
+          <input
+            type="password"
+            id="senha"
+            placeholder="••••••••"
+            class="input input-dark"
+            required
+          />
+        </div>
+
+        <!-- Remember & Forgot -->
+        <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center">
+            <input type="checkbox" class="rounded" />
+            <span class="ml-2">Lembrar-me</span>
+          </label>
+          <a href="#" class="hover:underline">Esqueci a senha</a>
+        </div>
+
+        <!-- Botão Login -->
+        <button
+          type="submit"
+          id="loginBtn"
+          class="btn-primary w-full flex items-center justify-center space-x-2"
+        >
+          <span id="loginText">Entrar</span>
+          <span id="loadingSpinner" class="hidden">
+            <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </span>
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="my-6 flex items-center">
+        <div class="flex-1 border-t border-white/30"></div>
+        <span class="px-3 text-white/50 text-sm">Demonstração</span>
+        <div class="flex-1 border-t border-white/30"></div>
+      </div>
+
+      <!-- Credenciais Demo -->
+      <div class="bg-white/10 rounded-lg p-4 text-sm mb-6">
+        <p class="font-semibold mb-2">Credenciais de Teste:</p>
+        <p class="text-white/80">Email: <code class="bg-white/20 px-2 py-1 rounded">admin@test.com</code></p>
+        <p class="text-white/80">Senha: <code class="bg-white/20 px-2 py-1 rounded">123456</code></p>
+      </div>
+    </div>
+
+    <!-- Link para voltar -->
+    <div class="text-center mt-6">
+      <a href="/" class="text-white hover:underline flex items-center justify-center space-x-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>Voltar para Home</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/src/js/api-service.js?v=20251112d"></script>
+  <script>
+    // Limpar token se vier de logout
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('logout') === 'true') {
+      localStorage.clear();
+    }
+    
+    // Só redirecionar se estiver autenticado E não for logout
+    if (UTILS.isAuthenticated() && !urlParams.get('logout')) {
+      window.location.href = '/pages/dashboard.html';
+    }
+
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginText = document.getElementById('loginText');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+
+      // Validação básica
+      if (!email || !senha) {
+        alert('Preencha todos os campos');
+        return;
+      }
+
+      try {
+        // Mostrar loading
+        loginBtn.disabled = true;
+        loginText.classList.add('hidden');
+        loadingSpinner.classList.remove('hidden');
+
+        // Fazer login
+        const response = await apiService.login(email, senha);
+
+        if (response.token) {
+          // Sucesso - redirecionar para dashboard
+          window.location.href = '/pages/dashboard.html';
+        }
+
+      } catch (error) {
+        // Mostrar erro
+        alert('Erro ao fazer login: ' + error.message);
+
+      } finally {
+        // Esconder loading
+        loginBtn.disabled = false;
+        loginText.classList.remove('hidden');
+        loadingSpinner.classList.add('hidden');
+      }
+    });
+  </script>
+
+  <!-- Script Vanta.js (mesmo da index) -->
+  <script>
+    // Inicializar Vanta.js com configuração otimizada
+    VANTA.NET({
+      el: "#vanta-effect",
+      color: 0x4f46e5,           // Roxo indigo
+      backgroundColor: 0x111827,  // Gray-900
+      points: 8,                  // Otimizado para performance
+      maxDistance: 18,            // Distância das conexões
+      spacing: 18,                // Espaçamento entre pontos
+      showDots: true
+    });
+
+    // Pausar animação quando aba não estiver visível (economia de recursos)
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden && window.VANTA && window.VANTA.current) {
+        window.VANTA.current.pause();
+      } else if (window.VANTA && window.VANTA.current) {
+        window.VANTA.current.play();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notas Fiscais - Contabiliza.IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/src/styles/globals.css">
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Sidebar -->
+    <div class="flex h-screen bg-gray-900">
+        <aside class="w-64 bg-gray-800 border-r border-gray-700">
+            <div class="p-6 border-b border-gray-700">
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-calculator text-white text-sm"></i>
+                    </div>
+                    <span class="text-lg font-bold">Contabiliza.IA</span>
+                </div>
+            </div>
+
+            <nav class="p-4 space-y-2">
+                <a href="/pages/dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-chart-line w-5"></i> Dashboard
+                </a>
+                <a href="/pages/clientes.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-users w-5"></i> Clientes
+                </a>
+                <a href="/pages/notas-fiscais.html" class="flex items-center gap-3 px-4 py-3 bg-purple-600/20 text-purple-400 rounded-lg border border-purple-600/30">
+                    <i class="fas fa-file-invoice w-5"></i> Notas Fiscais
+                </a>
+                <a href="/pages/financeiro.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-chart-bar w-5"></i> Financeiro
+                </a>
+                <a href="/pages/juridico.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-scale-balanced w-5"></i> Jurídico
+                </a>
+                <a href="/pages/relatorios.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-file-pdf w-5"></i> Relatórios
+                </a>
+            </nav>
+
+            <div class="absolute bottom-0 left-0 w-64 p-4 border-t border-gray-700">
+                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-sign-out-alt w-5"></i> Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto">
+            <!-- Header -->
+            <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
+                <div class="flex justify-between items-center p-6">
+                    <div>
+                        <h1 class="text-3xl font-bold mb-1">Notas Fiscais</h1>
+                        <p class="text-gray-400 text-sm">Gestão e importação de documentos fiscais</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="toggleFilters()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all flex items-center gap-2">
+                            <i class="fas fa-sliders-h"></i> Filtros
+                        </button>
+                        <button onclick="openEmitirModal()" class="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
+                            <i class="fas fa-plus-circle"></i> Emitir NFe
+                        </button>
+                        <button onclick="openImportModal()" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
+                            <i class="fas fa-upload"></i> Importar XML
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div id="filters" class="hidden px-6 py-4 bg-gray-700/50 border-t border-gray-700">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <input type="text" id="searchInput" placeholder="Buscar por número..." class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                        <select id="statusFilter" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <option value="">Todos os Status</option>
+                            <option value="autorizada">Autorizada</option>
+                            <option value="cancelada">Cancelada</option>
+                            <option value="pendente">Pendente</option>
+                        </select>
+                        <input type="date" id="dateFrom" placeholder="De" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        <input type="date" id="dateTo" placeholder="Até" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        <button onclick="applyFilters()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all">
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="p-6">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Total de NFe</p>
+                                <h3 class="text-2xl font-bold" id="totalNfe">0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-file-invoice text-blue-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Autorizadas</p>
+                                <h3 class="text-2xl font-bold" id="autorizadas">0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Canceladas</p>
+                                <h3 class="text-2xl font-bold" id="canceladas">0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-red-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-times-circle text-red-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Valor Total</p>
+                                <h3 class="text-2xl font-bold" id="totalValue">R$ 0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-money-bill text-purple-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="text-center py-12">
+                    <i class="fas fa-spinner fa-spin text-4xl text-purple-600 mb-4"></i>
+                    <p class="text-gray-400">Carregando notas fiscais...</p>
+                </div>
+
+                <!-- NFe Table -->
+                <div id="nfeContainer" class="hidden glass-card rounded-xl overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-800/50 border-b border-gray-700">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Número</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Série</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Emitente</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Valor (R$)</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Status</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Data</th>
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-300">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nfeTableBody" class="divide-y divide-gray-700">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center py-12">
+                    <i class="fas fa-inbox text-5xl text-gray-700 mb-4"></i>
+                    <p class="text-gray-400 mb-4">Nenhuma nota fiscal encontrada</p>
+                    <button onclick="openImportModal()" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all">
+                        Importar Primeira NFe
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Emit Modal -->
+    <div id="emitirModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+        <div class="bg-gray-800 rounded-xl p-8 max-w-4xl w-full mx-4 my-8 glass-card">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fas fa-file-invoice text-green-400"></i>
+                    Emitir Nota Fiscal Eletrônica
+                </h2>
+                <button onclick="closeEmitirModal()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form id="emitirForm" onsubmit="handleEmitir(event)" class="space-y-6">
+                <!-- Dados do Destinatário -->
+                <div class="bg-gray-700/30 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4 text-purple-400">📋 Dados do Destinatário</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Cliente *</label>
+                            <select id="emitir_cliente_id" required class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                <option value="">Selecione um cliente</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">CNPJ/CPF Destinatário *</label>
+                            <input type="text" id="emitir_cnpj_destinatario" required placeholder="00.000.000/0000-00" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium mb-2">Nome/Razão Social *</label>
+                            <input type="text" id="emitir_nome_destinatario" required placeholder="Nome ou Razão Social" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dados da Nota -->
+                <div class="bg-gray-700/30 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4 text-purple-400">📄 Dados da Nota</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Número *</label>
+                            <input type="text" id="emitir_numero" required placeholder="12345" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Série *</label>
+                            <input type="text" id="emitir_serie" required value="1" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Modelo *</label>
+                            <select id="emitir_modelo" required class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                <option value="nfe">NFe (55)</option>
+                                <option value="nfce">NFCe (65)</option>
+                                <option value="nfse">NFSe</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Tipo *</label>
+                            <select id="emitir_tipo" required class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                <option value="saida">Saída</option>
+                                <option value="entrada">Entrada</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">UF de Origem *</label>
+                            <select id="emitir_uf" required class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                <option value="">Selecione</option>
+                                <option value="SP">São Paulo - SP</option>
+                                <option value="RJ">Rio de Janeiro - RJ</option>
+                                <option value="MG">Minas Gerais - MG</option>
+                                <option value="ES">Espírito Santo - ES</option>
+                                <option value="PR">Paraná - PR</option>
+                                <option value="SC">Santa Catarina - SC</option>
+                                <option value="RS">Rio Grande do Sul - RS</option>
+                                <option value="BA">Bahia - BA</option>
+                                <option value="PE">Pernambuco - PE</option>
+                                <option value="CE">Ceará - CE</option>
+                                <option value="DF">Distrito Federal - DF</option>
+                                <option value="GO">Goiás - GO</option>
+                                <option value="MT">Mato Grosso - MT</option>
+                                <option value="MS">Mato Grosso do Sul - MS</option>
+                                <option value="AM">Amazonas - AM</option>
+                                <option value="PA">Pará - PA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">CNPJ Emitente *</label>
+                            <input type="text" id="emitir_cnpj_emitente" required placeholder="00.000.000/0000-00" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Valores -->
+                <div class="bg-gray-700/30 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4 text-purple-400">💰 Valores</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Valor Produtos *</label>
+                            <input type="number" id="emitir_valor_produtos" required min="0" step="0.01" placeholder="0,00" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Valor Serviços</label>
+                            <input type="number" id="emitir_valor_servicos" min="0" step="0.01" value="0" placeholder="0,00" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Base de Cálculo *</label>
+                            <input type="number" id="emitir_base_calculo" required min="0" step="0.01" readonly class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white font-semibold">
+                        </div>
+                    </div>
+
+                    <!-- Impostos -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1" id="label_icms">ICMS</label>
+                            <input type="number" id="emitir_icms" readonly class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-green-400 font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1" id="label_pis">PIS</label>
+                            <input type="number" id="emitir_pis" readonly class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-green-400 font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1" id="label_cofins">COFINS</label>
+                            <input type="number" id="emitir_cofins" readonly class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-green-400 font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1" id="label_iss">ISS</label>
+                            <input type="number" id="emitir_iss" readonly class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-green-400 font-semibold">
+                        </div>
+                    </div>
+
+                    <!-- Totais -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-purple-900/20 rounded-lg border border-purple-600/30">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Total de Impostos</label>
+                            <input type="number" id="emitir_total_impostos" readonly class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white font-bold text-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Valor Total da Nota *</label>
+                            <input type="number" id="emitir_valor_total" required min="0" step="0.01" readonly class="w-full px-4 py-2 bg-gray-700 border border-purple-600 rounded-lg text-purple-400 font-bold text-lg">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Observações -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Observações</label>
+                    <textarea id="emitir_observacoes" rows="3" placeholder="Informações adicionais..." class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600"></textarea>
+                </div>
+
+                <!-- Status de Emissão -->
+                <div id="emissaoStatus" class="hidden bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-spinner fa-spin text-blue-400 text-xl"></i>
+                        <div>
+                            <p class="font-semibold text-blue-400">Emitindo NFe...</p>
+                            <p class="text-sm text-gray-400">Aguarde enquanto processamos a nota na SEFAZ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões -->
+                <div class="flex gap-3 justify-end pt-4 border-t border-gray-700">
+                    <button type="button" onclick="closeEmitirModal()" class="px-6 py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btnEmitir" class="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
+                        <i class="fas fa-paper-plane"></i>
+                        Emitir NFe
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-xl p-8 max-w-2xl w-full mx-4 glass-card">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Importar Notas Fiscais</h2>
+                <button onclick="closeImportModal()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form id="importForm" onsubmit="handleImport(event)">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-3">Selecione arquivo XML ou ZIP</label>
+                    <div class="border-2 border-dashed border-purple-600/50 rounded-lg p-8 text-center cursor-pointer hover:bg-purple-600/10 transition-all" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-purple-400 mb-3"></i>
+                        <p class="text-gray-300 mb-1">Clique ou arraste arquivos</p>
+                        <p class="text-gray-500 text-sm">Formatos aceitos: .xml, .zip</p>
+                    </div>
+                    <input type="file" id="fileInput" class="hidden" accept=".xml,.zip" multiple>
+                </div>
+
+                <div id="fileList" class="mb-6"></div>
+
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="closeImportModal()" class="px-6 py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:shadow-lg transition-all">
+                        Importar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+        <div class="bg-gray-800 rounded-xl p-8 max-w-2xl w-full mx-4 my-8 glass-card">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Detalhes da Nota Fiscal</h2>
+                <button onclick="closeDetailModal()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div id="detailContent" class="space-y-4 mb-6">
+            </div>
+
+            <div id="detailActions" class="flex flex-wrap gap-3 justify-end items-center">
+                <button onclick="closeDetailModal()" class="px-6 py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all" style="height: 42px; display: inline-flex; align-items: center; justify-content: center;">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/src/js/config.js?v=20251124150000"></script>
+    <script src="/src/js/api-service.js?v=20251124150000"></script>
+    <script>
+        let notas = [];
+        let filteredNotas = [];
+        let selectedFiles = [];
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 DOMContentLoaded disparado');
+            console.log('📦 apiService disponível?', typeof apiService);
+            console.log('📦 CONFIG disponível?', typeof CONFIG);
+            console.log('📦 CONFIG.ENDPOINTS:', CONFIG?.ENDPOINTS);
+            
+            // Carregar notas (não bloqueia se falhar)
+            loadNotas().catch(error => {
+                console.error('❌ Erro ao carregar notas:', error);
+            });
+            
+            // Carregar clientes (não bloqueia se falhar)
+            loadClientes().catch(error => {
+                console.error('❌ Erro ao carregar clientes:', error);
+            });
+            
+            // Configurar event listeners
+            try {
+                document.getElementById('fileInput')?.addEventListener('change', handleFileSelection);
+                document.getElementById('emitir_valor_produtos')?.addEventListener('input', calcularValorTotal);
+                document.getElementById('emitir_valor_servicos')?.addEventListener('input', calcularValorTotal);
+                document.getElementById('emitir_uf')?.addEventListener('change', calcularValorTotal);
+                
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            } catch (error) {
+                console.error('⚠️ Erro ao configurar listeners:', error);
+            }
+        });
+
+        async function loadNotas() {
+            const loadingState = document.getElementById('loadingState');
+            const nfeContainer = document.getElementById('nfeContainer');
+            const emptyState = document.getElementById('emptyState');
+
+            try {
+                notas = await apiService.getNotasFiscais();
+                filteredNotas = notas;
+                updateSummary();
+
+                if (notas.length === 0) {
+                    loadingState.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                } else {
+                    loadingState.classList.add('hidden');
+                    renderNotasTable();
+                    nfeContainer.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar notas:', error);
+                loadingState.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-exclamation-circle text-4xl text-red-600 mb-4"></i>
+                        <p class="text-gray-400">Erro ao carregar notas fiscais: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function updateSummary() {
+            const total = notas.length;
+            const autorizadas = notas.filter(n => n.situacao === 'autorizada').length;
+            const canceladas = notas.filter(n => n.situacao === 'cancelada').length;
+            const totalValue = notas.reduce((sum, n) => sum + (parseFloat(n.valor_total) || 0), 0);
+
+            document.getElementById('totalNfe').textContent = total;
+            document.getElementById('autorizadas').textContent = autorizadas;
+            document.getElementById('canceladas').textContent = canceladas;
+            document.getElementById('totalValue').textContent = 'R$ ' + totalValue.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        }
+
+        function renderNotasTable() {
+            const tableBody = document.getElementById('nfeTableBody');
+
+            tableBody.innerHTML = filteredNotas.map(nota => `
+                <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-all">
+                    <td class="px-6 py-4 font-medium">${nota.numero || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${nota.serie || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${nota.nome_emitente || 'N/A'}</td>
+                    <td class="px-6 py-4 font-medium">R$ ${parseFloat(nota.valor_total || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                            nota.situacao === 'autorizada' 
+                            ? 'bg-green-600/20 text-green-400 border border-green-600/30'
+                            : nota.situacao === 'cancelada'
+                            ? 'bg-red-600/20 text-red-400 border border-red-600/30'
+                            : 'bg-yellow-600/20 text-yellow-400 border border-yellow-600/30'
+                        }">
+                            ${nota.situacao?.toUpperCase() || 'PENDENTE'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${nota.data_emissao ? new Date(nota.data_emissao).toLocaleDateString('pt-BR') : 'N/A'}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="viewDetail('${nota.id}')" class="text-blue-400 hover:text-blue-300 mr-3" title="Ver Detalhes">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${nota.situacao !== 'autorizada' && nota.situacao !== 'cancelada' ? `
+                            <button onclick="viewDetail('${nota.id}')" class="text-green-400 hover:text-green-300 mr-3" title="Ver e Autorizar">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        ` : ''}
+                        ${nota.situacao === 'autorizada' ? `
+                            <button onclick="confirmCancelNfe('${nota.id}')" class="text-red-400 hover:text-red-300" title="Cancelar">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function toggleFilters() {
+            document.getElementById('filters').classList.toggle('hidden');
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+
+            filteredNotas = notas.filter(nota => {
+                const matchesSearch = !search || nota.numero.includes(search);
+                const matchesStatus = !status || nota.status === status;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            renderNotasTable();
+        }
+
+        function openImportModal() {
+            document.getElementById('importModal').classList.remove('hidden');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').classList.add('hidden');
+            selectedFiles = [];
+            document.getElementById('fileList').innerHTML = '';
+        }
+
+        function handleFileSelection(event) {
+            selectedFiles = Array.from(event.target.files);
+            updateFileList();
+        }
+
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = selectedFiles.map((file, idx) => `
+                <div class="flex items-center justify-between bg-gray-700/50 p-3 rounded-lg mb-2">
+                    <span class="text-sm">${file.name}</span>
+                    <button type="button" onclick="removeFile(${idx})" class="text-red-400 hover:text-red-300">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(idx) {
+            selectedFiles.splice(idx, 1);
+            updateFileList();
+        }
+
+        async function handleImport(event) {
+            event.preventDefault();
+
+            if (selectedFiles.length === 0) {
+                showToast('Selecione pelo menos um arquivo', 'error');
+                return;
+            }
+
+            try {
+                for (const file of selectedFiles) {
+                    await apiService.importarNotasXML(file);
+                }
+                closeImportModal();
+                await loadNotas();
+                showToast('Notas fiscais importadas com sucesso!', 'success');
+            } catch (error) {
+                showToast('Erro ao importar: ' + error.message, 'error');
+            }
+        }
+
+        let currentNotaId = null;
+
+        async function viewDetail(notaId) {
+            const nota = notas.find(n => n.id === notaId);
+            if (!nota) return;
+
+            currentNotaId = notaId; // Armazenar ID para usar no botão Autorizar
+
+            const detailContent = document.getElementById('detailContent');
+            detailContent.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-400 text-sm">Número</p>
+                        <p class="font-semibold">${nota.numero || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Série</p>
+                        <p class="font-semibold">${nota.serie || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">CNPJ Emitente</p>
+                        <p class="font-semibold">${nota.cnpj_emitente || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">CNPJ Destinatário</p>
+                        <p class="font-semibold">${nota.cnpj_destinatario || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Valor Total</p>
+                        <p class="font-semibold">R$ ${parseFloat(nota.valor_total || 0).toFixed(2)}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Status</p>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                            nota.situacao === 'autorizada' ? 'bg-green-600/20 text-green-400' :
+                            nota.situacao === 'cancelada' ? 'bg-red-600/20 text-red-400' :
+                            'bg-yellow-600/20 text-yellow-400'
+                        }">
+                            ${nota.situacao?.toUpperCase() || 'N/A'}
+                        </span>
+                    </div>
+                    <div class="col-span-2">
+                        <p class="text-gray-400 text-sm">Data de Emissão</p>
+                        <p class="font-semibold">${nota.data_emissao ? new Date(nota.data_emissao).toLocaleDateString('pt-BR') : 'N/A'}</p>
+                    </div>
+                    ${nota.chave_acesso ? `
+                    <div class="col-span-2">
+                        <p class="text-gray-400 text-sm">Chave de Acesso</p>
+                        <p class="font-mono text-xs break-all">${nota.chave_acesso}</p>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+
+            // Botões de ação baseados no status
+            const detailActions = document.getElementById('detailActions');
+            let actionButtons = '<button onclick="closeDetailModal()" class="px-6 py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all" style="height: 42px; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;">Fechar</button>';
+
+            if (nota.situacao === 'pendente' || nota.situacao === 'emitida') {
+                actionButtons += '<button onclick="confirmAuthorizeNfe()" class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-all" style="height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; white-space: nowrap;"><i class="fas fa-check"></i><span>Autorizar NFe</span></button>';
+            }
+
+            if (nota.situacao === 'autorizada') {
+                actionButtons += '<button onclick="confirmCancelNfe(\''+notaId+'\')" class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all" style="height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; white-space: nowrap;"><i class="fas fa-times"></i><span>Cancelar NFe</span></button>';
+            }
+
+            detailActions.innerHTML = actionButtons;
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+            currentNotaId = null;
+        }
+
+        async function confirmAuthorizeNfe() {
+            if (!currentNotaId) {
+                showToast('Erro: Nenhuma nota selecionada', 'error');
+                return;
+            }
+
+            try {
+                await apiService.autorizarNotaFiscal(currentNotaId);
+                showToast('Nota autorizada com sucesso!', 'success');
+                closeDetailModal();
+                // Recarregar a página para mostrar a nota atualizada
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } catch (error) {
+                showToast('Erro ao autorizar: ' + error.message, 'error');
+            }
+        }
+
+        async function confirmCancelNfe(notaId) {
+            try {
+                await apiService.cancelarNotaFiscal(notaId);
+                showToast('Nota cancelada com sucesso!', 'success');
+                closeDetailModal();
+                // Recarregar a página para mostrar a nota atualizada
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } catch (error) {
+                showToast('Erro ao cancelar: ' + error.message, 'error');
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-6 right-6 px-6 py-3 rounded-lg text-white z-50 ${
+                type === 'success' ? 'bg-green-600' : 'bg-red-600'
+            }`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function loadClientes() {
+            try {
+                const clientes = await apiService.getClientes();
+                const select = document.getElementById('emitir_cliente_id');
+                
+                select.innerHTML = '<option value="">Selecione um cliente</option>' +
+                    clientes.map(c => `
+                        <option value="${c.id}" data-cnpj="${c.cnpj_cpf}" data-nome="${c.nome_razao_social}" data-uf="${c.uf || 'SP'}">
+                            ${c.nome_razao_social} - ${c.cnpj_cpf}
+                        </option>
+                    `).join('');
+                
+                // Preencher campos ao selecionar cliente
+                select.addEventListener('change', (e) => {
+                    const option = e.target.selectedOptions[0];
+                    if (option.value) {
+                        document.getElementById('emitir_cnpj_destinatario').value = option.dataset.cnpj;
+                        document.getElementById('emitir_nome_destinatario').value = option.dataset.nome;
+                        document.getElementById('emitir_uf').value = option.dataset.uf || 'SP';
+                        calcularValorTotal(); // Recalcular impostos com novo UF
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+            }
+        }
+
+        // Tabela de alíquotas por UF
+        const ALIQUOTAS_ICMS = {
+            'SP': 0.18,  // São Paulo
+            'RJ': 0.20,  // Rio de Janeiro (alíquota modal)
+            'MG': 0.18,  // Minas Gerais
+            'ES': 0.17,  // Espírito Santo
+            'PR': 0.18,  // Paraná (alíquota interna)
+            'SC': 0.17,  // Santa Catarina
+            'RS': 0.18,  // Rio Grande do Sul
+            'BA': 0.18,  // Bahia
+            'PE': 0.18,  // Pernambuco
+            'CE': 0.18,  // Ceará
+            'DF': 0.18,  // Distrito Federal
+            'GO': 0.17,  // Goiás
+            'MT': 0.17,  // Mato Grosso
+            'MS': 0.17,  // Mato Grosso do Sul
+            'AM': 0.18,  // Amazonas
+            'PA': 0.17   // Pará
+        };
+
+        // Alíquotas federais (padrão para Lucro Real)
+        const ALIQUOTA_PIS_REAL = 0.0165;      // 1.65%
+        const ALIQUOTA_COFINS_REAL = 0.076;    // 7.6%
+        
+        // Alíquotas Simples Nacional (médias)
+        const ALIQUOTA_PIS_SIMPLES = 0.0038;   // ~0.38%
+        const ALIQUOTA_COFINS_SIMPLES = 0.0114; // ~1.14%
+
+        function calcularValorTotal() {
+            const produtos = parseFloat(document.getElementById('emitir_valor_produtos').value) || 0;
+            const servicos = parseFloat(document.getElementById('emitir_valor_servicos').value) || 0;
+            const uf = document.getElementById('emitir_uf').value;
+            const baseCalculo = produtos + servicos;
+            
+            if (!uf) {
+                alert('Selecione a UF para calcular os impostos corretamente');
+                return;
+            }
+            
+            // Buscar alíquota de ICMS por UF
+            const aliquotaICMS = ALIQUOTAS_ICMS[uf] || 0.18; // Default 18%
+            
+            // Assumir Lucro Real (pode ser ajustado com seletor de regime)
+            const aliquotaPIS = ALIQUOTA_PIS_REAL;
+            const aliquotaCOFINS = ALIQUOTA_COFINS_REAL;
+            const aliquotaISS = 0.05; // 5% padrão (ISS varia por município)
+            
+            // Calcular impostos
+            const icms = produtos * aliquotaICMS; // ICMS apenas sobre produtos
+            const pis = baseCalculo * aliquotaPIS;
+            const cofins = baseCalculo * aliquotaCOFINS;
+            const iss = servicos * aliquotaISS; // ISS apenas sobre serviços
+            
+            const totalImpostos = icms + pis + cofins + iss;
+            const valorTotal = baseCalculo; // Nota: impostos já inclusos no valor
+            
+            // Atualizar labels com as alíquotas
+            document.getElementById('label_icms').textContent = `ICMS (${(aliquotaICMS * 100).toFixed(0)}%)`;
+            document.getElementById('label_pis').textContent = `PIS (${(aliquotaPIS * 100).toFixed(2)}%)`;
+            document.getElementById('label_cofins').textContent = `COFINS (${(aliquotaCOFINS * 100).toFixed(1)}%)`;
+            document.getElementById('label_iss').textContent = `ISS (${(aliquotaISS * 100).toFixed(0)}%)`;
+            
+            // Atualizar campos
+            document.getElementById('emitir_base_calculo').value = baseCalculo.toFixed(2);
+            document.getElementById('emitir_icms').value = icms.toFixed(2);
+            document.getElementById('emitir_pis').value = pis.toFixed(2);
+            document.getElementById('emitir_cofins').value = cofins.toFixed(2);
+            document.getElementById('emitir_iss').value = iss.toFixed(2);
+            document.getElementById('emitir_total_impostos').value = totalImpostos.toFixed(2);
+            document.getElementById('emitir_valor_total').value = valorTotal.toFixed(2);
+        }
+
+        function openEmitirModal() {
+            document.getElementById('emitirModal').classList.remove('hidden');
+            
+            // Gerar número sequencial automático
+            const proximoNumero = Math.floor(Math.random() * 90000) + 10000;
+            document.getElementById('emitir_numero').value = proximoNumero;
+        }
+
+        function closeEmitirModal() {
+            document.getElementById('emitirModal').classList.add('hidden');
+            document.getElementById('emitirForm').reset();
+            document.getElementById('emissaoStatus').classList.add('hidden');
+        }
+
+        async function handleEmitir(event) {
+            event.preventDefault();
+
+            const btnEmitir = document.getElementById('btnEmitir');
+            const statusDiv = document.getElementById('emissaoStatus');
+
+            try {
+                // Desabilitar botão e mostrar status
+                btnEmitir.disabled = true;
+                btnEmitir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Emitindo...';
+                statusDiv.classList.remove('hidden');
+
+                // Montar dados da nota
+                const notaData = {
+                    cliente_id: document.getElementById('emitir_cliente_id').value,
+                    numero: document.getElementById('emitir_numero').value,
+                    serie: document.getElementById('emitir_serie').value || "1",
+                    modelo: document.getElementById('emitir_modelo').value,
+                    tipo: document.getElementById('emitir_tipo').value,
+                    uf: document.getElementById('emitir_uf').value,
+                    cnpj_emitente: document.getElementById('emitir_cnpj_emitente').value,
+                    nome_emitente: "Sua Empresa Ltda",
+                    cnpj_destinatario: document.getElementById('emitir_cnpj_destinatario').value,
+                    nome_destinatario: document.getElementById('emitir_nome_destinatario').value,
+                    valor_produtos: parseFloat(document.getElementById('emitir_valor_produtos').value) || 0,
+                    valor_servicos: parseFloat(document.getElementById('emitir_valor_servicos').value) || 0,
+                    valor_total: parseFloat(document.getElementById('emitir_valor_total').value),
+                    observacoes: document.getElementById('emitir_observacoes').value || "",
+                    data_emissao: new Date().toISOString()
+                };
+
+                console.log('Dados da nota:', notaData);
+                console.log('URL:', `${CONFIG.BASE_URL}/notas-fiscais/emitir`);
+
+                // Emitir NFe via API
+                // FastAPI espera: {"nota": {...}, "itens": [...]}
+                const response = await fetch(`${CONFIG.BASE_URL}/notas-fiscais/emitir`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        nota: notaData,
+                        itens: [] // Pode adicionar itens depois se necessário
+                    })
+                });
+
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    console.error('Erro da API:', error);
+                    throw new Error(error.detail || error.message || JSON.stringify(error));
+                }
+
+                const nota = await response.json();
+                console.log('Nota emitida:', nota);
+
+                // Sucesso!
+                statusDiv.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-check-circle text-green-400 text-xl"></i>
+                        <div>
+                            <p class="font-semibold text-green-400">NFe emitida com sucesso!</p>
+                            <p class="text-sm text-gray-400">Chave: ${nota.chave_acesso || 'N/A'}</p>
+                        </div>
+                    </div>
+                `;
+                statusDiv.classList.remove('bg-blue-900/20', 'border-blue-600/30');
+                statusDiv.classList.add('bg-green-900/20', 'border-green-600/30');
+
+                // Mostrar toast
+                showToast('NFe emitida e autorizada com sucesso!', 'success');
+                
+                // Aguardar 1.5 segundos e recarregar a página
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+
+            } catch (error) {
+                console.error('Erro ao emitir:', error);
+                const errorMessage = error.message || 'Erro desconhecido ao emitir NFe';
+                statusDiv.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-exclamation-circle text-red-400 text-xl"></i>
+                        <div>
+                            <p class="font-semibold text-red-400">Erro na emissão</p>
+                            <p class="text-sm text-gray-400">${errorMessage}</p>
+                        </div>
+                    </div>
+                `;
+                statusDiv.classList.remove('bg-blue-900/20', 'border-blue-600/30');
+                statusDiv.classList.add('bg-red-900/20', 'border-red-600/30');
+
+                // Reabilitar botão
+                btnEmitir.disabled = false;
+                btnEmitir.innerHTML = '<i class="fas fa-paper-plane"></i> Emitir NFe';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/pages/login.html';
+        }
+    </script>
+</body>
+</html>

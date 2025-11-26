@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - Contabiliza.IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/src/styles/globals.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Sidebar -->
+    <div class="flex h-screen bg-gray-900">
+        <aside class="w-64 bg-gray-800 border-r border-gray-700">
+            <div class="p-6 border-b border-gray-700">
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-calculator text-white text-sm"></i>
+                    </div>
+                    <span class="text-lg font-bold">Contabiliza.IA</span>
+                </div>
+            </div>
+
+            <nav class="p-4 space-y-2">
+                <a href="/pages/dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-chart-line w-5"></i> Dashboard
+                </a>
+                <a href="/pages/clientes.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-users w-5"></i> Clientes
+                </a>
+                <a href="/pages/notas-fiscais.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-file-invoice w-5"></i> Notas Fiscais
+                </a>
+                <a href="/pages/financeiro.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-chart-bar w-5"></i> Financeiro
+                </a>
+                <a href="/pages/juridico.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-scale-balanced w-5"></i> Jurídico
+                </a>
+                <a href="/pages/relatorios.html" class="flex items-center gap-3 px-4 py-3 bg-purple-600/20 text-purple-400 rounded-lg border border-purple-600/30">
+                    <i class="fas fa-file-pdf w-5"></i> Relatórios
+                </a>
+            </nav>
+
+            <div class="absolute bottom-0 left-0 w-64 p-4 border-t border-gray-700">
+                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-sign-out-alt w-5"></i> Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto">
+            <!-- Header -->
+            <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
+                <div class="flex justify-between items-center p-6">
+                    <div>
+                        <h1 class="text-3xl font-bold mb-1">Relatórios</h1>
+                        <p class="text-gray-400 text-sm">Geração e análise de relatórios</p>
+                    </div>
+                    <div class="flex gap-3"></div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="p-6">
+                <!-- Report Selection -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                    <!-- Relatório de Notas -->
+                    <div class="glass-card rounded-lg p-6 cursor-pointer hover:border-purple-600 transition-all border border-gray-700" onclick="loadReport('notas')">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold">Relatório de Notas Fiscais</h3>
+                                <p class="text-gray-400 text-sm mt-1">Consolidação de NFe por período</p>
+                            </div>
+                            <i class="fas fa-file-invoice text-2xl text-purple-400"></i>
+                        </div>
+                        <button class="mt-4 w-full px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 rounded-lg transition-all text-purple-400 text-sm font-medium">
+                            Gerar
+                        </button>
+                    </div>
+
+                    <!-- Relatório Financeiro -->
+                    <div class="glass-card rounded-lg p-6 cursor-pointer hover:border-purple-600 transition-all border border-gray-700" onclick="loadReport('financeiro')">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold">Relatório Financeiro</h3>
+                                <p class="text-gray-400 text-sm mt-1">Fluxo de caixa e resultados</p>
+                            </div>
+                            <i class="fas fa-chart-line text-2xl text-blue-400"></i>
+                        </div>
+                        <button class="mt-4 w-full px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg transition-all text-blue-400 text-sm font-medium">
+                            Gerar
+                        </button>
+                    </div>
+
+                    <!-- Relatório de Clientes -->
+                    <div class="glass-card rounded-lg p-6 cursor-pointer hover:border-purple-600 transition-all border border-gray-700" onclick="loadReport('clientes')">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold">Relatório de Clientes</h3>
+                                <p class="text-gray-400 text-sm mt-1">Análise e segmentação</p>
+                            </div>
+                            <i class="fas fa-users text-2xl text-green-400"></i>
+                        </div>
+                        <button class="mt-4 w-full px-4 py-2 bg-green-600/20 hover:bg-green-600/30 rounded-lg transition-all text-green-400 text-sm font-medium">
+                            Gerar
+                        </button>
+                    </div>
+
+                    <!-- Relatório Jurídico -->
+                    <div class="glass-card rounded-lg p-6 cursor-pointer hover:border-purple-600 transition-all border border-gray-700" onclick="loadReport('juridico')">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold">Relatório Jurídico</h3>
+                                <p class="text-gray-400 text-sm mt-1">Status de processos e prazos</p>
+                            </div>
+                            <i class="fas fa-scale-balanced text-2xl text-orange-400"></i>
+                        </div>
+                        <button class="mt-4 w-full px-4 py-2 bg-orange-600/20 hover:bg-orange-600/30 rounded-lg transition-all text-orange-400 text-sm font-medium">
+                            Gerar
+                        </button>
+                    </div>
+
+                    <!-- Relatório Consolidado -->
+                    <div class="glass-card rounded-lg p-6 cursor-pointer hover:border-purple-600 transition-all border border-gray-700" onclick="loadReport('consolidado')">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold">Relatório Consolidado</h3>
+                                <p class="text-gray-400 text-sm mt-1">Visão completa do negócio</p>
+                            </div>
+                            <i class="fas fa-chart-bar text-2xl text-purple-400"></i>
+                        </div>
+                        <button class="mt-4 w-full px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 rounded-lg transition-all text-purple-400 text-sm font-medium">
+                            Gerar
+                        </button>
+                    </div>
+
+                    <!-- Alertas e Conformidade -->
+                    <div class="glass-card rounded-lg p-6 cursor-pointer hover:border-purple-600 transition-all border border-gray-700" onclick="loadReport('alertas')">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold">Alertas e Conformidade</h3>
+                                <p class="text-gray-400 text-sm mt-1">Pendências e obrigações</p>
+                            </div>
+                            <i class="fas fa-bell text-2xl text-red-400"></i>
+                        </div>
+                        <button class="mt-4 w-full px-4 py-2 bg-red-600/20 hover:bg-red-600/30 rounded-lg transition-all text-red-400 text-sm font-medium">
+                            Gerar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Report Content -->
+                <div id="reportContent" class="hidden">
+                    <!-- Filters -->
+                    <div class="glass-card rounded-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Período de Referência</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Mês</label>
+                                <select id="mesReferencia" onchange="generateReport()" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                    <option value="01">Janeiro</option>
+                                    <option value="02">Fevereiro</option>
+                                    <option value="03">Março</option>
+                                    <option value="04">Abril</option>
+                                    <option value="05">Maio</option>
+                                    <option value="06">Junho</option>
+                                    <option value="07">Julho</option>
+                                    <option value="08">Agosto</option>
+                                    <option value="09">Setembro</option>
+                                    <option value="10">Outubro</option>
+                                    <option value="11">Novembro</option>
+                                    <option value="12">Dezembro</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Ano</label>
+                                <select id="anoReferencia" onchange="generateReport()" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                    <option value="2025">2025</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2023">2023</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Formato</label>
+                                <select id="formato" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                    <option value="pdf">PDF</option>
+                                    <option value="excel">Excel</option>
+                                    <option value="csv">CSV</option>
+                                </select>
+                            </div>
+                            
+                        </div>
+                    </div>
+
+                    <!-- Report Preview -->
+                    <div id="reportPreview" class="glass-card rounded-lg p-8">
+                        <div class="flex justify-between items-center mb-6 pb-6 border-b border-gray-700">
+                            <div>
+                                <h3 id="reportTitle" class="text-2xl font-bold">Relatório</h3>
+                                <p id="reportDate" class="text-gray-400 text-sm mt-1">Período: --</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="backToSelection()" class="px-4 py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all">
+                                    Voltar
+                                </button>
+                                <button onclick="exportReport()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all flex items-center gap-2">
+                                    <i class="fas fa-print"></i> Exportar/Imprimir
+                                </button>
+                                <button onclick="downloadPDF()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all flex items-center gap-2">
+                                    <i class="fas fa-file-arrow-down"></i> Baixar PDF
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                            <div class="bg-gray-800/50 p-4 rounded-lg">
+                                <p class="text-gray-400 text-sm mb-1">Total</p>
+                                <h4 id="totalValue" class="text-2xl font-bold">R$ 0,00</h4>
+                            </div>
+                            <div class="bg-gray-800/50 p-4 rounded-lg">
+                                <p class="text-gray-400 text-sm mb-1">Itens</p>
+                                <h4 id="totalItems" class="text-2xl font-bold">0</h4>
+                            </div>
+                            <div class="bg-gray-800/50 p-4 rounded-lg">
+                                <p class="text-gray-400 text-sm mb-1">Variação</p>
+                                <h4 id="variation" class="text-2xl font-bold text-green-400">+0%</h4>
+                            </div>
+                            <div class="bg-gray-800/50 p-4 rounded-lg">
+                                <p class="text-gray-400 text-sm mb-1">Status</p>
+                                <h4 class="text-2xl font-bold">Ativo</h4>
+                            </div>
+                        </div>
+
+                        <!-- Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-800/50 border-b border-gray-700">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-sm font-semibold">Descrição</th>
+                                        <th class="px-4 py-3 text-right text-sm font-semibold">Valor</th>
+                                        <th class="px-4 py-3 text-right text-sm font-semibold">Percentual</th>
+                                        <th class="px-4 py-3 text-right text-sm font-semibold">Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportTableBody" class="divide-y divide-gray-700">
+                                    <tr class="hover:bg-gray-800/30 transition-all">
+                                        <td colspan="4" class="px-4 py-8 text-center text-gray-400">Carregando dados...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center py-12">
+                    <i class="fas fa-file-chart-line text-5xl text-gray-700 mb-4"></i>
+                    <p class="text-gray-400">Selecione um relatório para começar</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/src/js/config.js?v=20251125a"></script>
+    <script src="/src/js/api-service.js?v=20251125a"></script>
+    <script src="/src/js/ui-helper.js?v=20251125a"></script>
+    <script>
+        // Polyfill para garantir UTILS.showToast mesmo com cache antigo
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.UTILS && typeof window.UTILS.showToast !== 'function') {
+                window.UTILS.showToast = function(message, type = 'info') {
+                    if (window.UIHelper && typeof window.UIHelper.showNotification === 'function') {
+                        window.UIHelper.showNotification(message, type);
+                        return;
+                    }
+                    try {
+                        let box = document.getElementById('toast-fallback');
+                        if (!box) {
+                            box = document.createElement('div');
+                            box.id = 'toast-fallback';
+                            box.style.position = 'fixed';
+                            box.style.top = '16px';
+                            box.style.right = '16px';
+                            box.style.background = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#3b82f6';
+                            box.style.color = '#fff';
+                            box.style.padding = '10px 14px';
+                            box.style.borderRadius = '8px';
+                            box.style.zIndex = '9999';
+                            document.body.appendChild(box);
+                        }
+                        box.textContent = message;
+                        box.style.display = 'block';
+                        setTimeout(() => { box.style.display = 'none'; }, 2500);
+                    } catch (e) {
+                        console.log(`[${type}] ${message}`);
+                    }
+                }
+            }
+        });
+        let currentReport = null;
+
+        // Verificar autenticação
+        if (!UTILS.isAuthenticated()) {
+            window.location.href = '/pages/login.html';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            feather.replace();
+        });
+
+        function loadReport(type) {
+            currentReport = type;
+            const emptyState = document.getElementById('emptyState');
+            const reportContent = document.getElementById('reportContent');
+            const reportTitle = document.getElementById('reportTitle');
+
+            emptyState.classList.add('hidden');
+            reportContent.classList.remove('hidden');
+
+            const titles = {
+                'notas': 'Relatório de Notas Fiscais',
+                'financeiro': 'Relatório Financeiro',
+                'clientes': 'Relatório de Clientes',
+                'juridico': 'Relatório Jurídico',
+                'consolidado': 'Relatório Consolidado',
+                'alertas': 'Alertas e Conformidade'
+            };
+
+            reportTitle.textContent = titles[type] || 'Relatório';
+
+            // Definir mês e ano atual
+            const hoje = new Date();
+            document.getElementById('mesReferencia').value = String(hoje.getMonth() + 1).padStart(2, '0');
+            document.getElementById('anoReferencia').value = hoje.getFullYear();
+
+            // Mostrar mensagem de carregamento
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i>Carregando dados...</td></tr>';
+
+            // Gerar relatório automaticamente
+            generateReport();
+        }
+
+        async function generateReport() {
+            if (!currentReport) {
+                return;
+            }
+
+            const mes = document.getElementById('mesReferencia').value;
+            const ano = document.getElementById('anoReferencia').value;
+
+            const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            
+            const mesNome = meses[parseInt(mes) - 1];
+            document.getElementById('reportDate').textContent = `Período: ${mesNome}/${ano}`;
+
+            // Calcular primeiro e último dia do mês
+            const dataInicio = new Date(ano, parseInt(mes) - 1, 1);
+            const dataFim = new Date(ano, parseInt(mes), 0);
+
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i>Carregando dados...</td></tr>';
+
+            try {
+                let dados = [];
+                let total = 0;
+
+                // Buscar dados conforme o tipo de relatório
+                switch(currentReport) {
+                    case 'notas':
+                        const notas = await apiService.getNotasFiscais();
+                        dados = notas.filter(n => {
+                            const dataNota = new Date(n.data_emissao);
+                            return dataNota >= dataInicio && dataNota <= dataFim;
+                        });
+                        total = dados.reduce((sum, n) => sum + (n.valor_total || 0), 0);
+                        renderNotasTable(dados, total);
+                        break;
+                    
+                    case 'financeiro':
+                        const lancamentos = await apiService.getLancamentos();
+                        dados = lancamentos.filter(l => {
+                            const dataLanc = new Date(l.data_vencimento);
+                            return dataLanc >= dataInicio && dataLanc <= dataFim;
+                        });
+                        total = dados.reduce((sum, l) => sum + (l.valor || 0), 0);
+                        renderFinanceiroTable(dados, total);
+                        break;
+                    
+                    case 'clientes':
+                        const clientes = await apiService.getClientes();
+                        dados = clientes.filter(c => {
+                            const dataCad = new Date(c.data_cadastro);
+                            return dataCad >= dataInicio && dataCad <= dataFim;
+                        });
+                        renderClientesTable(dados);
+                        break;
+                    
+                    case 'juridico':
+                        const processos = await apiService.getProcessos();
+                        dados = processos.filter(p => {
+                            const dataProc = new Date(p.data_abertura);
+                            return dataProc >= dataInicio && dataProc <= dataFim;
+                        });
+                        renderJuridicoTable(dados);
+                        break;
+                    
+                    case 'consolidado':
+                        // Buscar dados de todos os módulos
+                        const [notasConsolidado, lancamentosConsolidado, clientesConsolidado, processosConsolidado] = await Promise.all([
+                            apiService.getNotasFiscais(),
+                            apiService.getLancamentos(),
+                            apiService.getClientes(),
+                            apiService.getProcessos()
+                        ]);
+                        
+                        // Filtrar por período
+                        const notasPeriodo = notasConsolidado.filter(n => {
+                            const d = new Date(n.data_emissao);
+                            return d >= dataInicio && d <= dataFim;
+                        });
+                        const lancamentosPeriodo = lancamentosConsolidado.filter(l => {
+                            const d = new Date(l.data_vencimento);
+                            return d >= dataInicio && d <= dataFim;
+                        });
+                        const clientesPeriodo = clientesConsolidado.filter(c => {
+                            const d = new Date(c.data_cadastro);
+                            return d >= dataInicio && d <= dataFim;
+                        });
+                        const processosPeriodo = processosConsolidado.filter(p => {
+                            const d = new Date(p.data_abertura);
+                            return d >= dataInicio && d <= dataFim;
+                        });
+                        
+                        // Calcular totais
+                        const totalNotas = notasPeriodo.reduce((sum, n) => sum + (n.valor_total || 0), 0);
+                        const totalReceitas = lancamentosPeriodo.filter(l => l.tipo === 'receita').reduce((sum, l) => sum + (l.valor || 0), 0);
+                        const totalDespesas = lancamentosPeriodo.filter(l => l.tipo === 'despesa').reduce((sum, l) => sum + (l.valor || 0), 0);
+                        
+                        dados = [
+                            { modulo: 'Notas Fiscais', quantidade: notasPeriodo.length, valor: totalNotas },
+                            { modulo: 'Receitas', quantidade: lancamentosPeriodo.filter(l => l.tipo === 'receita').length, valor: totalReceitas },
+                            { modulo: 'Despesas', quantidade: lancamentosPeriodo.filter(l => l.tipo === 'despesa').length, valor: totalDespesas },
+                            { modulo: 'Clientes Novos', quantidade: clientesPeriodo.length, valor: 0 },
+                            { modulo: 'Processos Jurídicos', quantidade: processosPeriodo.length, valor: 0 }
+                        ];
+                        total = totalNotas + totalReceitas - totalDespesas;
+                        renderConsolidadoTable(dados, total);
+                        break;
+                    
+                    case 'alertas':
+                        // Buscar dados para gerar alertas
+                        const [notasAlertas, lancamentosAlertas, processosAlertas] = await Promise.all([
+                            apiService.getNotasFiscais(),
+                            apiService.getLancamentos(),
+                            apiService.getProcessos()
+                        ]);
+                        
+                        const hoje = new Date();
+                        const proximosDias = new Date(hoje.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 dias
+                        
+                        dados = [];
+                        
+                        // Notas pendentes de autorização
+                        const notasPendentes = notasAlertas.filter(n => n.status === 'pendente' || n.status === 'digitacao');
+                        if (notasPendentes.length > 0) {
+                            dados.push({
+                                tipo: 'Notas Pendentes',
+                                descricao: `${notasPendentes.length} nota(s) fiscal aguardando autorização`,
+                                prioridade: 'Alta',
+                                data: new Date().toISOString()
+                            });
+                        }
+                        
+                        // Lançamentos vencidos
+                        const lancamentosVencidos = lancamentosAlertas.filter(l => {
+                            const venc = new Date(l.data_vencimento);
+                            return venc < hoje && l.status !== 'pago';
+                        });
+                        if (lancamentosVencidos.length > 0) {
+                            dados.push({
+                                tipo: 'Contas Vencidas',
+                                descricao: `${lancamentosVencidos.length} lançamento(s) vencido(s) - ${UTILS.formatarReal(lancamentosVencidos.reduce((s, l) => s + l.valor, 0))}`,
+                                prioridade: 'Crítica',
+                                data: new Date().toISOString()
+                            });
+                        }
+                        
+                        // Lançamentos a vencer nos próximos 7 dias
+                        const lancamentosAVencer = lancamentosAlertas.filter(l => {
+                            const venc = new Date(l.data_vencimento);
+                            return venc >= hoje && venc <= proximosDias && l.status !== 'pago';
+                        });
+                        if (lancamentosAVencer.length > 0) {
+                            dados.push({
+                                tipo: 'Contas a Vencer',
+                                descricao: `${lancamentosAVencer.length} lançamento(s) vence(m) nos próximos 7 dias`,
+                                prioridade: 'Média',
+                                data: new Date().toISOString()
+                            });
+                        }
+                        
+                        // Processos ativos
+                        const processosAtivos = processosAlertas.filter(p => p.status === 'ativo');
+                        if (processosAtivos.length > 0) {
+                            dados.push({
+                                tipo: 'Processos Ativos',
+                                descricao: `${processosAtivos.length} processo(s) jurídico(s) em andamento`,
+                                prioridade: 'Média',
+                                data: new Date().toISOString()
+                            });
+                        }
+                        
+                        if (dados.length === 0) {
+                            dados.push({
+                                tipo: 'Nenhum Alerta',
+                                descricao: 'Não há pendências ou alertas no momento',
+                                prioridade: 'Baixa',
+                                data: new Date().toISOString()
+                            });
+                        }
+                        
+                        renderAlertasTable(dados);
+                        break;
+                    
+                    default:
+                        tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Selecione um tipo de relatório</td></tr>';
+                        return;
+                }
+
+                document.getElementById('totalItems').textContent = dados.length;
+                if (currentReport === 'notas' || currentReport === 'financeiro') {
+                    document.getElementById('totalValue').textContent = UTILS.formatarReal(total);
+                } else {
+                    document.getElementById('totalValue').textContent = '-';
+                }
+
+                UTILS.showToast(`Relatório gerado com ${dados.length} registro(s)`, 'success');
+
+            } catch (error) {
+                console.error('Erro ao gerar relatório:', error);
+                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-red-400">Erro ao carregar dados: ' + error.message + '</td></tr>';
+                UTILS.showToast('Erro ao gerar relatório', 'error');
+            }
+        }
+
+        function renderNotasTable(notas, total) {
+            const tbody = document.getElementById('reportTableBody');
+            if (notas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Nenhuma nota fiscal encontrada neste período</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = notas.map(nota => {
+                const percentual = total > 0 ? ((nota.valor_total / total) * 100).toFixed(1) : 0;
+                const tipoNota = nota.tipo_nota === 'entrada' ? 'Entrada' : 'Saída';
+                const corTipo = nota.tipo_nota === 'entrada' ? 'text-green-400' : 'text-blue-400';
+                const clienteNome = nota.destinatario_nome || nota.emitente_nome || 'N/A';
+                return `
+                    <tr class="hover:bg-gray-800/30 transition-all">
+                        <td class="px-4 py-3">
+                            <div><strong>NFe ${nota.numero_nfe || 'N/A'}</strong> - ${clienteNome}</div>
+                            <div class="text-sm ${corTipo}">${tipoNota}</div>
+                        </td>
+                        <td class="px-4 py-3 text-right">${UTILS.formatarReal(nota.valor_total || 0)}</td>
+                        <td class="px-4 py-3 text-right">${percentual}%</td>
+                        <td class="px-4 py-3 text-right text-gray-400 text-sm">${new Date(nota.data_emissao).toLocaleDateString('pt-BR')}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderFinanceiroTable(lancamentos, total) {
+            const tbody = document.getElementById('reportTableBody');
+            if (lancamentos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Nenhum lançamento encontrado neste período</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = lancamentos.map(lanc => {
+                const percentual = total > 0 ? ((lanc.valor / total) * 100).toFixed(1) : 0;
+                const tipoTexto = lanc.tipo === 'receita' ? 'Entrada (Receita)' : 'Saída (Despesa)';
+                const corTipo = lanc.tipo === 'receita' ? 'text-green-400' : 'text-red-400';
+                const clienteInfo = lanc.cliente_nome || lanc.fornecedor || 'Sem vínculo';
+                return `
+                    <tr class="hover:bg-gray-800/30 transition-all">
+                        <td class="px-4 py-3">
+                            <div><strong>${lanc.descricao || 'N/A'}</strong> - ${clienteInfo}</div>
+                            <div class="text-sm ${corTipo}">${tipoTexto}</div>
+                        </td>
+                        <td class="px-4 py-3 text-right ${corTipo}">${UTILS.formatarReal(lanc.valor || 0)}</td>
+                        <td class="px-4 py-3 text-right">${percentual}%</td>
+                        <td class="px-4 py-3 text-right text-gray-400 text-sm">${new Date(lanc.data_vencimento).toLocaleDateString('pt-BR')}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderClientesTable(clientes) {
+            const tbody = document.getElementById('reportTableBody');
+            if (clientes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Nenhum cliente cadastrado neste período</td></tr>';
+                return;
+            }
+
+            // Atualizar cabeçalhos da tabela
+            const thead = document.querySelector('#reportPreview table thead');
+            if (thead) {
+                thead.innerHTML = `
+                    <tr class="bg-gray-800/50 border-b border-gray-700">
+                        <th class="px-4 py-3 text-left text-sm font-semibold">Nome/Razão Social</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">CNPJ/CPF</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">Status</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">Data Cadastro</th>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = clientes.map(cliente => `
+                <tr class="hover:bg-gray-800/30 transition-all">
+                    <td class="px-4 py-3">${cliente.nome_razao_social || 'N/A'}</td>
+                    <td class="px-4 py-3 text-right">${UTILS.formatarCNPJ(cliente.cnpj_cpf || '')}</td>
+                    <td class="px-4 py-3 text-right">${cliente.ativo ? '<span class="text-green-400">Ativo</span>' : '<span class="text-red-400">Inativo</span>'}</td>
+                    <td class="px-4 py-3 text-right text-gray-400 text-sm">${new Date(cliente.data_cadastro).toLocaleDateString('pt-BR')}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderJuridicoTable(processos) {
+            const tbody = document.getElementById('reportTableBody');
+            if (processos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Nenhum processo aberto neste período</td></tr>';
+                return;
+            }
+
+            // Atualizar cabeçalhos da tabela
+            const thead = document.querySelector('#reportPreview table thead');
+            if (thead) {
+                thead.innerHTML = `
+                    <tr class="bg-gray-800/50 border-b border-gray-700">
+                        <th class="px-4 py-3 text-left text-sm font-semibold">Número Processo</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">Tipo Ação</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">Status</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">Data Abertura</th>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = processos.map(processo => `
+                <tr class="hover:bg-gray-800/30 transition-all">
+                    <td class="px-4 py-3">${processo.numero_processo || 'N/A'}</td>
+                    <td class="px-4 py-3 text-right">${processo.tipo_acao || 'N/A'}</td>
+                    <td class="px-4 py-3 text-right"><span class="px-2 py-1 rounded text-xs ${processo.status === 'ativo' ? 'bg-green-600/20 text-green-400' : 'bg-gray-600/20 text-gray-400'}">${processo.status}</span></td>
+                    <td class="px-4 py-3 text-right text-gray-400 text-sm">${new Date(processo.data_abertura).toLocaleDateString('pt-BR')}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderConsolidadoTable(dados, total) {
+            const tbody = document.getElementById('reportTableBody');
+            if (dados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Nenhum dado consolidado neste período</td></tr>';
+                return;
+            }
+
+            // Atualizar cabeçalhos da tabela
+            const thead = document.querySelector('#reportPreview table thead');
+            if (thead) {
+                thead.innerHTML = `
+                    <tr class="bg-gray-800/50 border-b border-gray-700">
+                        <th class="px-4 py-3 text-left text-sm font-semibold">Módulo</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">Valor Total</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">Quantidade</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">% do Total</th>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = dados.map(item => {
+                const valorTexto = item.valor > 0 ? UTILS.formatarReal(item.valor) : '-';
+                const percentual = total > 0 && item.valor > 0 ? ((item.valor / Math.abs(total)) * 100).toFixed(1) + '%' : '-';
+                return `
+                    <tr class="hover:bg-gray-800/30 transition-all">
+                        <td class="px-4 py-3">${item.modulo}</td>
+                        <td class="px-4 py-3 text-right font-semibold">${valorTexto}</td>
+                        <td class="px-4 py-3 text-right">${item.quantidade}</td>
+                        <td class="px-4 py-3 text-right text-gray-400 text-sm">${percentual}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderAlertasTable(alertas) {
+            const tbody = document.getElementById('reportTableBody');
+            if (alertas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Nenhum alerta no momento</td></tr>';
+                return;
+            }
+
+            // Atualizar cabeçalhos da tabela
+            const thead = document.querySelector('#reportPreview table thead');
+            if (thead) {
+                thead.innerHTML = `
+                    <tr class="bg-gray-800/50 border-b border-gray-700">
+                        <th class="px-4 py-3 text-left text-sm font-semibold">Tipo</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">Descrição</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">Prioridade</th>
+                        <th class="px-4 py-3 text-right text-sm font-semibold">Data</th>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = alertas.map(alerta => {
+                const prioridadeColor = {
+                    'Crítica': 'bg-red-600/20 text-red-400',
+                    'Alta': 'bg-orange-600/20 text-orange-400',
+                    'Média': 'bg-yellow-600/20 text-yellow-400',
+                    'Baixa': 'bg-green-600/20 text-green-400'
+                }[alerta.prioridade] || 'bg-gray-600/20 text-gray-400';
+
+                return `
+                    <tr class="hover:bg-gray-800/30 transition-all">
+                        <td class="px-4 py-3">${alerta.tipo}</td>
+                        <td class="px-4 py-3 text-right">${alerta.descricao}</td>
+                        <td class="px-4 py-3 text-right"><span class="px-2 py-1 rounded text-xs ${prioridadeColor}">${alerta.prioridade}</span></td>
+                        <td class="px-4 py-3 text-right text-gray-400 text-sm">${new Date(alerta.data).toLocaleDateString('pt-BR')}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function backToSelection() {
+            document.getElementById('emptyState').classList.remove('hidden');
+            document.getElementById('reportContent').classList.add('hidden');
+            currentReport = null;
+        }
+
+        function exportReport() {
+            if (!currentReport) {
+                UTILS.showToast('Selecione um relatório primeiro', 'error');
+                return;
+            }
+
+            const mes = document.getElementById('mesReferencia').value;
+            const ano = document.getElementById('anoReferencia').value;
+            const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            const mesNome = meses[parseInt(mes) - 1];
+
+            // Montar conteúdo HTML do relatório
+            const reportTitle = document.getElementById('reportTitle').textContent;
+            const totalValue = document.getElementById('totalValue').textContent;
+            const totalItems = document.getElementById('totalItems').textContent;
+            const tableBody = document.getElementById('reportTableBody').innerHTML;
+
+            const htmlContent = `<!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8" />
+                    <title>${reportTitle} - ${mesNome}/${ano}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 40px; }
+                        h1 { color: #7c3aed; border-bottom: 3px solid #7c3aed; padding-bottom: 10px; }
+                        .header { margin-bottom: 30px; }
+                        .info { display: flex; gap: 30px; margin: 20px 0; }
+                        .info-box { padding: 15px; background: #f3f4f6; border-radius: 8px; }
+                        .info-box strong { display: block; color: #6b7280; font-size: 12px; margin-bottom: 5px; }
+                        .info-box span { font-size: 24px; font-weight: bold; color: #1f2937; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th { background: #7c3aed; color: white; padding: 12px; text-align: center; }
+                        td { padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: center; }
+                        td:first-child { text-align: left; }
+                        tr:hover { background: #f9fafb; }
+                        @media print {
+                            body { margin: 20px; }
+                            button { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>${reportTitle}</h1>
+                        <p><strong>Período:</strong> ${mesNome}/${ano}</p>
+                        <p><strong>Data de Geração:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+                    </div>
+                    <div class="info">
+                        <div class="info-box">
+                            <strong>Total</strong>
+                            <span>${totalValue}</span>
+                        </div>
+                        <div class="info-box">
+                            <strong>Itens</strong>
+                            <span>${totalItems}</span>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">Descrição</th>
+                                <th style="text-align: center;">Valor</th>
+                                <th style="text-align: center;">Percentual</th>
+                                <th style="text-align: center;">Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableBody}
+                        </tbody>
+                    </table>
+                </body>
+                </html>`;
+
+            // Tentar abrir nova janela
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                // Fallback: iframe oculto
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                document.body.appendChild(iframe);
+                const doc = iframe.contentWindow || iframe.contentDocument;
+                const docRef = doc.document || doc;
+                docRef.open();
+                docRef.write(htmlContent);
+                docRef.close();
+                setTimeout(() => {
+                    try {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    } finally {
+                        setTimeout(() => document.body.removeChild(iframe), 1000);
+                    }
+                }, 500);
+                UTILS.showToast('Pop-up bloqueado. Usando modo de impressão alternativo.', 'warning');
+                return;
+            }
+
+            // Janela aberta com sucesso
+            printWindow.document.open();
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+            setTimeout(() => {
+                try {
+                    printWindow.focus();
+                    printWindow.print();
+                } catch (e) {
+                    console.error('Erro ao imprimir:', e);
+                    UTILS.showToast('Erro ao abrir impressão', 'error');
+                }
+            }, 500);
+            UTILS.showToast('Abrindo visualização para impressão...', 'success');
+        }
+
+        async function downloadPDF() {
+            if (!currentReport) {
+                UTILS.showToast('Selecione um relatório primeiro', 'error');
+                return;
+            }
+
+            const mes = document.getElementById('mesReferencia').value;
+            const ano = document.getElementById('anoReferencia').value;
+            const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+            const mesNome = meses[parseInt(mes) - 1];
+            const reportTitle = document.getElementById('reportTitle').textContent || 'Relatorio';
+            const totalValue = document.getElementById('totalValue').textContent;
+            const totalItems = document.getElementById('totalItems').textContent;
+            const filename = `${reportTitle} - ${mesNome}-${ano}.pdf`.replaceAll('/', '-');
+
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                UTILS.showToast('Biblioteca de PDF não carregada', 'error');
+                return;
+            }
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                
+                // Cabeçalho
+                doc.setFillColor(124, 58, 237); // Purple
+                doc.rect(0, 0, pageWidth, 40, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(22);
+                doc.setFont(undefined, 'bold');
+                doc.text(reportTitle, 15, 20);
+                
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Período: ${mesNome}/${ano}`, 15, 28);
+                doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 15, 34);
+
+                // Cards de resumo
+                doc.setFillColor(243, 244, 246);
+                doc.roundedRect(15, 50, 85, 25, 3, 3, 'F');
+                doc.roundedRect(110, 50, 85, 25, 3, 3, 'F');
+                
+                doc.setTextColor(107, 114, 128);
+                doc.setFontSize(9);
+                doc.text('TOTAL', 20, 58);
+                doc.text('ITENS', 115, 58);
+                
+                doc.setTextColor(31, 41, 55);
+                doc.setFontSize(16);
+                doc.setFont(undefined, 'bold');
+                doc.text(totalValue, 20, 68);
+                doc.text(totalItems, 115, 68);
+
+                // Extrair dados da tabela
+                const tbody = document.getElementById('reportTableBody');
+                const rows = Array.from(tbody.querySelectorAll('tr')).map(tr => {
+                    const cells = Array.from(tr.querySelectorAll('td'));
+                    return cells.map(cell => cell.textContent.trim());
+                });
+
+                // Ajustar cabeçalhos e estilos conforme tipo de relatório
+                let headers = ['Descrição', 'Valor', 'Percentual', 'Data'];
+                let columnStyles = {
+                    0: { cellWidth: 80 },
+                    1: { halign: 'right', cellWidth: 40 },
+                    2: { halign: 'right', cellWidth: 30 },
+                    3: { halign: 'right', cellWidth: 35 }
+                };
+
+                if (currentReport === 'clientes') {
+                    headers = ['Nome/Razão Social', 'CNPJ/CPF', 'Status', 'Data Cadastro'];
+                    columnStyles = {
+                        0: { cellWidth: 70 },
+                        1: { halign: 'right', cellWidth: 45 },
+                        2: { halign: 'right', cellWidth: 30 },
+                        3: { halign: 'right', cellWidth: 40 }
+                    };
+                } else if (currentReport === 'juridico') {
+                    headers = ['Número Processo', 'Tipo Ação', 'Status', 'Data Abertura'];
+                } else if (currentReport === 'consolidado') {
+                    headers = ['Módulo', 'Valor Total', 'Quantidade', '% do Total'];
+                } else if (currentReport === 'alertas') {
+                    headers = ['Tipo', 'Descrição', 'Prioridade', 'Data'];
+                }
+
+                // Criar tabela
+                doc.autoTable({
+                    startY: 85,
+                    head: [headers],
+                    body: rows,
+                    theme: 'grid',
+                    headStyles: {
+                        fillColor: [124, 58, 237],
+                        textColor: [255, 255, 255],
+                        fontSize: 10,
+                        fontStyle: 'bold',
+                        halign: 'left'
+                    },
+                    bodyStyles: {
+                        fontSize: 9,
+                        textColor: [31, 41, 55]
+                    },
+                    columnStyles,
+                    alternateRowStyles: {
+                        fillColor: [249, 250, 251]
+                    },
+                    margin: { left: 15, right: 15 }
+                });
+
+                // Rodapé
+                const finalY = doc.lastAutoTable.finalY + 15;
+                doc.setFontSize(9);
+                doc.setTextColor(107, 114, 128);
+                doc.setFont(undefined, 'bold');
+                doc.text('Contabiliza.IA - Sistema de Gestão Contábil', pageWidth / 2, finalY, { align: 'center' });
+                doc.setFont(undefined, 'normal');
+                doc.text('Relatório gerado automaticamente', pageWidth / 2, finalY + 5, { align: 'center' });
+
+                // Salvar
+                doc.save(filename);
+                UTILS.showToast('PDF baixado com sucesso', 'success');
+            } catch (e) {
+                console.error('Falha ao gerar PDF:', e);
+                UTILS.showToast('Erro ao gerar PDF: ' + e.message, 'error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/pages/login.html';
+        }
+    </script>
+</body>
+</html>

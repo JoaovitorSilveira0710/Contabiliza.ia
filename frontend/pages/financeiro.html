@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financeiro - Contabiliza.IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/src/styles/globals.css?v=20251124">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="/src/js/config.js?v=20251124"></script>
+    <script src="/src/js/api-service.js?v=20251124"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Sidebar -->
+    <div class="flex h-screen bg-gray-900">
+        <aside class="w-64 bg-gray-800 border-r border-gray-700">
+            <div class="p-6 border-b border-gray-700">
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-calculator text-white text-sm"></i>
+                    </div>
+                    <span class="text-lg font-bold">Contabiliza.IA</span>
+                </div>
+            </div>
+
+            <nav class="p-4 space-y-2">
+                <a href="/pages/dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-chart-line w-5"></i> Dashboard
+                </a>
+                <a href="/pages/clientes.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-users w-5"></i> Clientes
+                </a>
+                <a href="/pages/notas-fiscais.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-file-invoice w-5"></i> Notas Fiscais
+                </a>
+                <a href="/pages/financeiro.html" class="flex items-center gap-3 px-4 py-3 bg-purple-600/20 text-purple-400 rounded-lg border border-purple-600/30">
+                    <i class="fas fa-chart-bar w-5"></i> Financeiro
+                </a>
+                <a href="/pages/juridico.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-scale-balanced w-5"></i> Jurídico
+                </a>
+                <a href="/pages/relatorios.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-file-pdf w-5"></i> Relatórios
+                </a>
+            </nav>
+
+            <div class="absolute bottom-0 left-0 w-64 p-4 border-t border-gray-700">
+                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+                    <i class="fas fa-sign-out-alt w-5"></i> Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto">
+            <!-- Header -->
+            <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
+                <div class="flex justify-between items-center p-6">
+                    <div>
+                        <h1 class="text-3xl font-bold mb-1">Financeiro</h1>
+                        <p class="text-gray-400 text-sm">Gestão de fluxo de caixa e lançamentos</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <select id="monthFilter" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all">
+                            <option value="atual">Mês Atual</option>
+                            <option value="anterior">Mês Anterior</option>
+                            <option value="proximo">Próximo Mês</option>
+                        </select>
+                        <button onclick="openLancamentoModal()" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Novo Lançamento
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="p-6">
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Saldo Total</p>
+                                <h3 class="text-2xl font-bold text-green-400" id="saldoTotal">R$ 0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-wallet text-green-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Entradas</p>
+                                <h3 class="text-2xl font-bold text-blue-400" id="entradas">R$ 0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-arrow-down text-blue-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Saídas</p>
+                                <h3 class="text-2xl font-bold text-red-400" id="saidas">R$ 0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-red-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-arrow-up text-red-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Pendências</p>
+                                <h3 class="text-2xl font-bold text-yellow-400" id="pendencias">R$ 0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-yellow-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-yellow-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="glass-card p-6 rounded-xl">
+                        <h3 class="text-lg font-semibold mb-4">Fluxo de Caixa</h3>
+                        <div class="relative" style="height: 300px;">
+                            <canvas id="cashFlowChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 rounded-xl">
+                        <h3 class="text-lg font-semibold mb-4">Categorias de Despesa</h3>
+                        <div class="relative" style="height: 300px;">
+                            <canvas id="categoriesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transactions Table -->
+                <div class="glass-card rounded-xl overflow-hidden">
+                    <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                        <h3 class="text-lg font-semibold">Lançamentos Recentes</h3>
+                        <input type="text" id="searchInput" placeholder="Buscar..." class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 w-48">
+                    </div>
+
+                    <div id="loadingState" class="text-center py-12">
+                        <i class="fas fa-spinner fa-spin text-4xl text-purple-600 mb-4"></i>
+                        <p class="text-gray-400">Carregando lançamentos...</p>
+                    </div>
+
+                    <table id="transactionsTable" class="w-full hidden">
+                        <thead class="bg-gray-800/50 border-b border-gray-700">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Descrição</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Categoria</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Tipo</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Valor</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Data</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Status</th>
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-300">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTableBody" class="divide-y divide-gray-700">
+                        </tbody>
+                    </table>
+
+                    <div id="emptyState" class="text-center py-12">
+                        <i class="fas fa-inbox text-5xl text-gray-700 mb-4"></i>
+                        <p class="text-gray-400">Nenhum lançamento encontrado</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Lançamento Modal -->
+    <div id="lancamentoModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-xl p-8 max-w-2xl w-full mx-4 glass-card">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-2xl font-bold">Novo Lançamento</h2>
+                <button onclick="closeLancamentoModal()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <form id="lancamentoForm" onsubmit="handleLancamentoSubmit(event)">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Descrição</label>
+                        <input type="text" id="descricao" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Tipo</label>
+                        <select id="tipo" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <option value="receita">Receita</option>
+                            <option value="despesa">Despesa</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Categoria</label>
+                        <select id="categoria" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <option value="salarios">Salários</option>
+                            <option value="aluguel">Aluguel</option>
+                            <option value="impostos">Impostos</option>
+                            <option value="energia">Energia</option>
+                            <option value="agua">Agua</option>
+                            <option value="telefonia">Telefonia</option>
+                            <option value="internet">Internet</option>
+                            <option value="material_escritorio">Material Escritório</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Valor</label>
+                        <input type="number" id="valor" step="0.01" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Data</label>
+                        <input type="date" id="data" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Status</label>
+                        <select id="status" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <option value="pago">Pago</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="atrasado">Atrasado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="closeLancamentoModal()" class="px-6 py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:shadow-lg transition-all">
+                        Salvar Lançamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/src/js/config.js?v=20251113b"></script>
+    <script src="/src/js/api-service.js?v=20251113b"></script>
+    <script>
+        let lancamentos = [];
+        let filteredLancamentos = [];
+        let cashFlowChart = null;
+        let categoriesChart = null;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadLancamentos();
+            setupCharts();
+            feather.replace();
+        });
+
+        async function loadLancamentos() {
+            const loadingState = document.getElementById('loadingState');
+            const transactionsTable = document.getElementById('transactionsTable');
+            const emptyState = document.getElementById('emptyState');
+
+            try {
+                const data = await apiService.getLancamentos();
+                lancamentos = data || [];
+                filteredLancamentos = lancamentos;
+
+                updateSummary();
+
+                if (lancamentos.length === 0) {
+                    loadingState.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                } else {
+                    loadingState.classList.add('hidden');
+                    renderTransactionsTable();
+                    transactionsTable.classList.remove('hidden');
+                    updateCharts();
+                }
+            } catch (error) {
+                console.error('Erro ao carregar lançamentos:', error);
+                loadingState.innerHTML = `<p class="text-gray-400">Erro ao carregar dados</p>`;
+            }
+        }
+
+        function updateSummary() {
+            const entradas = lancamentos
+                .filter(l => l.tipo === 'receita' && l.status === 'pago')
+                .reduce((sum, l) => sum + parseFloat(l.valor), 0);
+            
+            const saidas = lancamentos
+                .filter(l => l.tipo === 'despesa' && l.status === 'pago')
+                .reduce((sum, l) => sum + parseFloat(l.valor), 0);
+            
+            const pendencias = lancamentos
+                .filter(l => l.status === 'pendente' || l.status === 'atrasado')
+                .reduce((sum, l) => sum + parseFloat(l.valor), 0);
+
+            const saldo = entradas - saidas;
+
+            document.getElementById('saldoTotal').textContent = 'R$ ' + saldo.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('entradas').textContent = 'R$ ' + entradas.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('saidas').textContent = 'R$ ' + saidas.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('pendencias').textContent = 'R$ ' + pendencias.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function renderTransactionsTable() {
+            const tableBody = document.getElementById('transactionsTableBody');
+
+            tableBody.innerHTML = filteredLancamentos.map(lancamento => `
+                <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-all">
+                    <td class="px-6 py-4">${lancamento.descricao || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${lancamento.categoria || 'N/A'}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded text-xs font-semibold ${
+                            lancamento.tipo === 'receita' 
+                            ? 'bg-green-600/20 text-green-400' 
+                            : 'bg-red-600/20 text-red-400'
+                        }">
+                            ${lancamento.tipo === 'receita' ? '+ ' : '- '}R$ ${parseFloat(lancamento.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 font-semibold">R$ ${parseFloat(lancamento.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${lancamento.data_vencimento ? new Date(lancamento.data_vencimento).toLocaleDateString('pt-BR') : 'N/A'}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                            lancamento.status === 'pago'
+                            ? 'bg-green-600/20 text-green-400 border border-green-600/30'
+                            : lancamento.status === 'atrasado'
+                            ? 'bg-red-600/20 text-red-400 border border-red-600/30'
+                            : 'bg-yellow-600/20 text-yellow-400 border border-yellow-600/30'
+                        }">
+                            ${lancamento.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="editLancamento('${lancamento.id}')" class="text-blue-400 hover:text-blue-300 mr-3">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteLancamento('${lancamento.id}')" class="text-red-400 hover:text-red-300">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function setupCharts() {
+            // Destruir gráficos existentes
+            if (cashFlowChart) {
+                cashFlowChart.destroy();
+                cashFlowChart = null;
+            }
+            if (categoriesChart) {
+                categoriesChart.destroy();
+                categoriesChart = null;
+            }
+
+            const cashFlowCtx = document.getElementById('cashFlowChart').getContext('2d');
+            const categoriesCtx = document.getElementById('categoriesChart').getContext('2d');
+
+            cashFlowChart = new Chart(cashFlowCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Receitas',
+                        data: [45000, 52000, 58000, 65000, 71000, 78000],
+                        borderColor: 'rgba(34, 197, 94, 1)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 3
+                    }, {
+                        label: 'Despesas',
+                        data: [28000, 30000, 32000, 35000, 38000, 40000],
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#9ca3af' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        },
+                        x: {
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        }
+                    }
+                }
+            });
+
+            categoriesChart = new Chart(categoriesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Folha de Pagamento', 'Infraestrutura', 'Impostos', 'Marketing', 'Operacional'],
+                    datasets: [{
+                        data: [35, 22, 18, 15, 10],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.8)',    // Verde vibrante
+                            'rgba(234, 179, 8, 0.8)',    // Amarelo ouro
+                            'rgba(239, 68, 68, 0.8)',    // Vermelho vivo
+                            'rgba(59, 130, 246, 0.8)',   // Azul elétrico
+                            'rgba(168, 85, 247, 0.8)'    // Roxo vibrante
+                        ],
+                        borderColor: [
+                            'rgba(34, 197, 94, 1)',
+                            'rgba(234, 179, 8, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(168, 85, 247, 1)'
+                        ],
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#9ca3af' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            // Update based on actual data
+        }
+
+        function openLancamentoModal() {
+            document.getElementById('modalTitle').textContent = 'Novo Lançamento';
+            document.getElementById('lancamentoForm').reset();
+            document.getElementById('lancamentoForm').onsubmit = handleLancamentoSubmit;
+            document.getElementById('lancamentoModal').classList.remove('hidden');
+        }
+
+        function closeLancamentoModal() {
+            document.getElementById('lancamentoModal').classList.add('hidden');
+        }
+
+        async function handleLancamentoSubmit(event) {
+            event.preventDefault();
+
+            const lancamento = {
+                descricao: document.getElementById('descricao').value,
+                tipo: document.getElementById('tipo').value,
+                categoria: document.getElementById('categoria').value,
+                valor: parseFloat(document.getElementById('valor').value),
+                data: document.getElementById('data').value,
+                status: document.getElementById('status').value
+            };
+
+            try {
+                // API call would go here
+                closeLancamentoModal();
+                await loadLancamentos();
+                showToast('Lançamento criado com sucesso!', 'success');
+            } catch (error) {
+                showToast('Erro: ' + error.message, 'error');
+            }
+        }
+
+        function editLancamento(id) {
+            const lancamento = lancamentos.find(l => l.id === id);
+            if (!lancamento) return;
+
+            document.getElementById('modalTitle').textContent = 'Editar Lançamento';
+            document.getElementById('descricao').value = lancamento.descricao || '';
+            document.getElementById('tipo').value = lancamento.tipo || 'despesa';
+            document.getElementById('categoria').value = lancamento.categoria || 'outros';
+            document.getElementById('valor').value = lancamento.valor || '';
+            document.getElementById('data').value = lancamento.data_vencimento || '';
+            document.getElementById('status').value = lancamento.status || 'pendente';
+
+            document.getElementById('lancamentoForm').onsubmit = async (event) => {
+                event.preventDefault();
+
+                const updateData = {
+                    descricao: document.getElementById('descricao').value,
+                    tipo: document.getElementById('tipo').value,
+                    categoria: document.getElementById('categoria').value,
+                    valor: parseFloat(document.getElementById('valor').value),
+                    data_vencimento: document.getElementById('data').value,
+                    status: document.getElementById('status').value
+                };
+
+                try {
+                    await apiService.atualizarLancamento(id, updateData);
+                    closeLancamentoModal();
+                    await loadLancamentos();
+                    showToast('Lançamento atualizado com sucesso!', 'success');
+                } catch (error) {
+                    showToast('Erro ao atualizar lançamento: ' + error.message, 'error');
+                }
+            };
+
+            document.getElementById('lancamentoModal').classList.remove('hidden');
+        }
+
+        async function deleteLancamento(id) {
+            try {
+                await apiService.excluirLancamento(id);
+                await loadLancamentos();
+                showToast('Lançamento deletado com sucesso!', 'success');
+            } catch (error) {
+                showToast('Erro ao deletar lançamento: ' + error.message, 'error');
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-6 right-6 px-6 py-3 rounded-lg text-white z-50 ${
+                type === 'success' ? 'bg-green-600' : 'bg-red-600'
+            }`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/pages/login.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de API - Contabiliza.IA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .info { color: #2196F3; }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #45a049; }
+        pre {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Conectividade - API Contabiliza.IA</h1>
+    
+    <div class="test-section">
+        <h2>1. Teste Direto (Fetch)</h2>
+        <button onclick="testDirect()">Testar /api/notas-fiscais/</button>
+        <div id="directResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Verificar Scripts Carregados</h2>
+        <button onclick="checkScripts()">Verificar CONFIG e apiService</button>
+        <div id="scriptsResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Teste via apiService</h2>
+        <button onclick="testApiService()">Testar getNotasFiscais()</button>
+        <div id="apiServiceResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Teste Completo</h2>
+        <button onclick="runAllTests()">Executar Todos os Testes</button>
+        <div id="allTestsResult"></div>
+    </div>
+
+    <script src="/src/js/config.js?v=20251124"></script>
+    <script src="/src/js/api-service.js?v=20251124"></script>
+    <script>
+        async function testDirect() {
+            const result = document.getElementById('directResult');
+            result.innerHTML = '<p class="info">⏳ Testando...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/notas-fiscais/');
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <p class="success">✅ Sucesso!</p>
+                    <p>Status: ${response.status}</p>
+                    <p>Total de notas: ${data.length}</p>
+                    <pre>${JSON.stringify(data[0], null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Erro: ${error.message}</p>`;
+            }
+        }
+
+        function checkScripts() {
+            const result = document.getElementById('scriptsResult');
+            
+            const checks = {
+                'window.CONFIG': typeof window.CONFIG !== 'undefined',
+                'window.CONFIG.ENDPOINTS': typeof window.CONFIG?.ENDPOINTS !== 'undefined',
+                'window.CONFIG.ENDPOINTS.NOTAS_FISCAIS': window.CONFIG?.ENDPOINTS?.NOTAS_FISCAIS,
+                'window.UTILS': typeof window.UTILS !== 'undefined',
+                'window.apiService': typeof window.apiService !== 'undefined',
+                'apiService.getNotasFiscais': typeof window.apiService?.getNotasFiscais === 'function'
+            };
+            
+            let html = '<ul style="list-style: none; padding: 0;">';
+            for (const [key, value] of Object.entries(checks)) {
+                const icon = value ? '✅' : '❌';
+                const cssClass = value ? 'success' : 'error';
+                html += `<li class="${cssClass}">${icon} ${key}: ${JSON.stringify(value)}</li>`;
+            }
+            html += '</ul>';
+            
+            result.innerHTML = html;
+        }
+
+        async function testApiService() {
+            const result = document.getElementById('apiServiceResult');
+            result.innerHTML = '<p class="info">⏳ Testando apiService...</p>';
+            
+            try {
+                if (typeof apiService === 'undefined') {
+                    throw new Error('apiService não está definido!');
+                }
+                
+                const notas = await apiService.getNotasFiscais();
+                
+                result.innerHTML = `
+                    <p class="success">✅ apiService funcionando!</p>
+                    <p>Total de notas: ${notas.length}</p>
+                    <p>Primeira nota:</p>
+                    <pre>${JSON.stringify(notas[0], null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <p class="error">❌ Erro: ${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+
+        async function runAllTests() {
+            const result = document.getElementById('allTestsResult');
+            result.innerHTML = '<p class="info">⏳ Executando todos os testes...</p>';
+            
+            await testDirect();
+            await new Promise(r => setTimeout(r, 500));
+            checkScripts();
+            await new Promise(r => setTimeout(r, 500));
+            await testApiService();
+            
+            result.innerHTML = '<p class="success">✅ Todos os testes concluídos! Veja resultados acima.</p>';
+        }
+
+        // Executar verificação ao carregar
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Página de teste carregada');
+            console.log('CONFIG:', window.CONFIG);
+            console.log('apiService:', window.apiService);
+        });
+    </script>
+</body>
+</html>
