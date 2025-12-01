@@ -1,54 +1,78 @@
-"""
-URL configuration for contabiliza_backend project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
-
-from clients.views import (
-    ClientViewSet,
-    ContractViewSet,
-    ContractedServiceViewSet,
-    DashboardMetricViewSet,
-    AuditViewSet,
+from core.views import UserViewSet
+from clients.views import ClientViewSet, ClientContactViewSet
+from invoices.views import InvoiceViewSet, InvoiceItemViewSet
+from financial.views import (
+    FinancialCategoryViewSet, BankAccountViewSet, FinancialTransactionViewSet,
+    AccountsPayableViewSet, AccountsReceivableViewSet, CashFlowViewSet
 )
-from invoices.views import InvoiceViewSet
-from documents.views import DocumentViewSet
-from core.views import UserViewSet, RoleViewSet
-from financial.views import ProductViewSet
+from legal.views import (
+    LawyerViewSet, LegalProcessViewSet, HearingViewSet,
+    LegalContractViewSet, LegalDeadlineViewSet
+)
+from stock.views import (
+    ProductCategoryViewSet, SupplierViewSet, WarehouseViewSet,
+    ProductViewSet, StockMovementViewSet, StockCountViewSet, StockCountItemViewSet
+)
+from dashboard import views as dashboard_views
 
+# Router para ViewSets
 router = DefaultRouter()
-router.register(r'clients', ClientViewSet, basename='client')
-router.register(r'contracts', ContractViewSet, basename='contract')
-router.register(r'contracted-services', ContractedServiceViewSet, basename='contracted-service')
-router.register(r'dashboard-metrics', DashboardMetricViewSet, basename='dashboard-metric')
-router.register(r'audits', AuditViewSet, basename='audit')
-router.register(r'invoices', InvoiceViewSet, basename='invoice')
-router.register(r'documents', DocumentViewSet, basename='document')
+# Core
 router.register(r'users', UserViewSet, basename='user')
-router.register(r'roles', RoleViewSet, basename='role')
+# Clients
+router.register(r'clients', ClientViewSet, basename='client')
+router.register(r'client-contacts', ClientContactViewSet, basename='client-contact')
+# Invoices
+router.register(r'invoices', InvoiceViewSet, basename='invoice')
+router.register(r'invoice-items', InvoiceItemViewSet, basename='invoice-item')
+# Financial
+router.register(r'financial-categories', FinancialCategoryViewSet, basename='financial-category')
+router.register(r'bank-accounts', BankAccountViewSet, basename='bank-account')
+router.register(r'financial-transactions', FinancialTransactionViewSet, basename='financial-transaction')
+router.register(r'accounts-payable', AccountsPayableViewSet, basename='accounts-payable')
+router.register(r'accounts-receivable', AccountsReceivableViewSet, basename='accounts-receivable')
+router.register(r'cash-flow', CashFlowViewSet, basename='cash-flow')
+# Legal
+router.register(r'lawyers', LawyerViewSet, basename='lawyer')
+router.register(r'legal-processes', LegalProcessViewSet, basename='legal-process')
+router.register(r'hearings', HearingViewSet, basename='hearing')
+router.register(r'legal-contracts', LegalContractViewSet, basename='legal-contract')
+router.register(r'legal-deadlines', LegalDeadlineViewSet, basename='legal-deadline')
+# Stock
+router.register(r'product-categories', ProductCategoryViewSet, basename='product-category')
+router.register(r'suppliers', SupplierViewSet, basename='supplier')
+router.register(r'warehouses', WarehouseViewSet, basename='warehouse')
 router.register(r'products', ProductViewSet, basename='product')
+router.register(r'stock-movements', StockMovementViewSet, basename='stock-movement')
+router.register(r'stock-counts', StockCountViewSet, basename='stock-count')
+router.register(r'stock-count-items', StockCountItemViewSet, basename='stock-count-item')
 
 urlpatterns = [
+    # Admin
     path('admin/', admin.site.urls),
+    
+    # API Router
     path('api/', include(router.urls)),
+    
+    # Dashboard endpoints
+    path('api/dashboard/overview/', dashboard_views.dashboard_overview, name='dashboard-overview'),
+    path('api/dashboard/revenue-chart/', dashboard_views.revenue_chart, name='revenue-chart'),
+    path('api/dashboard/invoices-by-status/', dashboard_views.invoices_by_status, name='invoices-by-status'),
+    path('api/dashboard/invoices-by-type/', dashboard_views.invoices_by_type, name='invoices-by-type'),
+    path('api/dashboard/recent-activities/', dashboard_views.recent_activities, name='recent-activities'),
+    path('api/dashboard/taxes-summary/', dashboard_views.taxes_summary, name='taxes-summary'),
+    path('api/dashboard/weekly-performance/', dashboard_views.weekly_performance, name='weekly-performance'),
+    
+    # Auth
+    path('api-auth/', include('rest_framework.urls')),
 ]
 
-# Serve media files in development
+# Servir arquivos de media em desenvolvimento
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
