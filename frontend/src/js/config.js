@@ -8,15 +8,46 @@ const CONFIG = {
   API_BASE: localStorage.getItem('API_BASE') || 'http://localhost:8000/api',
   BASE_URL: localStorage.getItem('API_BASE') || 'http://localhost:8000/api',
   
-  // Endpoints (sem barra final para evitar duplas barras)
+  // Endpoints (sincronizados com Django backend)
   ENDPOINTS: {
-    AUTH: '/auth',
-    CLIENTES: '/clientes',
-    NOTAS_FISCAIS: '/notas-fiscais',
-    FINANCEIRO: '/financeiro',
-    CONTABIL: '/contabil',
-    JURIDICO: '/juridico',
-    DASHBOARD: '/dashboard'
+    // Core
+    AUTH: '/api-auth',
+    USERS: '/users',
+    
+    // Clients
+    CLIENTES: '/clients',
+    CLIENT_CONTACTS: '/client-contacts',
+    
+    // Invoices
+    NOTAS_FISCAIS: '/invoices',
+    INVOICE_ITEMS: '/invoice-items',
+    
+    // Financial
+    FINANCEIRO: '/financial-transactions',
+    FINANCIAL_CATEGORIES: '/financial-categories',
+    BANK_ACCOUNTS: '/bank-accounts',
+    ACCOUNTS_PAYABLE: '/accounts-payable',
+    ACCOUNTS_RECEIVABLE: '/accounts-receivable',
+    CASH_FLOW: '/cash-flow',
+    
+    // Legal
+    JURIDICO: '/legal-processes',
+    LAWYERS: '/lawyers',
+    HEARINGS: '/hearings',
+    LEGAL_CONTRACTS: '/legal-contracts',
+    LEGAL_DEADLINES: '/legal-deadlines',
+    
+    // Stock
+    ESTOQUE: '/products',
+    PRODUCT_CATEGORIES: '/product-categories',
+    SUPPLIERS: '/suppliers',
+    WAREHOUSES: '/warehouses',
+    STOCK_MOVEMENTS: '/stock-movements',
+    STOCK_COUNTS: '/stock-counts',
+    
+    // Dashboard
+    DASHBOARD: '/dashboard',
+    CONTABIL: '/contabil'
   },
 
   // Configurações
