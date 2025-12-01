@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Configurações</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/src/styles/globals.css">
+</head>
+<body class="bg-gray-900 text-white">
+  <div class="flex h-screen bg-gray-900">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+      <!-- Logo -->
+      <div class="p-6 border-b border-gray-700">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center animate-pulse">
+            <i class="fas fa-calculator text-white"></i>
+          </div>
+          <span class="text-lg font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">Contabiliza.IA</span>
+        </div>
+      </div>
+
+      <nav class="p-4 space-y-2" id="sidebarNav">
+        <a href="/pages/dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-chart-line w-5"></i> Dashboard
+        </a>
+        <a href="/pages/clientes.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-users w-5"></i> Clientes
+        </a>
+        <a href="/pages/notas-fiscais.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-file-invoice w-5"></i> Notas Fiscais
+        </a>
+        <a href="/pages/financeiro.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-chart-bar w-5"></i> Financeiro
+        </a>
+        <a href="/pages/juridico.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-scale-balanced w-5"></i> Jurídico
+        </a>
+        <a href="/pages/relatorios.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-file-pdf w-5"></i> Relatórios
+        </a>
+        <a href="/pages/configuracoes.html" class="flex items-center gap-3 px-4 py-3 bg-purple-600/20 text-purple-400 rounded-lg border border-purple-600/30">
+          <i class="fas fa-cog w-5"></i> Configurações
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto">
+      <!-- Header -->
+      <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
+        <div class="flex justify-between items-center px-6 py-4">
+          <div class="flex items-center gap-4">
+            <h1 class="text-2xl font-bold">Configurações</h1>
+            <p class="text-gray-400 text-sm">Gerencie preferências e usuários do sistema</p>
+          </div>
+          <div class="flex items-center gap-4">
+            <!-- Data e Hora -->
+            <div class="flex items-center gap-2 text-sm text-gray-300">
+              <i class="fas fa-clock text-purple-400"></i>
+              <span id="currentDateTime"></span>
+            </div>
+            <!-- Notificações -->
+            <button class="relative p-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-all" title="Notificações">
+              <i class="fas fa-bell text-xl"></i>
+              <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <!-- Usuário -->
+            <div class="flex items-center gap-3 pl-4 border-l border-gray-700">
+              <div class="text-right">
+                <p class="text-sm font-medium text-white" id="userName"></p>
+                <p class="text-xs text-gray-400" id="userEmailHeader"></p>
+              </div>
+              <button onclick="logout()" class="px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 text-sm transition-all">
+                <i class="fas fa-sign-out-alt mr-1"></i> Sair
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="p-8">
+
+    <!-- Seção: Linguagem -->
+    <div class="glass-card p-6 rounded-lg mb-6">
+      <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+        <span>🌐</span>
+        <span>Idioma</span>
+      </h2>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm mb-2">Selecione o idioma do sistema:</label>
+          <select id="languageSelect" class="w-full max-w-md px-4 py-2 rounded bg-gray-800 border border-gray-700">
+            <option value="pt-BR">Português (Brasil)</option>
+            <option value="en-US" disabled>English (Em breve)</option>
+            <option value="es-ES" disabled>Español (Em breve)</option>
+          </select>
+          <p class="text-xs text-gray-400 mt-2">Atualmente apenas Português está disponível.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção: Ajuda -->
+    <div class="glass-card p-6 rounded-lg mb-6">
+      <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+        <span>❓</span>
+        <span>Ajuda</span>
+      </h2>
+      <div class="space-y-4">
+        <div>
+          <h3 class="font-semibold mb-2">Documentação</h3>
+          <ul class="list-disc pl-5 text-sm text-gray-300 space-y-1">
+            <li><a href="#" class="text-purple-400 hover:text-purple-300">Tutorial de Uso</a></li>
+            <li><a href="#" class="text-purple-400 hover:text-purple-300">Guia de Instalação</a></li>
+            <li><a href="#" class="text-purple-400 hover:text-purple-300">FAQ - Perguntas Frequentes</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-semibold mb-2">Suporte</h3>
+          <p class="text-sm text-gray-300 mb-2">Entre em contato com nossa equipe:</p>
+          <div class="space-y-2">
+            <p class="text-sm">
+              <span class="text-gray-400">Email:</span> 
+              <a href="mailto:suporte@contabiliza.ia" class="text-purple-400 hover:text-purple-300">suporte@contabiliza.ia</a>
+            </p>
+            <p class="text-sm">
+              <span class="text-gray-400">WhatsApp:</span> 
+              <span class="text-purple-400">+55 (11) 9999-9999</span>
+            </p>
+          </div>
+        </div>
+        <div>
+          <h3 class="font-semibold mb-2">Versão do Sistema</h3>
+          <p class="text-sm text-gray-300">Contabiliza.IA v1.0.0</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção: Gestão de Usuários -->
+    <div id="userManagementSection" class="glass-card p-6 rounded-lg mb-6" style="display: none;">
+      <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+        <span>👥</span>
+        <span>Gestão de Usuários</span>
+      </h2>
+
+      <!-- Formulário de Criação -->
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold mb-3" id="createUserTitle">Criar Novo Usuário</h3>
+        <form id="formUsuario" class="space-y-4">
+          <div>
+            <label class="block text-sm mb-1">Nome</label>
+            <input id="nome" class="w-full px-4 py-2 rounded bg-gray-800 border border-gray-700" required />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Email</label>
+            <input id="email" type="email" class="w-full px-4 py-2 rounded bg-gray-800 border border-gray-700" required />
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Senha</label>
+            <input id="senha" type="password" class="w-full px-4 py-2 rounded bg-gray-800 border border-gray-700" required />
+            <div class="mt-2 flex items-center gap-3">
+              <div class="w-full bg-gray-800 h-2 rounded">
+                <div id="strengthBar" class="h-2 rounded bg-red-600" style="width: 0%"></div>
+              </div>
+              <span id="strengthLabel" class="text-sm text-gray-300 whitespace-nowrap">Força: —</span>
+            </div>
+            <ul class="text-xs text-gray-400 mt-2 list-disc pl-5">
+              <li>Mínimo 12 caracteres</li>
+              <li>Inclua maiúsculas, minúsculas, números e símbolos</li>
+              <li>Evite usar o próprio email, sequências (1234), ou palavras comuns</li>
+            </ul>
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Tipo de Usuário</label>
+            <select id="tipo" class="w-full px-4 py-2 rounded bg-gray-800 border border-gray-700">
+              <option value="comum">Comum</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button type="submit" id="submitBtn" class="px-4 py-2 bg-purple-600 rounded hover:bg-purple-700 disabled:opacity-60" disabled>
+            Criar Usuário
+          </button>
+        </form>
+        <p id="msg" class="text-sm mt-3"></p>
+      </div>
+
+      <!-- Lista de Usuários -->
+      <div>
+        <h3 class="text-lg font-semibold mb-3">Usuários Existentes</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="border-b border-gray-700">
+                <th class="py-2 px-2">Nome</th>
+                <th class="py-2 px-2">Email</th>
+                <th class="py-2 px-2">Tipo</th>
+                <th class="py-2 px-2">Status</th>
+                <th class="py-2 px-2">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="listaUsuarios"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+  </div>
+    </div>
+  </div>
+
+  <script src="/src/js/config.js"></script>
+  <script>
+    // Guard: acesso apenas para admin e master
+    let userEmail = '';
+    let userRole = '';
+
+    (function checkAuth() {
+      userEmail = localStorage.getItem('USER_EMAIL');
+      userRole = localStorage.getItem('USER_ROLE');
+      
+      // Compatibilidade com MASTER_EMAIL legado
+      const legacyMaster = localStorage.getItem('MASTER_EMAIL');
+      if ((!userEmail || !userRole) && legacyMaster) {
+        userEmail = legacyMaster;
+        userRole = 'master';
+        localStorage.setItem('USER_EMAIL', userEmail);
+        localStorage.setItem('USER_ROLE', userRole);
+      }
+
+      if (!userEmail || !userRole) {
+        window.location.href = '/pages/login.html';
+        return;
+      }
+
+      // Mostrar email do usuário
+      document.getElementById('userEmail').textContent = userEmail;
+
+      // Mostrar seção de gestão de usuários apenas para admin e master
+      if (userRole === 'master' || userRole === 'admin') {
+        document.getElementById('userManagementSection').style.display = 'block';
+        
+        // Configurar permissões baseadas no role
+        const tipoSelect = document.getElementById('tipo');
+        const createUserTitle = document.getElementById('createUserTitle');
+        
+        if (userRole === 'admin') {
+          // Admin só pode criar usuários comuns
+          tipoSelect.value = 'comum';
+          tipoSelect.querySelector('option[value="admin"]').disabled = true;
+          createUserTitle.textContent = 'Criar Novo Usuário (apenas tipo Comum)';
+        } else if (userRole === 'master') {
+          // Master pode criar qualquer tipo
+          createUserTitle.textContent = 'Criar Novo Usuário (Master pode criar todos os tipos)';
+        }
+      }
+    })();
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = '/pages/login.html';
+    }
+
+    // Atualizar data e hora em tempo real
+    function updateDateTime() {
+      const now = new Date();
+      const options = { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      document.getElementById('currentDateTime').textContent = now.toLocaleDateString('pt-BR', options);
+    }
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+
+    // Preencher informações do usuário no header
+    (function fillUserInfo() {
+      const userRole = localStorage.getItem('USER_ROLE');
+      const userEmail = localStorage.getItem('USER_EMAIL');
+      const userName = localStorage.getItem('USER_NAME') || userEmail?.split('@')[0] || 'Usuário';
+      
+      if (document.getElementById('userName')) {
+        document.getElementById('userName').textContent = userName;
+      }
+      if (document.getElementById('userEmailHeader')) {
+        document.getElementById('userEmailHeader').textContent = userEmail || '';
+      }
+    })();
+
+    // Avaliador de força de senha
+    function avaliarSenha(email, senha) {
+      let score = 0;
+      const lower = /[a-z]/.test(senha);
+      const upper = /[A-Z]/.test(senha);
+      const digit = /\d/.test(senha);
+      const symbol = /[^\w\s]/.test(senha);
+      const length = senha.length;
+      const common = /(password|senha|qwerty|1234|admin)/i.test(senha);
+      const includesEmail = email && senha.toLowerCase().includes(email.toLowerCase());
+      const repeated = /(.)\1{2,}/.test(senha);
+
+      // Base score by length
+      if (length >= 12) score += 40; 
+      else if (length >= 10) score += 25; 
+      else if (length >= 8) score += 15;
+      
+      // Character classes
+      score += lower ? 10 : 0;
+      score += upper ? 15 : 0;
+      score += digit ? 10 : 0;
+      score += symbol ? 15 : 0;
+      
+      // Penalties
+      if (common) score -= 25;
+      if (includesEmail) score -= 30;
+      if (repeated) score -= 10;
+
+      score = Math.max(0, Math.min(100, score));
+
+      let label = 'Fraca';
+      let color = '#dc2626'; // red-600
+      if (score >= 80) { 
+        label = 'Forte'; 
+        color = '#16a34a'; // green-600
+      } else if (score >= 60) { 
+        label = 'Boa'; 
+        color = '#f59e0b'; // amber-500
+      } else if (score >= 40) { 
+        label = 'Média'; 
+        color = '#f97316'; // orange-500
+      }
+
+      return { score, label, color };
+    }
+
+    function atualizarForcaSenha() {
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+      const { score, label, color } = avaliarSenha(email, senha);
+      const bar = document.getElementById('strengthBar');
+      const lbl = document.getElementById('strengthLabel');
+      const btn = document.getElementById('submitBtn');
+      
+      bar.style.width = score + '%';
+      bar.style.backgroundColor = color;
+      lbl.textContent = `Força: ${label}`;
+      
+      // Exigir "Forte" (>=80) para habilitar criação
+      btn.disabled = !(score >= 80);
+    }
+
+    document.getElementById('email').addEventListener('input', atualizarForcaSenha);
+    document.getElementById('senha').addEventListener('input', atualizarForcaSenha);
+
+    // Buscar e listar usuários
+    async function fetchUsuarios() {
+      try {
+        const [resUsers, resOnline] = await Promise.all([
+          fetch(`${CONFIG.API_BASE}/usuarios/`),
+          fetch(`${CONFIG.API_BASE.replace('/api','')}/api/monitoramento/usuarios-online`)
+        ]);
+        
+        const data = await resUsers.json();
+        const online = await resOnline.json();
+        const onlineEmails = new Set((online.usuarios_online || []).map(u => u.email));
+        
+        const tbody = document.getElementById('listaUsuarios');
+        tbody.innerHTML = data.map(u => `
+          <tr class="border-b border-gray-800">
+            <td class="py-2 px-2">${u.nome}</td>
+            <td class="py-2 px-2">${u.email}</td>
+            <td class="py-2 px-2">
+              <span class="px-2 py-1 rounded-full text-xs font-semibold ${
+                u.tipo === 'master' ? 'bg-red-600/20 text-red-400' :
+                u.tipo === 'admin' ? 'bg-purple-600/20 text-purple-400' :
+                'bg-blue-600/20 text-blue-400'
+              }">
+                ${u.tipo}
+              </span>
+            </td>
+            <td class="py-2 px-2">
+              ${onlineEmails.has(u.email) 
+                ? '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-600/20 text-green-400">Online</span>' 
+                : '<span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-600/20 text-gray-400">Offline</span>'}
+            </td>
+            <td class="py-2 px-2">
+              ${canDeleteUser(u) ? 
+                `<button onclick="deleteUser('${u.id}', '${u.email}')" class="text-red-400 hover:text-red-300 text-sm">Remover</button>` :
+                '<span class="text-gray-600 text-sm">—</span>'
+              }
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error('Erro ao buscar usuários:', err);
+      }
+    }
+
+    // Verificar se pode deletar usuário baseado nas regras
+    function canDeleteUser(user) {
+      if (user.email === userEmail) return false; // Não pode deletar a si mesmo
+      if (user.tipo === 'master') return false; // Nunca pode deletar master
+      
+      if (userRole === 'master') {
+        return true; // Master pode deletar qualquer um (exceto master e si mesmo)
+      }
+      
+      if (userRole === 'admin') {
+        return user.tipo === 'comum'; // Admin só pode deletar usuários comuns
+      }
+      
+      return false;
+    }
+
+    // Deletar usuário
+    async function deleteUser(userId, userEmailToDelete) {
+      if (!confirm(`Tem certeza que deseja remover o usuário ${userEmailToDelete}?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`${CONFIG.API_BASE}/usuarios/${userId}`, {
+          method: 'DELETE',
+          headers: {
+            'x-user-email': userEmail
+          }
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.detail || 'Erro ao remover usuário');
+        }
+
+        alert('Usuário removido com sucesso');
+        fetchUsuarios();
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      }
+    }
+
+    // Criar usuário
+    document.getElementById('formUsuario').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const payload = {
+        nome: document.getElementById('nome').value,
+        email: document.getElementById('email').value,
+        senha: document.getElementById('senha').value,
+        tipo: document.getElementById('tipo').value,
+      };
+
+      // Validação adicional: admin não pode criar admin
+      if (userRole === 'admin' && payload.tipo === 'admin') {
+        document.getElementById('msg').textContent = 'Erro: Admin não pode criar usuários Admin';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${CONFIG.API_BASE}/usuarios/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-email': userEmail
+          },
+          body: JSON.stringify(payload)
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(data.detail || 'Erro ao criar usuário');
+        }
+        
+        document.getElementById('msg').textContent = 'Usuário criado com sucesso';
+        document.getElementById('msg').className = 'text-sm mt-3 text-green-400';
+        document.getElementById('formUsuario').reset();
+        atualizarForcaSenha();
+        fetchUsuarios();
+        
+        // Limpar mensagem após 3 segundos
+        setTimeout(() => {
+          document.getElementById('msg').textContent = '';
+        }, 3000);
+      } catch (err) {
+        document.getElementById('msg').textContent = 'Erro: ' + err.message;
+        document.getElementById('msg').className = 'text-sm mt-3 text-red-400';
+      }
+    });
+
+    // Salvar preferência de idioma
+    document.getElementById('languageSelect').addEventListener('change', (e) => {
+      localStorage.setItem('LANGUAGE', e.target.value);
+      alert('Idioma salvo! (Implementação completa em breve)');
+    });
+
+    // Carregar preferência de idioma
+    const savedLang = localStorage.getItem('LANGUAGE');
+    if (savedLang) {
+      document.getElementById('languageSelect').value = savedLang;
+    }
+
+    // Carregar usuários se tiver permissão
+    if (userRole === 'master' || userRole === 'admin') {
+      fetchUsuarios();
+      // Atualizar status online a cada 30 segundos
+      setInterval(fetchUsuarios, 30000);
+    }
+  </script>
+</body>
+</html>

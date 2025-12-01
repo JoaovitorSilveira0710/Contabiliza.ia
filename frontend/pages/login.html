@@ -172,8 +172,21 @@
         // Fazer login
         const response = await apiService.login(email, senha);
 
-        if (response.token) {
-          // Sucesso - redirecionar para dashboard
+        if (response && response.token) {
+          // Salvar token de dev
+          if (window.UTILS && typeof window.UTILS.setToken === 'function') {
+            window.UTILS.setToken(response.token);
+          } else {
+            localStorage.setItem('token', response.token);
+          }
+
+          // Salvar identidade básica para regras de UI
+          const respUser = response.user || {};
+          const userEmail = respUser.email || email;
+          const role = userEmail.toLowerCase() === 'master@contabiliza.ia' ? 'master' : 'admin';
+          localStorage.setItem('USER_EMAIL', userEmail);
+          localStorage.setItem('USER_ROLE', role);
+
           window.location.href = '/pages/dashboard.html';
         }
 

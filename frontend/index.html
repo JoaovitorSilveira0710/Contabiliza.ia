@@ -40,8 +40,13 @@
                 <span>Login</span>
             </a>
         </header>
+        <div id="quick-actions" class="px-6 lg:px-12 mb-4 hidden">
+            <a id="btnUsuarios" href="pages/usuarios.html" class="px-3 py-2 rounded bg-purple-700 hover:bg-purple-600">Usuários</a>
+        </div>
 
-        <section class="container mx-auto px-6 py-20 text-center">
+        <!-- Navegação removida: acesso somente via login -->
+
+        <section class="container mx-auto px-6 py-20 text-center" id="hero">
             <h2 class="text-5xl lg:text-6xl font-bold mb-6">
                 Gestão Contábil
                 <span class="gradient-text">Inteligente</span>
@@ -112,7 +117,7 @@
             </div>
         </section>
 
-        <section class="container mx-auto px-6 py-20">
+        <section class="container mx-auto px-6 py-20" id="preview">
             <h3 class="text-3xl font-bold text-center mb-12">Preview do Dashboard</h3>
             <div class="grid md:grid-cols-3 gap-6 mb-8">
                 <div class="glass-card p-6 rounded-xl">
@@ -219,6 +224,35 @@
     </div>
 
     <script>
+        // Guarda de autenticação: exige login para acessar o software
+        (function enforceAuth(){
+            let email = localStorage.getItem('USER_EMAIL');
+            let role = localStorage.getItem('USER_ROLE');
+            // Compatibilidade legada: se MASTER_EMAIL existir, assumir como usuário master
+            const legacyMaster = localStorage.getItem('MASTER_EMAIL');
+            if ((!email || !role) && legacyMaster) {
+                email = legacyMaster;
+                role = 'master';
+                localStorage.setItem('USER_EMAIL', email);
+                localStorage.setItem('USER_ROLE', role);
+            }
+            if (!email || !role) {
+                window.location.href = 'pages/login.html';
+                return;
+            }
+            // Opcional: exibir email logado
+            const header = document.querySelector('header');
+            const badge = document.createElement('div');
+            badge.className = 'text-sm text-gray-300';
+            badge.textContent = `Logado: ${email} (${role})`;
+            header.appendChild(badge);
+            // Mostrar ação rápida "Usuários" apenas para master/admin
+            const qa = document.getElementById('quick-actions');
+            const btnUsuarios = document.getElementById('btnUsuarios');
+            if (qa && btnUsuarios && (role === 'master' || role === 'admin')) {
+                qa.classList.remove('hidden');
+            }
+        })();
         VANTA.NET({
             el: "#vanta-effect",
             color: 0x4f46e5,

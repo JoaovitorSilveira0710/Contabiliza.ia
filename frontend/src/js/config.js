@@ -185,7 +185,29 @@ const UTILS = {
    * Verificar se usuário está autenticado
    */
   isAuthenticated() {
-    return !!this.getToken();
+    // Considera logado se houver token OU (USER_EMAIL e USER_ROLE)
+    if (this.getToken()) return true;
+    const email = localStorage.getItem('USER_EMAIL') || localStorage.getItem('MASTER_EMAIL');
+    const role = localStorage.getItem('USER_ROLE') || (localStorage.getItem('MASTER_EMAIL') ? 'master' : null);
+    return !!(email && role);
+  },
+
+  getCurrentUser() {
+    const email = localStorage.getItem('USER_EMAIL') || localStorage.getItem('MASTER_EMAIL');
+    const role = localStorage.getItem('USER_ROLE') || (localStorage.getItem('MASTER_EMAIL') ? 'master' : null);
+    if (!email || !role) return null;
+    return { email, role };
+  },
+
+  setCurrentUser(email, role) {
+    if (email) localStorage.setItem('USER_EMAIL', email);
+    if (role) localStorage.setItem('USER_ROLE', role);
+  },
+
+  clearCurrentUser() {
+    localStorage.removeItem('USER_EMAIL');
+    localStorage.removeItem('USER_ROLE');
+    localStorage.removeItem('MASTER_EMAIL');
   },
 
   /**

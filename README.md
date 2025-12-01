@@ -6,7 +6,7 @@ Sistema integrado de gestão contábil, financeira, fiscal e jurídica.
 
 ![Status](https://img.shields.io/badge/status-MVP-orange)
 ![Python](https://img.shields.io/badge/python-3.11+-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green)
+![Django](https://img.shields.io/badge/Django-5.1+-green)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 </div>
@@ -14,125 +14,178 @@ Sistema integrado de gestão contábil, financeira, fiscal e jurídica.
 ---
 
 ## 📌 Visão Geral
-O **Contabiliza.IA** centraliza rotinas de escritórios (clientes, lançamentos financeiros, obrigações, processos jurídicos e notas fiscais) oferecendo métricas e alertas em tempo real para redução de tarefas repetitivas.
+O **Contabiliza.IA** centraliza rotinas de escritórios contábeis (clientes, lançamentos financeiros, obrigações, processos jurídicos e notas fiscais) oferecendo métricas e alertas em tempo real para redução de tarefas repetitivas.
 
 ### Principais Módulos
-- Clientes (PF/PJ, contratos, situação)
-- Financeiro (lançamentos, fluxo de caixa, DRE gerencial)
-- Contábil (obrigações, prazos, indicadores)
-- Jurídico (processos, prazos, audiências, andamentos)
-- Notas Fiscais (importação XML, impostos – expansão futura)
-- Relatórios consolidados + alertas inteligentes
+- **Clientes** (PF/PJ, contratos, situação)
+- **Financeiro** (lançamentos, fluxo de caixa, DRE gerencial)
+- **Contábil** (obrigações, prazos, indicadores)
+- **Jurídico** (processos, prazos, audiências, andamentos)
+- **Notas Fiscais** (importação, gestão, impostos)
+- **Documentos** (upload, armazenamento, gestão)
+- **Relatórios** (consolidados, PDF, alertas inteligentes)
 
 ---
 
-## 🗃️ Estrutura Simplificada
+## 🗃️ Estrutura do Projeto
 ```
-backend/
-  app/
-    main.py
-    models/ (clientes, financeiro, contabil, juridico, notas_fiscais)
-    routes/ (auth, clientes, financeiro, contabil, juridico, notas_fiscais)
-    schemas/ services/ utils/
-frontend/
-  pages/ (dashboard, clientes, financeiro, juridico, notas-fiscais, relatorios, login)
-  src/js/ (config, api-service, ui-helper)
-  src/styles/ (globals.css)
-scripts/ (init_database, backup, migrate)
-populate_*.py (scripts de carga demo)
-openapi.json (especificação da API)
+Contabiliza.IA/
+├── django_backend/          # Backend Django
+│   ├── core/                # ACL, usuários, serviços
+│   │   ├── models.py        # User, Role
+│   │   ├── services/        # PDF generator
+│   │   └── management/      # Comandos (backup)
+│   ├── clients/             # Clientes e contratos
+│   ├── invoices/            # Notas fiscais
+│   ├── documents/           # Gestão de documentos
+│   ├── financial/           # Financeiro
+│   ├── accounting/          # Contabilidade
+│   └── contabiliza_backend/ # Settings e URLs
+├── frontend/                # Frontend (HTML/JS)
+│   ├── pages/               # Dashboard, clientes, etc.
+│   └── src/                 # JavaScript e estilos
+├── storage/                 # Arquivos enviados
+├── backups/                 # Backups automáticos
+├── venv/                    # Ambiente virtual Python
+├── run.py                   # Script de inicialização
+├── start_django.ps1         # Iniciar para rede local
+└── requirements.txt         # Dependências Python
 ```
 
 ---
 
 ## 🚀 Instalação Rápida
 ```powershell
-git clone <repo-url>
+git clone https://github.com/JoaovitorSilveira0710/Contabiliza.ia.git
 cd Contabiliza.IA
 python -m venv venv
-./venv/Scripts/Activate.ps1
+.\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python backend/scripts/init_database.py
 python run.py
 ```
-Acesse: `http://localhost:8000` • Docs: `/docs`
+
+**O servidor estará disponível em:**
+- API REST: `http://localhost:8000/api/`
+- Painel Admin: `http://localhost:8000/admin/`
 
 ---
 
-## 🔌 Principais Endpoints (resumo)
-| Área | Exemplo |
-|------|---------|
-| Auth | POST /api/auth/login |
-| Clientes | GET /api/clientes/ |
-| Financeiro | GET /api/financeiro/lancamentos/ |
-| Contábil | GET /api/contabil/obrigacoes/ |
-| Jurídico | GET /api/juridico/processos/ |
-| Notas Fiscais | GET /api/notas-fiscais/ |
+## 🔌 Principais Endpoints da API
 
-Documentação completa: `/openapi.json` ou `/docs`.
+| Área | Endpoint | Descrição |
+|------|----------|-----------|
+| Usuários | GET/POST `/api/users/` | Gerenciar usuários |
+| Papéis | GET/POST `/api/roles/` | Papéis e permissões |
+| Clientes | GET/POST `/api/clients/` | Gestão de clientes |
+| Contratos | GET/POST `/api/contracts/` | Contratos de serviço |
+| Notas Fiscais | GET/POST `/api/invoices/` | Notas fiscais |
+| Documentos | GET/POST `/api/documents/` | Upload e gestão |
+| Métricas | GET/POST `/api/dashboard-metrics/` | Dashboard |
+| Auditoria | GET/POST `/api/audits/` | Logs de auditoria |
 
 ---
 
-## 🧪 Testes Rápidos
+## 🔐 Autenticação
+
+A API usa **Basic Authentication**. Exemplo de teste:
+
 ```powershell
-python test_endpoints.py
+$pair='admin:admin12345'
+$b64=[Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pair))
+$Headers=@{Authorization=("Basic "+$b64)}
+Invoke-RestMethod -Uri 'http://127.0.0.1:8000/api/clients/' -Headers $Headers
 ```
-Saída esperada inclui health, clientes, financeiro, contábil, jurídico.
+
+---
+
+## 🛠️ Comandos Úteis
+
+**Criar superusuário:**
+```powershell
+cd django_backend
+python manage.py createsuperuser
+```
+
+**Fazer backup do banco de dados:**
+```powershell
+cd django_backend
+python manage.py backup_database
+```
+
+**Aplicar migrações manualmente:**
+```powershell
+cd django_backend
+python manage.py makemigrations
+python manage.py migrate
+```
+
+**Iniciar servidor para rede local:**
+```powershell
+.\start_django.ps1
+```
+
+---
+
+## 🧪 Recursos Implementados
+
+✅ Framework Django com padrão MVC  
+✅ ACL (Controle de acesso por papéis)  
+✅ Autenticação com Bcrypt  
+✅ Storage de arquivos (caminho no BD, arquivo em disco)  
+✅ Geração de PDF (notas fiscais, relatórios)  
+✅ Mecanismo de backup automático  
+✅ Código em inglês, textos em português  
+✅ API RESTful completa com Django REST Framework  
 
 ---
 
 ## 🛠️ Tecnologias
-Backend: FastAPI, SQLAlchemy, Pydantic, Uvicorn, SQLite (dev).  
-Frontend: HTML + Tailwind + JavaScript puro.  
-Utilidades: Scripts de povoamento, relatório automático, geração PDF (jsPDF).
+
+**Backend:** Django 5.1, Django REST Framework  
+**Banco de Dados:** SQLite (dev) / PostgreSQL (prod)  
+**Autenticação:** Bcrypt  
+**Geração de PDF:** ReportLab  
+**Storage:** Sistema de arquivos local  
+**Frontend:** HTML5, JavaScript, TailwindCSS  
 
 ---
 
-## 📡 Scripts Úteis
-```powershell
-python populate_simple.py      # Dados mínimos
-python populate_demo_data.py   # Dataset demonstrativo
-python reset_database.py       # Limpa e recria base
-python run.py                  # Inicia servidor
-```
+## 📊 Roadmap
 
----
-
-## 📊 Roadmap (Resumo)
-Curto prazo: Ajustes de segurança (auth real, JWT), melhoria NFe.  
-Médio prazo: Integrações externas (SEFAZ, Receita), previsões financeiras.  
-Longo prazo: Multi-tenant, IA preditiva, automações avançadas.
+**Curto prazo:** JWT authentication, melhorias em NFe  
+**Médio prazo:** Integrações externas (SEFAZ, Receita), previsões financeiras  
+**Longo prazo:** Multi-tenant, IA preditiva, automações avançadas  
 
 ---
 
 ## 🆘 Troubleshooting
+
 | Problema | Solução |
 |----------|---------|
-| Porta 8000 ocupada | `Get-Process python | Stop-Process -Force` |
+| Porta 8000 ocupada | `Get-Process python \| Stop-Process -Force` |
 | Dependência faltando | `pip install -r requirements.txt` |
-| Docs não abrem | Verificar `python run.py` ativo |
+| Erro de migração | `cd django_backend; python manage.py migrate` |
 | Erro CORS | Limpar cache navegador / reiniciar servidor |
 
 ---
 
+## 📖 Documentação Técnica
+
+Consulte [DJANGO_IMPLEMENTATION.md](DJANGO_IMPLEMENTATION.md) para detalhes técnicos completos da implementação.
+
+---
+
 ## 📄 Licença
-MIT – consultar arquivo `LICENSE`.
+
+Este projeto está sob a licença MIT.
 
 ---
 
 ## 👤 Autor
-Nome: **Joao Vitor Cruz da Silveira**  
-Email: **joaovitor2401@gmail.com**  
-Telefone: **+55 42 99166-2179**
 
----
-
-## ✂️ Limpeza de Documentação
-Arquivos candidatos a remoção (após incorporação de conteúdo):  
-`APRESENTACAO_EXECUTIVA.md`, `RESUMO_ENTREGA.md`, `SISTEMA_PRONTO.md`, `STATUS_PROJETO.md`, `REVISAO_BACKEND.md`, `VALIDACAO_FRONTEND.md`, `SCRIPT_DEMONSTRACAO.md`, `EMISSAO_NFE.md`, `README_PROFISSIONAL.md`.  
-Manter ou resumir: `GUIA_TESTES.md`, `TUTORIAL_USO.md`, `GUIA_POPULATE_SCRIPTS.md` (podem migrar para wiki futura).
-
-Confirme quais remover para aplicar.
+**Nome:** Joao Vitor Cruz da Silveira  
+**Email:** joaovitor2401@gmail.com  
+**Telefone:** +55 42 99166-2179
 
 ---
 

@@ -4,9 +4,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
-venv/
-ENV/
 build/
 develop-eggs/
 dist/
@@ -23,36 +20,41 @@ wheels/
 .installed.cfg
 *.egg
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
-backend/database/*.db
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
 
-# IDE
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/static/
+/media/
+/storage/
+/backups/
+
+# Environment variables
+.env
+.env.local
+
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Logs
-*.log
-logs/
-
-# Environment variables
-.env
-.env.local
-
 # OS
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# Node modules (se houver)
+# Node
 node_modules/
 package-lock.json
 
-# Backup files
-*.bak
-*.backup
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/

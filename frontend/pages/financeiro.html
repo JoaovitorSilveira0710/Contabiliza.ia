@@ -3,28 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Financeiro - Contabiliza.IA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/src/styles/globals.css?v=20251124">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="/src/js/config.js?v=20251124"></script>
-    <script src="/src/js/api-service.js?v=20251124"></script>
+    <link rel="stylesheet" href="/src/styles/globals.css?v=20251127003">
+    <script src="/src/libs/chart.min.js?v=20251127003"></script>
+    <script src="/src/js/config.js?v=20251127003"></script>
+    <script src="/src/js/api-service.js?v=20251127003"></script>
 </head>
 <body class="bg-gray-900 text-white">
     <!-- Sidebar -->
     <div class="flex h-screen bg-gray-900">
-        <aside class="w-64 bg-gray-800 border-r border-gray-700">
+        <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+            <!-- Logo -->
             <div class="p-6 border-b border-gray-700">
-                <div class="flex items-center gap-2 mb-6">
-                    <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-calculator text-white text-sm"></i>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center animate-pulse">
+                        <i class="fas fa-calculator text-white"></i>
                     </div>
-                    <span class="text-lg font-bold">Contabiliza.IA</span>
+                    <span class="text-lg font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">Contabiliza.IA</span>
                 </div>
             </div>
 
-            <nav class="p-4 space-y-2">
+            <nav class="p-4 space-y-2" id="sidebarNav">
                 <a href="/pages/dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
                     <i class="fas fa-chart-line w-5"></i> Dashboard
                 </a>
@@ -44,32 +48,52 @@
                     <i class="fas fa-file-pdf w-5"></i> Relatórios
                 </a>
             </nav>
-
-            <div class="absolute bottom-0 left-0 w-64 p-4 border-t border-gray-700">
-                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
-                    <i class="fas fa-sign-out-alt w-5"></i> Sair
-                </button>
-            </div>
         </aside>
 
         <!-- Main Content -->
         <main class="flex-1 overflow-auto">
             <!-- Header -->
             <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
-                <div class="flex justify-between items-center p-6">
-                    <div>
-                        <h1 class="text-3xl font-bold mb-1">Financeiro</h1>
-                        <p class="text-gray-400 text-sm">Gestão de fluxo de caixa e lançamentos</p>
-                    </div>
-                    <div class="flex gap-3">
+                <div class="flex justify-between items-center px-6 py-4">
+                    <div class="flex items-center gap-4">
+                        <h1 class="text-2xl font-bold">Financeiro</h1>
                         <select id="monthFilter" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all">
                             <option value="atual">Mês Atual</option>
                             <option value="anterior">Mês Anterior</option>
                             <option value="proximo">Próximo Mês</option>
                         </select>
                         <button onclick="openLancamentoModal()" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
-                            <i class="fas fa-plus"></i> Novo Lançamento
+                            <i class="fas fa-wallet"></i> Novo Lançamento
                         </button>
+                        <button onclick="importarNotas()" class="px-6 py-2 bg-amber-600 rounded-lg hover:bg-amber-700 transition-all flex items-center gap-2">
+                            <i class="fas fa-file-import"></i> Importar Notas
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <!-- Data e Hora -->
+                        <div class="flex items-center gap-2 text-sm text-gray-300">
+                            <i class="fas fa-clock text-purple-400"></i>
+                            <span id="currentDateTime"></span>
+                        </div>
+                        <!-- Notificações -->
+                        <button class="relative p-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-all" title="Notificações">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                        <!-- Configurações (Master/Admin) -->
+                        <a href="/pages/configuracoes.html" id="configButton" class="hidden p-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-all" title="Configurações">
+                            <i class="fas fa-cog text-xl"></i>
+                        </a>
+                        <!-- Usuário -->
+                        <div class="flex items-center gap-3 pl-4 border-l border-gray-700">
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-white" id="userName"></p>
+                                <p class="text-xs text-gray-400" id="userEmail"></p>
+                            </div>
+                            <button onclick="logout()" class="px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 text-sm transition-all">
+                                <i class="fas fa-sign-out-alt mr-1"></i> Sair
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -77,7 +101,7 @@
             <!-- Content -->
             <div class="p-6">
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                     <div class="glass-card p-6 rounded-lg">
                         <div class="flex justify-between items-start">
                             <div>
@@ -125,6 +149,18 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="glass-card p-6 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm mb-1">Notas Fiscais (Mês)</p>
+                                <h3 class="text-2xl font-bold text-amber-400" id="notasMes">R$ 0</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-amber-600/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-file-invoice text-amber-400"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Charts Row -->
@@ -137,7 +173,7 @@
                     </div>
 
                     <div class="glass-card p-6 rounded-xl">
-                        <h3 class="text-lg font-semibold mb-4">Categorias de Despesa</h3>
+                        <h3 class="text-lg font-semibold mb-4">Valores Recebidos e Pagos</h3>
                         <div class="relative" style="height: 300px;">
                             <canvas id="categoriesChart"></canvas>
                         </div>
@@ -194,9 +230,18 @@
             <form id="lancamentoForm" onsubmit="handleLancamentoSubmit(event)">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
+                        <label class="block text-sm font-medium mb-2">Cliente</label>
+                        <select id="cliente_id" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <option value="">Selecione um cliente...</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium mb-2">Descrição</label>
                         <input type="text" id="descricao" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
                     </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Tipo</label>
                         <select id="tipo" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
@@ -204,40 +249,33 @@
                             <option value="despesa">Despesa</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Categoria</label>
+                        <select id="categoria" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <!-- Opções serão preenchidas dinamicamente pelo tipo -->
+                        </select>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label class="block text-sm font-medium mb-2">Categoria</label>
-                        <select id="categoria" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
-                            <option value="salarios">Salários</option>
-                            <option value="aluguel">Aluguel</option>
-                            <option value="impostos">Impostos</option>
-                            <option value="energia">Energia</option>
-                            <option value="agua">Agua</option>
-                            <option value="telefonia">Telefonia</option>
-                            <option value="internet">Internet</option>
-                            <option value="material_escritorio">Material Escritório</option>
-                            <option value="outros">Outros</option>
-                        </select>
-                    </div>
-                    <div>
                         <label class="block text-sm font-medium mb-2">Valor</label>
                         <input type="number" id="valor" step="0.01" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Data</label>
+                        <input type="date" id="data" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                        <label class="block text-sm font-medium mb-2">Data</label>
-                        <input type="date" id="data" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
-                    </div>
-                    <div>
                         <label class="block text-sm font-medium mb-2">Status</label>
                         <select id="status" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
-                            <option value="pago">Pago</option>
-                            <option value="pendente">Pendente</option>
+                            <option value="pendente" selected>Pendente</option>
+                            <option value="pago" id="statusPagoLabel">Pago</option>
                             <option value="atrasado">Atrasado</option>
+                            <option value="cancelado">Cancelado</option>
                         </select>
                     </div>
                 </div>
@@ -254,18 +292,61 @@
         </div>
     </div>
 
-    <script src="/src/js/config.js?v=20251113b"></script>
-    <script src="/src/js/api-service.js?v=20251113b"></script>
     <script>
         let lancamentos = [];
+        let notasFiscais = [];
         let filteredLancamentos = [];
         let cashFlowChart = null;
         let categoriesChart = null;
+        
+        // Categorias por tipo segundo restrições do backend
+        const CATEGORIAS = {
+            receita: [
+                { value: 'servicos', label: 'Serviços / Vendas' },
+                { value: 'honorarios', label: 'Honorários' },
+                { value: 'outros', label: 'Outros' },
+            ],
+            despesa: [
+                { value: 'impostos', label: 'Impostos' },
+                { value: 'folha_pagamento', label: 'Folha de Pagamento' },
+                { value: 'aluguel', label: 'Aluguel' },
+                { value: 'telefonia', label: 'Água, Luz e Internet' },
+                { value: 'material', label: 'Materiais e Suprimentos' },
+                { value: 'servicos', label: 'Serviços Terceiros' },
+                { value: 'outros', label: 'Outros' },
+            ]
+        };
+
+        function preencherCategoriasPorTipo() {
+            const tipo = document.getElementById('tipo').value;
+            const categoriaSelect = document.getElementById('categoria');
+            categoriaSelect.innerHTML = '';
+            (CATEGORIAS[tipo] || CATEGORIAS.despesa).forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt.value;
+                o.textContent = opt.label;
+                categoriaSelect.appendChild(o);
+            });
+        }
+
+        function atualizarRotuloStatus() {
+            const tipo = document.getElementById('tipo').value;
+            const pagoLabel = document.getElementById('statusPagoLabel');
+            if (pagoLabel) pagoLabel.textContent = tipo === 'receita' ? 'Recebido' : 'Pago';
+        }
 
         window.addEventListener('DOMContentLoaded', async () => {
-            await loadLancamentos();
             setupCharts();
-            feather.replace();
+            await Promise.all([loadLancamentos(), loadNotasFiscais()]);
+            if (window.feather && feather.replace) {
+                feather.replace();
+            }
+            preencherCategoriasPorTipo();
+            atualizarRotuloStatus();
+            document.getElementById('tipo').addEventListener('change', () => {
+                preencherCategoriasPorTipo();
+                atualizarRotuloStatus();
+            });
         });
 
         async function loadLancamentos() {
@@ -283,6 +364,7 @@
                 if (lancamentos.length === 0) {
                     loadingState.classList.add('hidden');
                     emptyState.classList.remove('hidden');
+                    updateCharts(); // Atualizar gráficos mesmo sem dados
                 } else {
                     loadingState.classList.add('hidden');
                     renderTransactionsTable();
@@ -292,6 +374,21 @@
             } catch (error) {
                 console.error('Erro ao carregar lançamentos:', error);
                 loadingState.innerHTML = `<p class="text-gray-400">Erro ao carregar dados</p>`;
+            }
+        }
+
+        async function importarNotas() {
+            try {
+                const now = new Date();
+                const mes = now.getMonth() + 1;
+                const ano = now.getFullYear();
+                const res = await fetch(`/api/financeiro/importar-notas?mes=${mes}&ano=${ano}`, { method: 'POST' });
+                const data = await res.json();
+                showToast(`Importadas: ${data.lancamentos_criados} • Ignoradas: ${data.notas_ignoradas}`, 'success');
+                await loadLancamentos();
+                updateCharts();
+            } catch (e) {
+                showToast('Erro ao importar notas', 'error');
             }
         }
 
@@ -314,6 +411,31 @@
             document.getElementById('entradas').textContent = 'R$ ' + entradas.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('saidas').textContent = 'R$ ' + saidas.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('pendencias').textContent = 'R$ ' + pendencias.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            // Notas fiscais do mês corrente (valor_total)
+            try {
+                const now = new Date();
+                const key = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+                const totalNotasMes = (notasFiscais || [])
+                    .filter(n => {
+                        const d = new Date(n.data_emissao || n.data || n.created_at);
+                        const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                        return k === key;
+                    })
+                    .reduce((sum, n) => sum + Number(n.valor_total || n.valor || 0), 0);
+                const el = document.getElementById('notasMes');
+                if (el) el.textContent = 'R$ ' + totalNotasMes.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            } catch {}
+        }
+        async function loadNotasFiscais() {
+            try {
+                const data = await apiService.getNotasFiscais();
+                notasFiscais = Array.isArray(data) ? data : [];
+                // Recalcular resumo ao ter as notas
+                updateSummary();
+            } catch (error) {
+                console.error('Erro ao carregar notas fiscais:', error);
+            }
         }
 
         function renderTransactionsTable() {
@@ -342,7 +464,7 @@
                             ? 'bg-red-600/20 text-red-400 border border-red-600/30'
                             : 'bg-yellow-600/20 text-yellow-400 border border-yellow-600/30'
                         }">
-                            ${lancamento.status}
+                            ${(lancamento.status === 'pago' && lancamento.tipo === 'receita') ? 'recebido' : lancamento.status}
                         </span>
                     </td>
                     <td class="px-6 py-4 text-right">
@@ -417,23 +539,11 @@
             categoriesChart = new Chart(categoriesCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Folha de Pagamento', 'Infraestrutura', 'Impostos', 'Marketing', 'Operacional'],
+                    labels: [],
                     datasets: [{
-                        data: [35, 22, 18, 15, 10],
-                        backgroundColor: [
-                            'rgba(34, 197, 94, 0.8)',    // Verde vibrante
-                            'rgba(234, 179, 8, 0.8)',    // Amarelo ouro
-                            'rgba(239, 68, 68, 0.8)',    // Vermelho vivo
-                            'rgba(59, 130, 246, 0.8)',   // Azul elétrico
-                            'rgba(168, 85, 247, 0.8)'    // Roxo vibrante
-                        ],
-                        borderColor: [
-                            'rgba(34, 197, 94, 1)',
-                            'rgba(234, 179, 8, 1)',
-                            'rgba(239, 68, 68, 1)',
-                            'rgba(59, 130, 246, 1)',
-                            'rgba(168, 85, 247, 1)'
-                        ],
+                        data: [],
+                        backgroundColor: [],
+                        borderColor: [],
                         borderWidth: 3
                     }]
                 },
@@ -451,14 +561,200 @@
         }
 
         function updateCharts() {
-            // Update based on actual data
+            // Atualiza gráficos com base nos lançamentos atuais
+            try {
+                // Últimos 6 meses
+                const now = new Date();
+                const months = [];
+                for (let i = 5; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    months.push(d);
+                }
+
+                const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                const monthLabel = (d) => d.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+
+                const receitaSeries = months.map(m => {
+                    const key = monthKey(m);
+                    return lancamentos
+                        .filter(l => l.status === 'pago' && l.tipo === 'receita')
+                        .filter(l => {
+                            const ref = l.data_pagamento || l.data_vencimento;
+                            if (!ref) return false;
+                            const d = new Date(ref);
+                            return monthKey(d) === key;
+                        })
+                        .reduce((sum, l) => sum + Number(l.valor || 0), 0);
+                });
+
+                const despesaSeries = months.map(m => {
+                    const key = monthKey(m);
+                    return lancamentos
+                        .filter(l => l.status === 'pago' && l.tipo === 'despesa')
+                        .filter(l => {
+                            const ref = l.data_pagamento || l.data_vencimento;
+                            if (!ref) return false;
+                            const d = new Date(ref);
+                            return monthKey(d) === key;
+                        })
+                        .reduce((sum, l) => sum + Number(l.valor || 0), 0);
+                });
+
+                const labels = months.map(monthLabel);
+
+                if (cashFlowChart) {
+                    cashFlowChart.data.labels = labels;
+                    if (cashFlowChart.data.datasets && cashFlowChart.data.datasets.length >= 2) {
+                        cashFlowChart.data.datasets[0].data = receitaSeries;
+                        cashFlowChart.data.datasets[1].data = despesaSeries;
+                    }
+                    cashFlowChart.update('none');
+                }
+
+                // Categorias de despesas E receitas do mês atual (pagas)
+                const currentKey = monthKey(now);
+                const lancamentosPagosMes = lancamentos
+                    .filter(l => l.status === 'pago')
+                    .filter(l => {
+                        // Usar data_pagamento se existir, senão data_criacao, senão data_vencimento
+                        const ref = l.data_pagamento || l.created_at || l.data_criacao || l.data_vencimento;
+                        if (!ref) return false;
+                        const refDate = new Date(ref);
+                        const refKey = monthKey(refDate);
+                        return refKey === currentKey;
+                    });
+
+                // Agrupar e mapear tipo+categoria
+                const categoriasComTipo = lancamentosPagosMes.map(l => ({
+                    categoria: l.categoria || 'outros',
+                    tipo: l.tipo,
+                    valor: Number(l.valor || 0)
+                }));
+
+                // Agrupar categorias de forma inteligente
+                const grupos = {
+                    'Receitas': 0,
+                    'Impostos': 0,
+                    'Gastos Operacionais': 0,
+                    'Outros': 0
+                };
+
+                categoriasComTipo.forEach(item => {
+                    if (item.tipo === 'receita') {
+                        grupos['Receitas'] += item.valor;
+                    } else if (item.categoria === 'impostos') {
+                        grupos['Impostos'] += item.valor;
+                    } else if (['folha_pagamento', 'aluguel', 'telefonia', 'material', 'servicos'].includes(item.categoria)) {
+                        grupos['Gastos Operacionais'] += item.valor;
+                    } else {
+                        grupos['Outros'] += item.valor;
+                    }
+                });
+
+                // Filtrar apenas grupos com valores
+                const catLabels = Object.keys(grupos).filter(key => grupos[key] > 0);
+                const catData = catLabels.map(key => grupos[key]);
+
+                if (categoriesChart) {
+                    // Limpar dados antigos primeiro
+                    categoriesChart.data.labels = [];
+                    categoriesChart.data.datasets[0].data = [];
+                    categoriesChart.data.datasets[0].backgroundColor = [];
+                    categoriesChart.data.datasets[0].borderColor = [];
+                    
+                    if (catLabels.length > 0 && catData.some(v => v > 0)) {
+                        // Mapear cores por grupo
+                        const coresPersonalizadas = [];
+                        const coresBordaPersonalizadas = [];
+                        
+                        catLabels.forEach(label => {
+                            let cor, corBorda;
+                            
+                            if (label === 'Receitas') {
+                                cor = 'rgba(34, 197, 94, 0.8)';  // VERDE
+                                corBorda = 'rgba(34, 197, 94, 1)';
+                            } else if (label === 'Impostos') {
+                                cor = 'rgba(239, 68, 68, 0.8)';  // VERMELHO
+                                corBorda = 'rgba(239, 68, 68, 1)';
+                            } else if (label === 'Gastos Operacionais') {
+                                cor = 'rgba(59, 130, 246, 0.8)';  // AZUL
+                                corBorda = 'rgba(59, 130, 246, 1)';
+                            } else {
+                                cor = 'rgba(168, 85, 247, 0.8)';  // ROXO
+                                corBorda = 'rgba(168, 85, 247, 1)';
+                            }
+                            
+                            coresPersonalizadas.push(cor);
+                            coresBordaPersonalizadas.push(corBorda);
+                        });
+                        
+                        categoriesChart.data.labels = catLabels;
+                        categoriesChart.data.datasets[0].data = catData;
+                        categoriesChart.data.datasets[0].backgroundColor = coresPersonalizadas;
+                        categoriesChart.data.datasets[0].borderColor = coresBordaPersonalizadas;
+                    } else {
+                        categoriesChart.data.labels = ['Sem dados'];
+                        categoriesChart.data.datasets[0].data = [1];
+                        categoriesChart.data.datasets[0].backgroundColor = ['rgba(107, 114, 128, 0.5)'];
+                        categoriesChart.data.datasets[0].borderColor = ['rgba(107, 114, 128, 1)'];
+                    }
+                    categoriesChart.update('none');
+                }
+            } catch (e) {
+                console.warn('Falha ao atualizar gráficos:', e);
+            }
         }
 
         function openLancamentoModal() {
             document.getElementById('modalTitle').textContent = 'Novo Lançamento';
             document.getElementById('lancamentoForm').reset();
+            document.getElementById('status').value = 'pendente';
             document.getElementById('lancamentoForm').onsubmit = handleLancamentoSubmit;
+            loadClientesSelect();
+            preencherCategoriasPorTipo();
+            atualizarRotuloStatus();
             document.getElementById('lancamentoModal').classList.remove('hidden');
+        }
+
+        async function loadClientesSelect() {
+            try {
+                console.log('🔍 Carregando clientes...');
+                const clientes = await apiService.getClientes();
+                console.log('✅ Clientes carregados:', clientes);
+                
+                const select = document.getElementById('cliente_id');
+                if (!select) {
+                    console.error('❌ Select cliente_id não encontrado');
+                    return;
+                }
+                
+                select.innerHTML = '<option value="">Selecione um cliente...</option>';
+                
+                if (!clientes || clientes.length === 0) {
+                    console.warn('⚠️ Nenhum cliente encontrado');
+                    select.innerHTML += '<option value="" disabled>Nenhum cliente cadastrado</option>';
+                    return;
+                }
+                // Normaliza nomes e ordena alfabeticamente (pt-BR)
+                const listaOrdenada = clientes
+                    .map(c => ({
+                        id: c.id,
+                        nome: c.nome_razao_social || c.nome_fantasia || c.razao_social || c.nome || `Cliente ${c.id}`
+                    }))
+                    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
+
+                listaOrdenada.forEach(({ id, nome }) => {
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = nome;
+                    select.appendChild(option);
+                });
+
+                console.log(`✅ ${listaOrdenada.length} clientes adicionados (ordenados)`);
+            } catch (error) {
+                console.error('❌ Erro ao carregar clientes:', error);
+                showToast('Erro ao carregar lista de clientes', 'error');
+            }
         }
 
         function closeLancamentoModal() {
@@ -468,22 +764,35 @@
         async function handleLancamentoSubmit(event) {
             event.preventDefault();
 
+            const statusValue = document.getElementById('status').value;
+            const dataVencimento = document.getElementById('data').value; // YYYY-MM-DD formato
+
             const lancamento = {
+                cliente_id: document.getElementById('cliente_id').value || null,
                 descricao: document.getElementById('descricao').value,
                 tipo: document.getElementById('tipo').value,
                 categoria: document.getElementById('categoria').value,
                 valor: parseFloat(document.getElementById('valor').value),
-                data: document.getElementById('data').value,
-                status: document.getElementById('status').value
+                data_vencimento: dataVencimento, // Envia exatamente como está
+                status: statusValue
             };
 
+            // Se marcado como pago/recebido, define data_pagamento para hoje
+            if (statusValue === 'pago') {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                lancamento.data_pagamento = `${yyyy}-${mm}-${dd}`;
+            }
+
             try {
-                // API call would go here
+                const resultado = await apiService.criarLancamento(lancamento);
                 closeLancamentoModal();
                 await loadLancamentos();
                 showToast('Lançamento criado com sucesso!', 'success');
             } catch (error) {
-                showToast('Erro: ' + error.message, 'error');
+                showToast('Erro ao criar lançamento: ' + (error.message || 'Erro desconhecido'), 'error');
             }
         }
 
@@ -492,17 +801,35 @@
             if (!lancamento) return;
 
             document.getElementById('modalTitle').textContent = 'Editar Lançamento';
+            
+            // Carregar clientes e preencher categorias primeiro
+            loadClientesSelect().then(() => {
+                // Depois que clientes carregarem, selecionar o cliente correto
+                if (lancamento.cliente_id) {
+                    document.getElementById('cliente_id').value = lancamento.cliente_id;
+                }
+            });
+            
             document.getElementById('descricao').value = lancamento.descricao || '';
             document.getElementById('tipo').value = lancamento.tipo || 'despesa';
+            
+            // Preencher categorias baseado no tipo
+            preencherCategoriasPorTipo();
+            
             document.getElementById('categoria').value = lancamento.categoria || 'outros';
             document.getElementById('valor').value = lancamento.valor || '';
             document.getElementById('data').value = lancamento.data_vencimento || '';
             document.getElementById('status').value = lancamento.status || 'pendente';
+            
+            // Atualizar rótulo do status
+            atualizarRotuloStatus();
 
             document.getElementById('lancamentoForm').onsubmit = async (event) => {
                 event.preventDefault();
 
+                const clienteId = document.getElementById('cliente_id').value;
                 const updateData = {
+                    cliente_id: clienteId ? parseInt(clienteId) : null,
                     descricao: document.getElementById('descricao').value,
                     tipo: document.getElementById('tipo').value,
                     categoria: document.getElementById('categoria').value,
@@ -511,10 +838,19 @@
                     status: document.getElementById('status').value
                 };
 
+                if (updateData.status === 'pago') {
+                    const today = new Date();
+                    const yyyy = today.getFullYear();
+                    const mm = String(today.getMonth() + 1).padStart(2, '0');
+                    const dd = String(today.getDate()).padStart(2, '0');
+                    updateData.data_pagamento = `${yyyy}-${mm}-${dd}`;
+                }
+
                 try {
                     await apiService.atualizarLancamento(id, updateData);
                     closeLancamentoModal();
                     await loadLancamentos();
+                    updateCharts(); // Forçar atualização dos gráficos
                     showToast('Lançamento atualizado com sucesso!', 'success');
                 } catch (error) {
                     showToast('Erro ao atualizar lançamento: ' + error.message, 'error');
@@ -548,6 +884,57 @@
             localStorage.removeItem('token');
             window.location.href = '/pages/login.html';
         }
+
+        // Atualizar data e hora em tempo real
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = now.toLocaleDateString('pt-BR', options);
+        }
+        updateDateTime();
+        setInterval(updateDateTime, 60000);
+
+        // Mostrar botão de configurações para Master e Admin
+        (function showConfigButton() {
+            const userRole = localStorage.getItem('USER_ROLE');
+            const userEmail = localStorage.getItem('USER_EMAIL');
+            const userName = localStorage.getItem('USER_NAME') || userEmail?.split('@')[0] || 'Usuário';
+            
+            if (document.getElementById('userName')) {
+                document.getElementById('userName').textContent = userName;
+            }
+            if (document.getElementById('userEmail')) {
+                document.getElementById('userEmail').textContent = userEmail || '';
+            }
+            
+            if (userRole === 'master' || userRole === 'admin') {
+                const configBtn = document.getElementById('configButton');
+                if (configBtn) configBtn.classList.remove('hidden');
+            }
+        })();
+
+        // Adicionar link de Configurações para Master e Admin
+        (function addConfigLink() {
+            const userRole = localStorage.getItem('USER_ROLE');
+            const nav = document.getElementById('sidebarNav');
+            if (nav && (userRole === 'master' || userRole === 'admin')) {
+                const link = document.createElement('a');
+                link.href = '/pages/configuracoes.html';
+                link.className = 'flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all';
+                link.innerHTML = '<i class="fas fa-cog w-5"></i> Configurações';
+                nav.appendChild(link);
+            }
+        })();
+
+        // Versão do sistema
+        console.log('💼 Contabiliza.IA - Sistema Financeiro v1.0');
     </script>
 </body>
 </html>

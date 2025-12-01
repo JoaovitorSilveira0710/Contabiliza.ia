@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estoque | Contabiliza.IA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="/src/js/config.js?v=20251124"></script>
+  <script src="/src/js/ui-helper.js?v=20251124"></script>
+  <script src="/src/js/api-service.js?v=20251124"></script>
+  <link rel="stylesheet" href="/src/styles/globals.css?v=20251124">
+  <script defer src="/src/js/estoque-service.js?v=20251128"></script>
+  <script defer>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!UTILS.isAuthenticated()) { window.location.href = '/pages/login.html'; return; }
+      window.EstoqueUI.init();
+    });
+  </script>
+</head>
+<body class="bg-gray-900 text-white">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+      <div class="p-6 border-b border-gray-700">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center animate-pulse">
+            <i class="fas fa-calculator text-white"></i>
+          </div>
+          <span class="text-lg font-bold bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">Contabiliza.IA</span>
+        </div>
+      </div>
+
+      <!-- Navegação -->
+      <nav class="p-4 space-y-2" id="sidebarNav">
+        <a href="/pages/dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-chart-line w-5"></i> Dashboard
+        </a>
+        <a href="/pages/clientes.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-users w-5"></i> Clientes
+        </a>
+        <a href="/pages/notas-fiscais.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-file-invoice w-5"></i> Notas Fiscais
+        </a>
+        <a href="/pages/financeiro.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-chart-bar w-5"></i> Financeiro
+        </a>
+        <a href="/pages/juridico.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-scale-balanced w-5"></i> Jurídico
+        </a>
+        <a href="/pages/relatorios.html" class="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all">
+          <i class="fas fa-file-pdf w-5"></i> Relatórios
+        </a>
+        <a href="/pages/estoque.html" class="flex items-center gap-3 px-4 py-3 bg-purple-600/20 text-purple-400 rounded-lg border border-purple-600/30">
+          <i class="fas fa-boxes-stacked w-5"></i> Estoque
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto">
+      <!-- Header -->
+      <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
+        <div class="flex justify-between items-center px-6 py-4">
+          <div class="flex items-center gap-4">
+            <h2 class="text-2xl font-bold text-white">Estoque</h2>
+            <p class="text-gray-400 text-sm">Controle de itens, entradas, saídas e contagens</p>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 text-sm text-gray-300">
+              <i class="fas fa-clock text-purple-400"></i>
+              <span id="currentDateTime"></span>
+            </div>
+            <a href="/pages/configuracoes.html" id="configButton" class="hidden p-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-all" title="Configurações">
+              <i class="fas fa-cog text-xl"></i>
+            </a>
+            <div class="flex items-center gap-3 pl-4 border-l border-gray-700">
+              <div class="text-right">
+                <p class="text-sm font-medium text-white" id="userName"></p>
+                <p class="text-xs text-gray-400" id="userEmail"></p>
+              </div>
+              <button onclick="logout()" class="px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 text-sm transition-all">
+                <i class="fas fa-sign-out-alt mr-1"></i> Sair
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="p-6 space-y-6">
+        <section class="glass-card p-6">
+          <h3 class="text-lg font-semibold mb-3">Itens</h3>
+          <div class="flex flex-wrap gap-2 mb-4">
+            <input id="item-codigo" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white" placeholder="Código" />
+            <input id="item-nome" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white" placeholder="Nome" />
+            <input id="item-unidade" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white" value="un" placeholder="Unidade" />
+            <button id="btn-add-item" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg">Adicionar</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-800/50 border-b border-gray-700">
+                <tr>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Código</th>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Nome</th>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Saldo</th>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Custo médio</th>
+                </tr>
+              </thead>
+              <tbody id="tbl-itens" class="divide-y divide-gray-700"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="glass-card p-6">
+          <h3 class="text-lg font-semibold mb-3">Movimentos</h3>
+          <div class="flex flex-wrap gap-2 mb-4">
+            <select id="mov-item" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"></select>
+            <select id="mov-tipo" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white">
+              <option value="entrada">Entrada</option>
+              <option value="saida">Saída</option>
+            </select>
+            <input id="mov-quantidade" type="number" step="0.01" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white" placeholder="Quantidade" />
+            <input id="mov-valor" type="number" step="0.01" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white" placeholder="Valor unitário (opcional)" />
+            <button id="btn-add-mov" class="px-4 py-2 bg-green-600 rounded-lg">Registrar</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-800/50 border-b border-gray-700">
+                <tr>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Data</th>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Item</th>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Tipo</th>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Qtd</th>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Valor</th>
+                </tr>
+              </thead>
+              <tbody id="tbl-mov" class="divide-y divide-gray-700"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="glass-card p-6">
+          <h3 class="text-lg font-semibold mb-3">Contagens</h3>
+          <div class="flex flex-wrap gap-2 mb-4">
+            <select id="cont-item" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"></select>
+            <input id="cont-quantidade" type="number" step="0.01" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white" placeholder="Quantidade" />
+            <button id="btn-add-cont" class="px-4 py-2 bg-purple-600 rounded-lg">Contar</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-800/50 border-b border-gray-700">
+                <tr>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Data</th>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Item</th>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Contado</th>
+                  <th class="px-4 py-2 text-left text-sm text-gray-300">Diferença</th>
+                </tr>
+              </thead>
+              <tbody id="tbl-cont" class="divide-y divide-gray-700"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="glass-card p-6">
+          <h3 class="text-lg font-semibold mb-3">Relatório</h3>
+          <div class="flex flex-wrap gap-2 mb-4">
+            <input id="rel-inicio" type="datetime-local" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white" />
+            <input id="rel-fim" type="datetime-local" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white" />
+            <button id="btn-rel" class="px-4 py-2 bg-gray-700 rounded-lg">Gerar resumo</button>
+          </div>
+          <div id="rel-out" class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function logout(){ localStorage.clear(); window.location.href='/pages/login.html'; }
+    function updateDateTime(){
+      const now=new Date();
+      const opts={weekday:'short',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'};
+      const el=document.getElementById('currentDateTime'); if(el) el.textContent=now.toLocaleDateString('pt-BR',opts);
+    }
+    updateDateTime(); setInterval(updateDateTime,60000);
+    (function addConfig(){
+      const role=localStorage.getItem('USER_ROLE'); const nav=document.getElementById('sidebarNav');
+      const email=localStorage.getItem('USER_EMAIL'); const name=localStorage.getItem('USER_NAME')||email?.split('@')[0]||'Usuário';
+      const nm=document.getElementById('userName'); const em=document.getElementById('userEmail');
+      if(nm) nm.textContent=name; if(em) em.textContent=email||'';
+      if(role==='master'||role==='admin'){
+        const btn=document.getElementById('configButton'); if(btn) btn.classList.remove('hidden');
+        if(nav){ const link=document.createElement('a'); link.href='/pages/configuracoes.html'; link.className='flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-gray-700 rounded-lg transition-all'; link.innerHTML='<i class="fas fa-cog w-5"></i> Configurações'; nav.appendChild(link); }
+      }
+    })();
+  </script>
+</body>
+</html>
+      <h2 class="text-xl font-semibold mb-2">Itens</h2>
+      <div class="flex gap-2 mb-2">
+        <input id="item-codigo" class="border p-2" placeholder="Código" />
+        <input id="item-nome" class="border p-2" placeholder="Nome" />
+        <input id="item-unidade" class="border p-2" value="un" placeholder="Unidade" />
+        <button id="btn-add-item" class="bg-blue-600 text-white px-3 py-2">Adicionar</button>
+      </div>
+      <table class="w-full border" id="tbl-itens">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="p-2 border">Código</th>
+            <th class="p-2 border">Nome</th>
+            <th class="p-2 border">Saldo</th>
+            <th class="p-2 border">Custo médio</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    
+
+    <section class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Contagens</h2>
+      <div class="flex gap-2 mb-2">
+        <select id="cont-item" class="border p-2"></select>
+        <input id="cont-quantidade" type="number" step="0.01" class="border p-2" placeholder="Quantidade" />
+        <button id="btn-add-cont" class="bg-purple-600 text-white px-3 py-2">Contar</button>
+      </div>
+      <table class="w-full border" id="tbl-cont">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="p-2 border">Data</th>
+            <th class="p-2 border">Item</th>
+            <th class="p-2 border">Contado</th>
+            <th class="p-2 border">Diferença</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Relatório</h2>
+      <div class="flex gap-2 mb-2">
+        <input id="rel-inicio" type="datetime-local" class="border p-2" />
+        <input id="rel-fim" type="datetime-local" class="border p-2" />
+        <button id="btn-rel" class="bg-gray-800 text-white px-3 py-2">Gerar resumo</button>
+      </div>
+      <div id="rel-out" class="border p-2"></div>
+    </section>
+  </body>
+  </html>

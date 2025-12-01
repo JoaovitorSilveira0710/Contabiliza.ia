@@ -1,45 +1,56 @@
-# run.py - Coloque na raiz do seu projeto (mesmo nível de backend/)
 import os
 import sys
-import uvicorn
+import subprocess
 import logging
 
-# Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("run")
 
 def main():
     try:
-        logger.info("🚀 Iniciando Contabiliza.IA...")
+        logger.info("Starting Contabiliza.IA (Django)...")
         
-        # Verificar se estamos no diretório correto
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        backend_dir = os.path.join(current_dir, "backend")
+        django_backend_dir = os.path.join(current_dir, "django_backend")
         
-        if not os.path.exists(backend_dir):
-            logger.error("❌ Diretório 'backend' não encontrado!")
-            logger.info("💡 Execute este script da raiz do projeto")
+        if not os.path.exists(django_backend_dir):
+            logger.error("Directory 'django_backend' not found!")
+            logger.info("Run this script from the project root")
             return
         
-        logger.info(f"📁 Diretório do projeto: {current_dir}")
+        logger.info(f"Project directory: {current_dir}")
         
-        # Iniciar servidor
-        logger.info("🌐 Iniciando servidor FastAPI...")
-        logger.info("📚 Docs disponíveis em: http://localhost:8000/docs")
-        logger.info("🏥 Health check em: http://localhost:8000/health")
+        # Apply migrations
+        logger.info("Applying database migrations...")
+        subprocess.run(
+            [sys.executable, "manage.py", "makemigrations"],
+            cwd=django_backend_dir,
+            check=True
+        )
+        subprocess.run(
+            [sys.executable, "manage.py", "migrate"],
+            cwd=django_backend_dir,
+            check=True
+        )
         
-        uvicorn.run(
-            "backend.app.main:app",
-            host="0.0.0.0",
-            port=8000,
-            reload=True,
-            log_level="info"
+        # Start Django server
+        logger.info("Starting Django server...")
+        logger.info("API available at: http://localhost:8000/api/")
+        logger.info("Admin panel at: http://localhost:8000/admin/")
+        
+        subprocess.run(
+            [sys.executable, "manage.py", "runserver", "0.0.0.0:8000"],
+            cwd=django_backend_dir,
+            check=True
         )
         
     except KeyboardInterrupt:
-        logger.info("⏹️ Servidor interrompido pelo usuário")
+        logger.info("Server stopped by user")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed: {e}")
+        sys.exit(1)
     except Exception as e:
-        logger.error(f"❌ Erro ao iniciar servidor: {e}")
+        logger.error(f"Error starting server: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

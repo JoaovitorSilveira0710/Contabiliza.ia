@@ -52,11 +52,11 @@ class ApiService {
       }
 
       const data = await response.json();
-      console.log(`✅ ${method} ${endpoint}`, data);
+      console.log(`${method} ${endpoint}`, data);
       return data;
 
     } catch (error) {
-      console.error(`❌ Erro em ${endpoint}:`, error);
+      console.error(`Erro em ${endpoint}:`, error);
       this._showError(error.message);
       throw error;
     }
