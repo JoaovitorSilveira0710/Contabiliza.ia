@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <title>Gestão de Usuários</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/src/styles/globals.css">
 </head>
 <body class="bg-gray-900 text-white">
   <div class="max-w-3xl mx-auto p-8">
-    <h1 class="text-3xl font-bold mb-6">👤 Gestão de Usuários</h1>
+    <h1 class="text-3xl font-bold mb-6"><i class="fas fa-user-friends"></i> Gestão de Usuários</h1>
 
     <div class="glass-card p-6 rounded-lg mb-6">
       <h2 class="text-xl font-semibold mb-4">Criar Usuário Admin (somente Master)</h2>
@@ -150,9 +151,15 @@
     document.getElementById('senha').addEventListener('input', atualizarForcaSenha);
 
     async function fetchUsuarios() {
+      const token = UTILS.getToken();
+      const headers = {
+        'Authorization': `Token ${token}`,
+        'Content-Type': 'application/json'
+      };
+      
       const [resUsers, resOnline] = await Promise.all([
-        fetch(`${CONFIG.API_BASE}/usuarios/`),
-        fetch(`${CONFIG.API_BASE.replace('/api','')}/api/monitoramento/usuarios-online`)
+        fetch(`${CONFIG.API_BASE}/users/`, { headers }),
+        fetch(`${CONFIG.API_BASE.replace('/api','')}/api/monitoramento/usuarios-online`, { headers })
       ]);
       const data = await resUsers.json();
       const online = await resOnline.json();
@@ -181,18 +188,18 @@
         tipo: document.getElementById('tipo').value,
       };
       try {
-        const res = await fetch(`${CONFIG.API_BASE}/usuarios/`, {
+        const token = UTILS.getToken();
+        const res = await fetch(`${CONFIG.API_BASE}/users/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            // Cabeçalho de identidade - deve ser do Master
-            'x-user-email': localStorage.getItem('MASTER_EMAIL') || 'master@contabiliza.ia'
+            'Authorization': `Token ${token}`
           },
           body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Erro');
-        document.getElementById('msg').textContent = '✅ Usuário admin criado';
+        document.getElementById('msg').textContent = 'Admin user created successfully';
         document.getElementById('formUsuario').reset();
         atualizarForcaSenha();
         fetchUsuarios();

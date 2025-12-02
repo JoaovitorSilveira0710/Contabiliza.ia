@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notas Fiscais - Contabiliza.IA</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="stylesheet" href="/dist/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/src/styles/globals.css">
+    <link rel="icon" type="image/svg+xml" href="/src/styles/favicon.svg">
     <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body class="bg-gray-900 text-white">
@@ -163,13 +165,16 @@
                     </div>
                 </div>
 
+                <!-- React Table Root -->
+                <div id="react-notas-table-root" class="mt-6"></div>
+
                 <!-- Loading State -->
-                <div id="loadingState" class="text-center py-12">
+                <div id="loadingState" class="hidden text-center py-12">
                     <i class="fas fa-spinner fa-spin text-4xl text-purple-600 mb-4"></i>
                     <p class="text-gray-400">Carregando notas fiscais...</p>
                 </div>
 
-                <!-- NFe Table -->
+                <!-- NFe Table (OLD - HIDDEN) -->
                 <div id="nfeContainer" class="hidden glass-card rounded-xl overflow-hidden">
                     <table class="w-full">
                         <thead class="bg-gray-800/50 border-b border-gray-700">
@@ -186,10 +191,11 @@
                         <tbody id="nfeTableBody" class="divide-y divide-gray-700">
                         </tbody>
                     </table>
+                        <div id="paginationControls" class="bg-gray-800/40 border-t border-gray-700"></div>
                 </div>
 
                 <!-- Empty State -->
-                <div id="emptyState" class="text-center py-12">
+                <div id="emptyState" class="hidden text-center py-12">
                     <i class="fas fa-inbox text-5xl text-gray-700 mb-4"></i>
                     <p class="text-gray-400 mb-4">Nenhuma nota fiscal encontrada</p>
                     <button onclick="openImportModal()" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all">
@@ -216,7 +222,7 @@
             <form id="emitirForm" onsubmit="handleEmitir(event)" class="space-y-6">
                 <!-- Dados do Destinatário -->
                 <div class="bg-gray-700/30 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-4 text-purple-400">📋 Dados do Destinatário</h3>
+                    <h3 class="text-lg font-semibold mb-4 text-purple-400"><i class="fas fa-clipboard-list"></i> Dados do Destinatário</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium mb-2">Cliente *</label>
@@ -237,7 +243,7 @@
 
                 <!-- Dados da Nota -->
                 <div class="bg-gray-700/30 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-4 text-purple-400">📄 Dados da Nota</h3>
+                    <h3 class="text-lg font-semibold mb-4 text-purple-400"><i class="fas fa-file-invoice"></i> Dados da Nota</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
                             <label class="block text-sm font-medium mb-2">Número *</label>
@@ -431,23 +437,189 @@
         </div>
     </div>
 
+    <!-- React Roots -->
+    <div id="react-client-choice-root"></div>
+
+    <!-- Client Registration Modal (from XML) -->
+    <div id="clientRegisterModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+        <div class="bg-gray-800 rounded-xl p-8 max-w-3xl w-full mx-4 my-8 glass-card">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fas fa-user-plus text-purple-400"></i>
+                    Cliente Não Cadastrado
+                </h2>
+                <button onclick="closeClientRegisterModal()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4 mb-6">
+                <p class="text-yellow-400 text-sm">O cliente da nota fiscal não está cadastrado no sistema. Complete os dados abaixo para cadastrar automaticamente.</p>
+            </div>
+            <form id="clientRegisterForm" onsubmit="handleClientRegister(event)" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-2">Nome/Razão Social *</label>
+                        <input type="text" id="reg_nome" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">CNPJ/CPF *</label>
+                        <input type="text" id="reg_cnpj" required readonly class="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-400 cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Tipo *</label>
+                        <select id="reg_tipo" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <option value="pessoa_juridica">Pessoa Jurídica</option>
+                            <option value="pessoa_fisica">Pessoa Física</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Email</label>
+                        <input type="email" id="reg_email" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Telefone</label>
+                        <input type="text" id="reg_telefone" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">CEP</label>
+                        <input type="text" id="reg_cep" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-2">Endereço</label>
+                        <input type="text" id="reg_endereco" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Número</label>
+                        <input type="text" id="reg_numero" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Complemento</label>
+                        <input type="text" id="reg_complemento" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600" oninput="handleComplementoChange()">
+                        <div id="fazendaDocsHint" class="hidden mt-2 bg-purple-900/20 border border-purple-600/30 rounded-lg p-3">
+                            <p class="text-purple-300 text-sm mb-2">
+                                Detectamos que o cliente é uma Fazenda. Documentações necessárias:
+                            </p>
+                            <ul class="text-purple-200 text-sm list-disc ml-5 space-y-1">
+                                <li>CCIR (Certificado de Cadastro de Imóvel Rural)</li>
+                                <li>CAR (Cadastro Ambiental Rural)</li>
+                                <li>ITR (Imposto sobre a Propriedade Territorial Rural)</li>
+                                <li>Documentos do proprietário/arrendatário</li>
+                            </ul>
+                        </div>
+                        <input type="hidden" id="reg_requires_docs" value="false">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Bairro</label>
+                        <input type="text" id="reg_bairro" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Cidade</label>
+                        <input type="text" id="reg_cidade" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">UF</label>
+                        <select id="reg_uf" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <option value="">Selecione</option>
+                            <option value="SP">São Paulo</option>
+                            <option value="RJ">Rio de Janeiro</option>
+                            <option value="MG">Minas Gerais</option>
+                            <option value="ES">Espírito Santo</option>
+                            <option value="PR">Paraná</option>
+                            <option value="SC">Santa Catarina</option>
+                            <option value="RS">Rio Grande do Sul</option>
+                            <option value="BA">Bahia</option>
+                            <option value="PE">Pernambuco</option>
+                            <option value="CE">Ceará</option>
+                            <option value="DF">Distrito Federal</option>
+                            <option value="GO">Goiás</option>
+                            <option value="MT">Mato Grosso</option>
+                            <option value="MS">Mato Grosso do Sul</option>
+                            <option value="AM">Amazonas</option>
+                            <option value="PA">Pará</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-3 justify-end pt-4 border-t border-gray-700">
+                    <button type="button" onclick="skipClientRegister()" class="px-6 py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all">
+                        Pular
+                    </button>
+                    <button type="submit" id="btnRegisterClient" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
+                        <i class="fas fa-save"></i>
+                        Cadastrar e Continuar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/src/js/config.js?v=20251124150000"></script>
-    <script src="/src/js/api-service.js?v=20251124150000"></script>
+    <script src="/src/js/api-service.js?v=20251202030000"></script>
+    <!-- React via CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- App React para modais -->
+    <script src="/src/js/react-app.js?v=20251202030000"></script>
     <script>
         let notas = [];
         let filteredNotas = [];
         let selectedFiles = [];
+        let currentPage = 1;
+        const pageSize = 10;
+
+        // Atualiza o badge do sino no header se existir
+        window.updateNotificationBadge = function(action = 'increment') {
+            const badge = document.getElementById('notificationBadge');
+            const bell = document.getElementById('notificationBell');
+            if (!badge && !bell) return; // sem header
+            const current = Number(badge?.dataset.count || 0);
+            const next = action === 'increment' ? current + 1 : action === 'clear' ? 0 : current;
+            if (badge) {
+                badge.dataset.count = String(next);
+                badge.textContent = String(next);
+                if (next > 0) {
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+            // Pequena animação no sino
+            if (bell) {
+                bell.classList.add('animate-bounce');
+                setTimeout(() => bell.classList.remove('animate-bounce'), 600);
+            }
+        }
+
+        function handleComplementoChange() {
+            const val = (document.getElementById('reg_complemento').value || '').toLowerCase();
+            const isFazenda = val.includes('fazenda');
+            const hint = document.getElementById('fazendaDocsHint');
+            document.getElementById('reg_requires_docs').value = isFazenda ? 'true' : 'false';
+            if (isFazenda) {
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
 
         window.addEventListener('DOMContentLoaded', async () => {
+            // Guard de autenticação
+            const token = UTILS?.getToken?.();
+            if (!token) {
+                window.location.href = '/pages/login.html';
+                return;
+            }
             console.log('🚀 DOMContentLoaded disparado');
-            console.log('📦 apiService disponível?', typeof apiService);
-            console.log('📦 CONFIG disponível?', typeof CONFIG);
-            console.log('📦 CONFIG.ENDPOINTS:', CONFIG?.ENDPOINTS);
+            console.log('apiService available?', typeof apiService);
+            console.log('CONFIG available?', typeof CONFIG);
+            console.log('CONFIG.ENDPOINTS:', CONFIG?.ENDPOINTS);
             
-            // Carregar notas (não bloqueia se falhar)
-            loadNotas().catch(error => {
-                console.error('❌ Erro ao carregar notas:', error);
-            });
+            // NOTA: Tabela de notas agora é renderizada pelo React (react-notas-table-root)
+            // loadNotas() desabilitada - não é mais necessária
+            
+            // Carregar notas (não bloqueia se falhar) - DESABILITADO
+            // loadNotas().catch(error => {
+            //     console.error('❌ Erro ao carregar notas:', error);
+            // });
             
             // Carregar clientes (não bloqueia se falhar)
             loadClientes().catch(error => {
@@ -469,13 +641,18 @@
             }
         });
 
+        // DESABILITADO - Usando React agora
         async function loadNotas() {
+            // Função antiga desabilitada - React carrega as notas automaticamente
+            return;
+            /*
             const loadingState = document.getElementById('loadingState');
             const nfeContainer = document.getElementById('nfeContainer');
             const emptyState = document.getElementById('emptyState');
 
             try {
-                notas = await apiService.getNotasFiscais();
+            const data = await apiService.getNotasFiscais();
+            notas = Array.isArray(data) ? data : (data?.results || []);
                 filteredNotas = notas;
                 updateSummary();
 
@@ -496,13 +673,14 @@
                     </div>
                 `;
             }
+            */
         }
 
         function updateSummary() {
             const total = notas.length;
-            const autorizadas = notas.filter(n => n.situacao === 'autorizada').length;
-            const canceladas = notas.filter(n => n.situacao === 'cancelada').length;
-            const totalValue = notas.reduce((sum, n) => sum + (parseFloat(n.valor_total) || 0), 0);
+            const autorizadas = notas.filter(n => n.status === 'authorized').length;
+            const canceladas = notas.filter(n => n.status === 'cancelled').length;
+            const totalValue = notas.reduce((sum, n) => sum + (parseFloat(n.total_value || n.valor_total) || 0), 0);
 
             document.getElementById('totalNfe').textContent = total;
             document.getElementById('autorizadas').textContent = autorizadas;
@@ -510,44 +688,62 @@
             document.getElementById('totalValue').textContent = 'R$ ' + totalValue.toLocaleString('pt-BR', {minimumFractionDigits: 2});
         }
 
+        function statusBadgeClass(status){
+            if (status === 'authorized') return 'bg-green-600/20 text-green-400 border border-green-600/30';
+            if (status === 'cancelled') return 'bg-red-600/20 text-red-400 border border-red-600/30';
+            if (status === 'denied') return 'bg-red-600/20 text-red-400 border border-red-600/30';
+            return 'bg-yellow-600/20 text-yellow-400 border border-yellow-600/30';
+        }
+        function statusLabel(status){
+            const map = {authorized:'AUTORIZADA',cancelled:'CANCELADA',pending:'PENDENTE',draft:'RASCUNHO',denied:'DENEGADA'};
+            return map[status] || (status || 'DESCONHECIDO').toUpperCase();
+        }
+        function renderPaginationControls(){
+            const totalPages = Math.ceil(filteredNotas.length / pageSize) || 1;
+            const container = document.getElementById('paginationControls');
+            if (!container) return;
+            container.innerHTML = `
+                <div class="flex items-center justify-between px-4 py-3 text-sm text-gray-300">
+                    <div>Página <span class="font-semibold">${currentPage}</span> de <span class="font-semibold">${totalPages}</span></div>
+                    <div class="flex gap-2">
+                        <button ${currentPage===1?'disabled':''} onclick="prevPage()" class="px-3 py-1 rounded bg-gray-800 border border-gray-700 disabled:opacity-40">Anterior</button>
+                        <button ${currentPage===totalPages?'disabled':''} onclick="nextPage()" class="px-3 py-1 rounded bg-gray-800 border border-gray-700 disabled:opacity-40">Próximo</button>
+                    </div>
+                </div>`;
+        }
+        window.nextPage = function(){
+            const totalPages = Math.ceil(filteredNotas.length / pageSize) || 1;
+            if (currentPage < totalPages){ currentPage++; renderNotasTable(); }
+        }
+        window.prevPage = function(){ if (currentPage > 1){ currentPage--; renderNotasTable(); } }
+        
+        // DESABILITADO - Usando React agora
         function renderNotasTable() {
+            // Tabela antiga desabilitada - usando React component
+            return;
+            /* 
             const tableBody = document.getElementById('nfeTableBody');
-
-            tableBody.innerHTML = filteredNotas.map(nota => `
+            const start = (currentPage - 1) * pageSize;
+            const pageData = filteredNotas.slice(start, start + pageSize);
+            tableBody.innerHTML = pageData.map(nota => `
                 <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-all">
-                    <td class="px-6 py-4 font-medium">${nota.numero || 'N/A'}</td>
-                    <td class="px-6 py-4 text-sm text-gray-400">${nota.serie || 'N/A'}</td>
-                    <td class="px-6 py-4 text-sm text-gray-400">${nota.nome_emitente || 'N/A'}</td>
-                    <td class="px-6 py-4 font-medium">R$ ${parseFloat(nota.valor_total || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 font-medium">${nota.number || nota.numero || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${nota.series || nota.serie || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${nota.client_name || nota.nome_emitente || 'N/A'}</td>
+                    <td class="px-6 py-4 font-medium">R$ ${parseFloat(nota.total_value || nota.valor_total || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                     <td class="px-6 py-4">
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${
-                            nota.situacao === 'autorizada' 
-                            ? 'bg-green-600/20 text-green-400 border border-green-600/30'
-                            : nota.situacao === 'cancelada'
-                            ? 'bg-red-600/20 text-red-400 border border-red-600/30'
-                            : 'bg-yellow-600/20 text-yellow-400 border border-yellow-600/30'
-                        }">
-                            ${nota.situacao?.toUpperCase() || 'PENDENTE'}
-                        </span>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${statusBadgeClass(nota.status)}">${statusLabel(nota.status)}</span>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-400">${nota.data_emissao ? new Date(nota.data_emissao).toLocaleDateString('pt-BR') : 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${nota.issue_date ? new Date(nota.issue_date).toLocaleDateString('pt-BR') : (nota.data_emissao ? new Date(nota.data_emissao).toLocaleDateString('pt-BR') : 'N/A')}</td>
                     <td class="px-6 py-4 text-right">
-                        <button onclick="viewDetail('${nota.id}')" class="text-blue-400 hover:text-blue-300 mr-3" title="Ver Detalhes">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        ${nota.situacao !== 'autorizada' && nota.situacao !== 'cancelada' ? `
-                            <button onclick="viewDetail('${nota.id}')" class="text-green-400 hover:text-green-300 mr-3" title="Ver e Autorizar">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        ` : ''}
-                        ${nota.situacao === 'autorizada' ? `
-                            <button onclick="confirmCancelNfe('${nota.id}')" class="text-red-400 hover:text-red-300" title="Cancelar">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        ` : ''}
+                        <button onclick="viewDetail('${nota.id}')" class="text-blue-400 hover:text-blue-300 mr-3" title="Ver Detalhes"><i class="fas fa-eye"></i></button>
+                        ${nota.status !== 'authorized' && nota.status !== 'cancelled' ? `<button onclick="authorizeFromTable('${nota.id}')" class="text-green-400 hover:text-green-300 mr-3" title="Autorizar"><i class="fas fa-check"></i></button>` : ''}
+                        ${nota.status === 'authorized' ? `<button onclick="confirmCancelNfe('${nota.id}')" class="text-red-400 hover:text-red-300 mr-3" title="Cancelar"><i class="fas fa-times"></i></button><button onclick="downloadXML('${nota.id}')" class="text-purple-400 hover:text-purple-300 mr-3" title="Baixar XML"><i class="fas fa-file-code"></i></button><button onclick="downloadPDF('${nota.id}')" class="text-indigo-400 hover:text-indigo-300" title="Baixar PDF"><i class="fas fa-file-pdf"></i></button>`: ''}
                     </td>
                 </tr>
             `).join('');
+            renderPaginationControls();
+            */
         }
 
         function toggleFilters() {
@@ -560,13 +756,19 @@
             const dateFrom = document.getElementById('dateFrom').value;
             const dateTo = document.getElementById('dateTo').value;
 
+            const fromTime = dateFrom ? new Date(dateFrom + 'T00:00:00').getTime() : null;
+            const toTime = dateTo ? new Date(dateTo + 'T23:59:59').getTime() : null;
+
             filteredNotas = notas.filter(nota => {
-                const matchesSearch = !search || nota.numero.includes(search);
+                const numeroStr = String(nota.number || nota.numero || '').toLowerCase();
+                const matchesSearch = !search || numeroStr.includes(search);
                 const matchesStatus = !status || nota.status === status;
-
-                return matchesSearch && matchesStatus;
+                const emissaoTime = nota.issue_date ? new Date(nota.issue_date).getTime() : (nota.data_emissao ? new Date(nota.data_emissao).getTime() : null);
+                const matchesFrom = !fromTime || (emissaoTime && emissaoTime >= fromTime);
+                const matchesTo = !toTime || (emissaoTime && emissaoTime <= toTime);
+                return matchesSearch && matchesStatus && matchesFrom && matchesTo;
             });
-
+            currentPage = 1;
             renderNotasTable();
         }
 
@@ -602,6 +804,69 @@
             updateFileList();
         }
 
+        let pendingImportFiles = [];
+        let clientsCache = [];
+
+        function parseXMLFromString(xmlString) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+            
+            // Extrair dados do EMISSOR
+            const emit = xmlDoc.querySelector('emit');
+            const emissor = {
+                cnpj: emit?.querySelector('CNPJ')?.textContent || emit?.querySelector('CPF')?.textContent || '',
+                nome: emit?.querySelector('xNome')?.textContent || '',
+                fantasia: emit?.querySelector('xFant')?.textContent || '',
+                ie: emit?.querySelector('IE')?.textContent || '',
+                crt: emit?.querySelector('CRT')?.textContent || ''
+            };
+            
+            const enderEmit = emit?.querySelector('enderEmit');
+            emissor.endereco = {
+                logradouro: enderEmit?.querySelector('xLgr')?.textContent || '',
+                numero: enderEmit?.querySelector('nro')?.textContent || '',
+                complemento: enderEmit?.querySelector('xCpl')?.textContent || '',
+                bairro: enderEmit?.querySelector('xBairro')?.textContent || '',
+                municipio: enderEmit?.querySelector('xMun')?.textContent || '',
+                uf: enderEmit?.querySelector('UF')?.textContent || '',
+                cep: enderEmit?.querySelector('CEP')?.textContent || ''
+            };
+            
+            // Extrair dados do DESTINATÁRIO
+            const dest = xmlDoc.querySelector('dest');
+            if (!dest) return { emissor, destinatario: null };
+            
+            const cnpj = dest.querySelector('CNPJ')?.textContent || dest.querySelector('CPF')?.textContent || '';
+            const nome = dest.querySelector('xNome')?.textContent || '';
+            
+            const enderDest = dest.querySelector('enderDest');
+            const endereco = {
+                logradouro: enderDest?.querySelector('xLgr')?.textContent || '',
+                numero: enderDest?.querySelector('nro')?.textContent || '',
+                complemento: enderDest?.querySelector('xCpl')?.textContent || '',
+                bairro: enderDest?.querySelector('xBairro')?.textContent || '',
+                municipio: enderDest?.querySelector('xMun')?.textContent || '',
+                uf: enderDest?.querySelector('UF')?.textContent || '',
+                cep: enderDest?.querySelector('CEP')?.textContent || ''
+            };
+            
+            const email = dest.querySelector('email')?.textContent || '';
+            const fone = dest.querySelector('fone')?.textContent || '';
+            
+            return { 
+                emissor,
+                destinatario: { cnpj, nome, endereco, email, fone }
+            };
+        }
+
+        async function checkClientExists(cnpj_cpf) {
+            if (!cnpj_cpf) return null;
+            // Remove formatação
+            const cleanDoc = cnpj_cpf.replace(/[^\d]/g, '');
+            // Busca no cache
+            return clientsCache.find(c => c.cnpj_cpf?.replace(/[^\d]/g, '') === cleanDoc);
+        }
+
         async function handleImport(event) {
             event.preventDefault();
 
@@ -611,13 +876,297 @@
             }
 
             try {
+                // Atualizar cache de clientes
+                const data = await apiService.getClientes();
+                clientsCache = Array.isArray(data) ? data : (data?.results || []);
+                
+                pendingImportFiles = [];
+                
                 for (const file of selectedFiles) {
+                    // Ler conteúdo do XML
+                    const xmlText = await file.text();
+                    const xmlData = parseXMLFromString(xmlText);
+                    
+                    let emissorExists = null;
+                    let destinatarioExists = null;
+                    
+                    // Verificar EMISSOR
+                    if (xmlData?.emissor && xmlData.emissor.cnpj) {
+                        emissorExists = await checkClientExists(xmlData.emissor.cnpj);
+                    }
+                    
+                    // Verificar DESTINATÁRIO
+                    if (xmlData?.destinatario && xmlData.destinatario.cnpj) {
+                        destinatarioExists = await checkClientExists(xmlData.destinatario.cnpj);
+                    }
+                    
+                    // Se AMBOS não existem - mostrar modal de escolha
+                    if (!emissorExists && !destinatarioExists && xmlData?.emissor && xmlData?.destinatario) {
+                        pendingImportFiles.push(file);
+                        openClientChoiceModal(xmlData);
+                        return; // Parar e aguardar escolha
+                    }
+                    
+                    // Se apenas EMISSOR não existe
+                    if (!emissorExists && xmlData?.emissor && xmlData.emissor.cnpj) {
+                        pendingImportFiles.push(file);
+                        openClientRegisterModal(xmlData, 'emissor');
+                        return; // Parar e aguardar cadastro
+                    }
+                    
+                    // Se apenas DESTINATÁRIO não existe
+                    if (!destinatarioExists && xmlData?.destinatario && xmlData.destinatario.cnpj) {
+                        pendingImportFiles.push(file);
+                        openClientRegisterModal(xmlData, 'destinatario');
+                        return; // Parar e aguardar cadastro
+                    }
+                    
+                    // Ambos existem ou não tem dados - importar diretamente
                     await apiService.importarNotasXML(file);
                 }
+                
                 closeImportModal();
                 await loadNotas();
                 showToast('Notas fiscais importadas com sucesso!', 'success');
             } catch (error) {
+                console.error('Erro ao importar:', error);
+                showToast('Erro ao importar: ' + error.message, 'error');
+            }
+        }
+
+        let currentXmlData = null;
+
+        function openClientChoiceModal(xmlData) {
+            currentXmlData = xmlData;
+            
+            // Preencher informações do emissor
+            const emissorInfo = document.getElementById('emissorInfo');
+            if (xmlData.emissor) {
+                const doc = xmlData.emissor.cnpj || '';
+                emissorInfo.textContent = `${xmlData.emissor.nome || xmlData.emissor.fantasia || 'Sem nome'} - ${doc ? (doc.length > 11 ? 'CNPJ' : 'CPF') + ': ' + doc : 'Sem documento'}`;
+            }
+            
+            // Preencher informações do destinatário
+            const destInfo = document.getElementById('destinatarioInfo');
+            if (xmlData.destinatario) {
+                const doc = xmlData.destinatario.cnpj || '';
+                destInfo.textContent = `${xmlData.destinatario.nome || 'Sem nome'} - ${doc ? (doc.length > 11 ? 'CNPJ' : 'CPF') + ': ' + doc : 'Sem documento'}`;
+            }
+            
+            document.getElementById('clientChoiceModal').classList.remove('hidden');
+        }
+
+        function closeClientChoiceModal() {
+            document.getElementById('clientChoiceModal').classList.add('hidden');
+            currentXmlData = null;
+            // Continuar importação pulando cadastro
+            continueImportAfterRegister();
+        }
+
+        function selectClientType(tipo) {
+            if (!currentXmlData) return;
+            
+            // Fechar modal de escolha
+            document.getElementById('clientChoiceModal').classList.add('hidden');
+            
+            // Abrir modal de cadastro com o tipo escolhido
+            openClientRegisterModal(currentXmlData, tipo);
+        }
+
+        function openClientRegisterModal(xmlData, tipo = 'destinatario') {
+            const clientData = tipo === 'emissor' ? xmlData.emissor : xmlData.destinatario;
+            
+            // Armazenar tipo para referência
+            document.getElementById('clientRegisterModal').dataset.tipoCliente = tipo;
+            document.getElementById('clientRegisterModal').dataset.xmlData = JSON.stringify(xmlData);
+            
+            // Preencher com dados do cliente (emissor ou destinatário)
+            document.getElementById('reg_nome').value = clientData?.nome || clientData?.fantasia || '';
+            document.getElementById('reg_cnpj').value = clientData?.cnpj || '';
+            document.getElementById('reg_email').value = clientData?.email || '';
+            document.getElementById('reg_telefone').value = clientData?.fone || '';
+            document.getElementById('reg_cep').value = clientData?.endereco?.cep || '';
+            document.getElementById('reg_endereco').value = clientData?.endereco?.logradouro || '';
+            document.getElementById('reg_numero').value = clientData?.endereco?.numero || '';
+            document.getElementById('reg_complemento').value = clientData?.endereco?.complemento || '';
+            document.getElementById('reg_bairro').value = clientData?.endereco?.bairro || '';
+            document.getElementById('reg_cidade').value = clientData?.endereco?.municipio || '';
+            document.getElementById('reg_uf').value = clientData?.endereco?.uf || '';
+            
+            // Detectar tipo pelo tamanho do CNPJ/CPF
+            const cleanDoc = (clientData?.cnpj || '').replace(/[^\d]/g, '');
+            document.getElementById('reg_tipo').value = cleanDoc.length === 14 ? 'pessoa_juridica' : 'pessoa_fisica';
+            
+            // Atualizar título do modal
+            const modalTitle = document.querySelector('#clientRegisterModal h3');
+            if (modalTitle) {
+                modalTitle.textContent = tipo === 'emissor' 
+                    ? 'Cadastrar Emissor da Nota'
+                    : 'Cadastrar Cliente (Destinatário)';
+            }
+            
+            // Mostrar modal
+            document.getElementById('clientRegisterModal').classList.remove('hidden');
+        }
+
+        function closeClientRegisterModal() {
+            document.getElementById('clientRegisterModal').classList.add('hidden');
+            document.getElementById('clientRegisterForm').reset();
+        }
+
+        async function handleClientRegister(event) {
+            event.preventDefault();
+            const btnRegister = document.getElementById('btnRegisterClient');
+            
+            try {
+                btnRegister.disabled = true;
+                btnRegister.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cadastrando...';
+                
+                const clientData = {
+                    nome_razao_social: document.getElementById('reg_nome').value,
+                    cnpj_cpf: document.getElementById('reg_cnpj').value,
+                    tipo_pessoa: document.getElementById('reg_tipo').value,
+                    email: document.getElementById('reg_email').value || null,
+                    telefone: document.getElementById('reg_telefone').value || null,
+                    cep: document.getElementById('reg_cep').value || null,
+                    endereco: document.getElementById('reg_endereco').value || null,
+                    numero: document.getElementById('reg_numero').value || null,
+                    complemento: document.getElementById('reg_complemento').value || null,
+                    bairro: document.getElementById('reg_bairro').value || null,
+                    cidade: document.getElementById('reg_cidade').value || null,
+                    uf: document.getElementById('reg_uf').value || null,
+                    ativo: true,
+                    documentos_pendentes: document.getElementById('reg_requires_docs').value === 'true' 
+                        ? ['CCIR','CAR','ITR','Docs Proprietário/Arrendatário'] 
+                        : []
+                };
+                
+                await apiService.criarCliente(clientData);
+                showToast('Cliente cadastrado com sucesso!', 'success');
+                if (clientData.documentos_pendentes.length > 0) {
+                    showToast('Documentação pendente detectada: CCIR, CAR, ITR, Docs Proprietário/Arrendatário. Uma tarefa foi aberta para completar.', 'warning');
+                    if (typeof apiService?.criarNotificacao === 'function') {
+                        try {
+                            await apiService.criarNotificacao({
+                                tipo: 'pendencia_documental',
+                                titulo: 'Completar documentação de cliente (Fazenda)',
+                                mensagem: `Cliente ${clientData.nome_razao_social} requer: ${clientData.documentos_pendentes.join(', ')}`,
+                                prioridade: 'alta'
+                            });
+                        } catch (e) {
+                            console.warn('Falha ao criar notificação no backend:', e);
+                        }
+                    }
+                }
+                closeClientRegisterModal();
+                
+                // Continuar importação
+                await continueImportAfterRegister();
+            } catch (error) {
+                console.error('Erro ao cadastrar cliente:', error);
+                showToast('Erro ao cadastrar cliente: ' + error.message, 'error');
+                btnRegister.disabled = false;
+                btnRegister.innerHTML = '<i class="fas fa-save"></i> Cadastrar e Continuar';
+            }
+        }
+
+        async function skipClientRegister() {
+            closeClientRegisterModal();
+            await continueImportAfterRegister();
+        }
+
+        async function continueImportAfterRegister() {
+            try {
+                // Atualizar cache de clientes
+                const data = await apiService.getClientes();
+                clientsCache = Array.isArray(data) ? data : (data?.results || []);
+                
+                // Processar arquivos pendentes
+                for (const file of pendingImportFiles) {
+                    const xmlText = await file.text();
+                    const xmlData = parseXMLFromString(xmlText);
+                    
+                    let emissorExists = null;
+                    let destinatarioExists = null;
+                    
+                    // Verificar EMISSOR
+                    if (xmlData?.emissor && xmlData.emissor.cnpj) {
+                        emissorExists = await checkClientExists(xmlData.emissor.cnpj);
+                    }
+                    
+                    // Verificar DESTINATÁRIO
+                    if (xmlData?.destinatario && xmlData.destinatario.cnpj) {
+                        destinatarioExists = await checkClientExists(xmlData.destinatario.cnpj);
+                    }
+                    
+                    // Se AMBOS não existem - mostrar modal de escolha
+                    if (!emissorExists && !destinatarioExists && xmlData?.emissor && xmlData?.destinatario) {
+                        openClientChoiceModal(xmlData);
+                        return; // Parar e aguardar escolha
+                    }
+                    
+                    // Se apenas EMISSOR não existe
+                    if (!emissorExists && xmlData?.emissor && xmlData.emissor.cnpj) {
+                        openClientRegisterModal(xmlData, 'emissor');
+                        return; // Parar e aguardar cadastro
+                    }
+                    
+                    // Se apenas DESTINATÁRIO não existe
+                    if (!destinatarioExists && xmlData?.destinatario && xmlData.destinatario.cnpj) {
+                        openClientRegisterModal(xmlData, 'destinatario');
+                        return; // Parar e aguardar cadastro
+                    }
+                    
+                    // Ambos existem - importar
+                    await apiService.importarNotasXML(file);
+                }
+                
+                // Processar arquivos restantes
+                const remainingFiles = selectedFiles.filter(f => !pendingImportFiles.includes(f));
+                for (const file of remainingFiles) {
+                    const xmlText = await file.text();
+                    const xmlData = parseXMLFromString(xmlText);
+                    
+                    let emissorExists = null;
+                    let destinatarioExists = null;
+                    
+                    if (xmlData?.emissor && xmlData.emissor.cnpj) {
+                        emissorExists = await checkClientExists(xmlData.emissor.cnpj);
+                    }
+                    
+                    if (xmlData?.destinatario && xmlData.destinatario.cnpj) {
+                        destinatarioExists = await checkClientExists(xmlData.destinatario.cnpj);
+                    }
+                    
+                    // Se AMBOS não existem
+                    if (!emissorExists && !destinatarioExists && xmlData?.emissor && xmlData?.destinatario) {
+                        pendingImportFiles = [file];
+                        openClientChoiceModal(xmlData);
+                        return;
+                    }
+                    
+                    // Se apenas EMISSOR não existe
+                    if (!emissorExists && xmlData?.emissor && xmlData.emissor.cnpj) {
+                        pendingImportFiles = [file];
+                        openClientRegisterModal(xmlData, 'emissor');
+                        return;
+                    }
+                    
+                    // Se apenas DESTINATÁRIO não existe
+                    if (!destinatarioExists && xmlData?.destinatario && xmlData.destinatario.cnpj) {
+                        pendingImportFiles = [file];
+                        openClientRegisterModal(xmlData, 'destinatario');
+                        return;
+                    }
+                    
+                    await apiService.importarNotasXML(file);
+                }
+                
+                closeImportModal();
+                await loadNotas();
+                showToast('Notas fiscais importadas com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao continuar importação:', error);
                 showToast('Erro ao importar: ' + error.message, 'error');
             }
         }
@@ -705,13 +1254,18 @@
             }
 
             try {
-                await apiService.autorizarNotaFiscal(currentNotaId);
+                const updated = await apiService.autorizarNotaFiscal(currentNotaId);
                 showToast('Nota autorizada com sucesso!', 'success');
+                if (updated && typeof updated === 'object') {
+                    const idx = notas.findIndex(n => n.id === currentNotaId);
+                    if (idx !== -1) notas[idx] = updated;
+                } else {
+                    await loadNotas();
+                }
                 closeDetailModal();
-                // Recarregar a página para mostrar a nota atualizada
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
+                filteredNotas = notas;
+                renderNotasTable();
+                updateSummary();
             } catch (error) {
                 showToast('Erro ao autorizar: ' + error.message, 'error');
             }
@@ -719,15 +1273,59 @@
 
         async function confirmCancelNfe(notaId) {
             try {
-                await apiService.cancelarNotaFiscal(notaId);
+                const updated = await apiService.cancelarNotaFiscal(notaId);
                 showToast('Nota cancelada com sucesso!', 'success');
+                if (updated && typeof updated === 'object') {
+                    const idx = notas.findIndex(n => n.id === notaId);
+                    if (idx !== -1) notas[idx] = updated;
+                } else {
+                    await loadNotas();
+                }
                 closeDetailModal();
-                // Recarregar a página para mostrar a nota atualizada
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
+                filteredNotas = notas;
+                renderNotasTable();
+                updateSummary();
             } catch (error) {
                 showToast('Erro ao cancelar: ' + error.message, 'error');
+            }
+        }
+
+        // Funções auxiliares para ações da tabela
+        async function authorizeFromTable(notaId) {
+            try {
+                const updated = await apiService.autorizarNotaFiscal(notaId);
+                showToast('Nota autorizada com sucesso!', 'success');
+                if (updated && typeof updated === 'object') {
+                    const idx = notas.findIndex(n => n.id === notaId);
+                    if (idx !== -1) notas[idx] = updated;
+                } else {
+                    await loadNotas();
+                }
+                filteredNotas = notas;
+                renderNotasTable();
+                updateSummary();
+            } catch (error) {
+                showToast('Erro ao autorizar: ' + error.message, 'error');
+            }
+        }
+
+        async function downloadXML(notaId) {
+            try {
+                await apiService.downloadXMLNotaFiscal(notaId);
+                showToast('Download do XML iniciado!', 'success');
+            } catch (error) {
+                console.error('Erro ao baixar XML:', error);
+                showToast('Erro ao baixar XML: ' + error.message, 'error');
+            }
+        }
+
+        async function downloadPDF(notaId) {
+            try {
+                await apiService.downloadPDFNotaFiscal(notaId);
+                showToast('Download do PDF iniciado!', 'success');
+            } catch (error) {
+                console.error('Erro ao baixar PDF:', error);
+                showToast('Erro ao baixar PDF: ' + error.message, 'error');
             }
         }
 
@@ -744,7 +1342,8 @@
 
         async function loadClientes() {
             try {
-                const clientes = await apiService.getClientes();
+            const data = await apiService.getClientes();
+            const clientes = Array.isArray(data) ? data : (data?.results || []);
                 const select = document.getElementById('emitir_cliente_id');
                 
                 select.innerHTML = '<option value="">Selecione um cliente</option>' +
@@ -857,100 +1456,64 @@
 
         async function handleEmitir(event) {
             event.preventDefault();
-
             const btnEmitir = document.getElementById('btnEmitir');
             const statusDiv = document.getElementById('emissaoStatus');
-
             try {
-                // Desabilitar botão e mostrar status
                 btnEmitir.disabled = true;
-                btnEmitir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Emitindo...';
+                btnEmitir.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
                 statusDiv.classList.remove('hidden');
-
-                // Montar dados da nota
-                const notaData = {
-                    cliente_id: document.getElementById('emitir_cliente_id').value,
-                    numero: document.getElementById('emitir_numero').value,
-                    serie: document.getElementById('emitir_serie').value || "1",
-                    modelo: document.getElementById('emitir_modelo').value,
-                    tipo: document.getElementById('emitir_tipo').value,
-                    uf: document.getElementById('emitir_uf').value,
-                    cnpj_emitente: document.getElementById('emitir_cnpj_emitente').value,
-                    nome_emitente: "Sua Empresa Ltda",
-                    cnpj_destinatario: document.getElementById('emitir_cnpj_destinatario').value,
-                    nome_destinatario: document.getElementById('emitir_nome_destinatario').value,
-                    valor_produtos: parseFloat(document.getElementById('emitir_valor_produtos').value) || 0,
-                    valor_servicos: parseFloat(document.getElementById('emitir_valor_servicos').value) || 0,
-                    valor_total: parseFloat(document.getElementById('emitir_valor_total').value),
-                    observacoes: document.getElementById('emitir_observacoes').value || "",
-                    data_emissao: new Date().toISOString()
+                // Mapear campos para serializer de criação
+                const number = document.getElementById('emitir_numero').value;
+                const series = document.getElementById('emitir_serie').value || '1';
+                const invoice_type = document.getElementById('emitir_modelo').value;
+                const client = document.getElementById('emitir_cliente_id').value;
+                const issuer_name = 'Sua Empresa Ltda';
+                const issuer_tax_id = document.getElementById('emitir_cnpj_emitente').value;
+                const issue_date = new Date().toISOString();
+                const notes = document.getElementById('emitir_observacoes').value || '';
+                const icms_base = parseFloat(document.getElementById('emitir_base_calculo').value) || 0;
+                const icms_value = parseFloat(document.getElementById('emitir_icms').value) || 0;
+                const pis_value = parseFloat(document.getElementById('emitir_pis').value) || 0;
+                const cofins_value = parseFloat(document.getElementById('emitir_cofins').value) || 0;
+                const iss_value = parseFloat(document.getElementById('emitir_iss').value) || 0;
+                const payload = {
+                    number, series, invoice_type, client, issuer_name, issuer_tax_id,
+                    issue_date, due_date: null, discount: 0, shipping: 0, insurance: 0, other_expenses: 0,
+                    icms_base, icms_value, ipi_value: 0, pis_value, cofins_value, iss_value,
+                    notes, additional_info: '', items: []
                 };
-
-                console.log('Dados da nota:', notaData);
-                console.log('URL:', `${CONFIG.BASE_URL}/notas-fiscais/emitir`);
-
-                // Emitir NFe via API
-                // FastAPI espera: {"nota": {...}, "itens": [...]}
-                const response = await fetch(`${CONFIG.BASE_URL}/notas-fiscais/emitir`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({
-                        nota: notaData,
-                        itens: [] // Pode adicionar itens depois se necessário
-                    })
-                });
-
-                console.log('Response status:', response.status);
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    console.error('Erro da API:', error);
-                    throw new Error(error.detail || error.message || JSON.stringify(error));
-                }
-
-                const nota = await response.json();
-                console.log('Nota emitida:', nota);
-
-                // Sucesso!
+                console.log('Criando nota (payload):', payload);
+                const nota = await apiService.criarNotaFiscal(payload);
+                await apiService.autorizarNotaFiscal(nota.id);
                 statusDiv.innerHTML = `
                     <div class="flex items-center gap-3">
                         <i class="fas fa-check-circle text-green-400 text-xl"></i>
                         <div>
-                            <p class="font-semibold text-green-400">NFe emitida com sucesso!</p>
-                            <p class="text-sm text-gray-400">Chave: ${nota.chave_acesso || 'N/A'}</p>
+                            <p class="font-semibold text-green-400">Nota criada e autorizada!</p>
+                            <p class="text-sm text-gray-400">Número: ${nota.number || number}</p>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 statusDiv.classList.remove('bg-blue-900/20', 'border-blue-600/30');
                 statusDiv.classList.add('bg-green-900/20', 'border-green-600/30');
-
-                // Mostrar toast
-                showToast('NFe emitida e autorizada com sucesso!', 'success');
-                
-                // Aguardar 1.5 segundos e recarregar a página
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-
+                showToast('Nota criada e autorizada com sucesso!', 'success');
+                await loadNotas();
+                filteredNotas = notas;
+                updateSummary();
+                renderNotasTable();
+                setTimeout(() => closeEmitirModal(), 1200);
             } catch (error) {
                 console.error('Erro ao emitir:', error);
-                const errorMessage = error.message || 'Erro desconhecido ao emitir NFe';
+                const errorMessage = error.message || 'Erro desconhecido ao emitir';
                 statusDiv.innerHTML = `
                     <div class="flex items-center gap-3">
                         <i class="fas fa-exclamation-circle text-red-400 text-xl"></i>
                         <div>
-                            <p class="font-semibold text-red-400">Erro na emissão</p>
+                            <p class="font-semibold text-red-400">Erro na criação</p>
                             <p class="text-sm text-gray-400">${errorMessage}</p>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 statusDiv.classList.remove('bg-blue-900/20', 'border-blue-600/30');
                 statusDiv.classList.add('bg-red-900/20', 'border-red-600/30');
-
-                // Reabilitar botão
                 btnEmitir.disabled = false;
                 btnEmitir.innerHTML = '<i class="fas fa-paper-plane"></i> Emitir NFe';
             }

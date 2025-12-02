@@ -9,6 +9,7 @@ from .models import Invoice, InvoiceItem
 from .serializers import InvoiceSerializer, InvoiceListSerializer, InvoiceCreateSerializer, InvoiceItemSerializer
 from .services.xml_generator import NFeGenerator
 from .services.pdf_generator import InvoicePDFGenerator
+from .services.backup_service import backup_invoice_files
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
@@ -75,8 +76,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         
         try:
             generator = NFeGenerator(invoice)
-            xml_content = generator.generate_xml()
-            
+            generator.generate_xml()
+            # Backup após geração
+            backup_invoice_files(invoice)
             return Response({
                 'message': 'XML gerado com sucesso',
                 'xml_file': request.build_absolute_uri(invoice.xml_file.url)
@@ -94,8 +96,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         
         try:
             generator = InvoicePDFGenerator(invoice)
-            pdf_content = generator.generate_pdf()
-            
+            generator.generate_pdf()
+            # Backup após geração
+            backup_invoice_files(invoice)
             return Response({
                 'message': 'PDF gerado com sucesso',
                 'pdf_file': request.build_absolute_uri(invoice.pdf_file.url)

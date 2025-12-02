@@ -77,3 +77,31 @@ class ClientContact(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.client.name}"
+
+
+class Farm(models.Model):
+    name = models.CharField(max_length=200)
+    tax_id = models.CharField(max_length=20, blank=True, null=True, help_text='CPF/CNPJ da fazenda se aplicável')
+    zip_code = models.CharField(max_length=10, blank=True, null=True)
+    street = models.CharField(max_length=200, blank=True, null=True)
+    number = models.CharField(max_length=20, blank=True, null=True)
+    complement = models.CharField(max_length=100, blank=True, null=True)
+    neighborhood = models.CharField(max_length=100, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    state = models.CharField(max_length=2, blank=True, null=True)
+    area_ha = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
+    matricula = models.CharField(max_length=100, blank=True, null=True)
+    car = models.CharField(max_length=100, blank=True, null=True)
+    itr = models.CharField(max_length=100, blank=True, null=True)
+    ccir = models.CharField(max_length=100, blank=True, null=True)
+    owners = models.ManyToManyField(Client, related_name='farms', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Fazenda'
+        verbose_name_plural = 'Fazendas'
+
+    def __str__(self):
+        return self.name

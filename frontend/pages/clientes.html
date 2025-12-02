@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clientes - Contabiliza.IA</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" href="/src/styles/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/dist/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/src/styles/globals.css">
     <script src="https://unpkg.com/feather-icons"></script>
@@ -110,13 +112,16 @@
 
             <!-- Content -->
             <div class="p-6">
-                <!-- Loading State -->
-                <div id="loadingState" class="text-center py-12">
+                <!-- React Table Root -->
+                <div id="react-clientes-table-root"></div>
+
+                <!-- Loading State (OLD - HIDDEN) -->
+                <div id="loadingState" class="hidden text-center py-12">
                     <i class="fas fa-spinner fa-spin text-4xl text-purple-600 mb-4"></i>
                     <p class="text-gray-400">Carregando clientes...</p>
                 </div>
 
-                <!-- Clients Table -->
+                <!-- Clients Table (OLD - HIDDEN) -->
                 <div id="clientsContainer" class="hidden glass-card rounded-xl overflow-hidden">
                     <table class="w-full">
                         <thead class="bg-gray-800/50 border-b border-gray-700">
@@ -134,8 +139,8 @@
                     </table>
                 </div>
 
-                <!-- Empty State -->
-                <div id="emptyState" class="text-center py-12">
+                <!-- Empty State (OLD - HIDDEN) -->
+                <div id="emptyState" class="hidden text-center py-12">
                     <i class="fas fa-inbox text-5xl text-gray-700 mb-4"></i>
                     <p class="text-gray-400 mb-4">Nenhum cliente encontrado</p>
                     <button onclick="openClientModal()" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all">
@@ -149,25 +154,34 @@
     <!-- Client Modal -->
     <div id="clientModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div class="bg-gray-800 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto glass-card">
-            <div class="flex justify-between items-center mb-6 sticky top-0 bg-gray-800 pb-4 border-b border-gray-700">
-                <h2 id="modalTitle" class="text-2xl font-bold">Novo Cliente</h2>
-                <button onclick="closeClientModal()" class="text-gray-400 hover:text-white">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
+            <!-- Cabeçalho removido conforme solicitação (titulo e botão X) -->
+            <!-- Mantemos um elemento oculto apenas para evitar erros JS ao setar modalTitle -->
+            <h2 id="modalTitle" class="hidden"></h2>
 
             <form id="clientForm" onsubmit="handleClientSubmit(event)">
                 <!-- Dados Básicos -->
                 <div class="mb-4">
-                    <h3 class="text-lg font-semibold mb-3 text-purple-400">📋 Dados Básicos</h3>
+                    <h3 class="text-lg font-semibold mb-3 text-purple-400"><i class="fas fa-clipboard-list"></i> Dados Básicos</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium mb-2">Tipo de Cadastro *</label>
+                            <select id="entityType" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                <option value="F">Pessoa Física</option>
+                                <option value="J">Pessoa Jurídica</option>
+                                <option value="FAZENDA">Fazenda</option>
+                            </select>
+                        </div>
                         <div>
                             <label class="block text-sm font-medium mb-2">Nome/Razão Social *</label>
                             <input type="text" id="clientName" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium mb-2">CNPJ/CPF *</label>
-                            <input type="text" id="clientCnpj" required placeholder="00.000.000/0000-00" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <label class="block text-sm font-medium mb-2" id="docLabel">CNPJ/CPF *</label>
+                            <input type="text" id="clientCnpj" required placeholder="00.000.000/0000-00" onblur="buscarCnpjEmpresa()" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        </div>
+                        <div data-group="pj">
+                            <label class="block text-sm font-medium mb-2">Nome Fantasia</label>
+                            <input type="text" id="clientTradeName" placeholder="Nome Fantasia" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-2">Email *</label>
@@ -176,6 +190,10 @@
                         <div>
                             <label class="block text-sm font-medium mb-2">Telefone</label>
                             <input type="tel" id="clientPhone" placeholder="(00) 00000-0000" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Celular</label>
+                            <input type="tel" id="clientMobile" placeholder="(00) 00000-0000" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-2">Tipo Pessoa *</label>
@@ -190,6 +208,14 @@
                                 <option value="true">Ativo</option>
                                 <option value="false">Inativo</option>
                             </select>
+                        </div>
+                        <div data-group="pj">
+                            <label class="block text-sm font-medium mb-2">Inscrição Estadual</label>
+                            <input type="text" id="clientStateReg" placeholder="IE" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        </div>
+                        <div data-group="pj">
+                            <label class="block text-sm font-medium mb-2">Inscrição Municipal</label>
+                            <input type="text" id="clientMunicipalReg" placeholder="IM" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
                         </div>
                     </div>
                 </div>
@@ -250,6 +276,79 @@
                                 <option value="AM">Amazonas</option>
                                 <option value="PA">Pará</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fazenda -->
+                <div class="mb-4 hidden" data-group="farm">
+                    <h3 class="text-lg font-semibold mb-3 text-purple-400">🏞️ Dados da Fazenda</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Nome da Fazenda *</label>
+                            <input type="text" id="farmName" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" placeholder="Ex.: Fazenda Santa Rita">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Área (hectares)</label>
+                            <input type="number" id="farmAreaHa" step="0.01" min="0" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" placeholder="Ex.: 120.50">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium mb-2">Donos (CPF, separado por vírgula)</label>
+                            <input type="text" id="farmOwnersCpfs" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" placeholder="Ex.: 123.456.789-01, 987.654.321-00">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Matrícula</label>
+                            <input type="text" id="farmMatricula" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" placeholder="Nº da matrícula">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">CAR</label>
+                            <input type="text" id="farmCAR" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" placeholder="Registro CAR">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">ITR</label>
+                            <input type="text" id="farmITR" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" placeholder="ITR">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">CCIR</label>
+                            <input type="text" id="farmCCIR" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white" placeholder="CCIR">
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">Ao salvar, adicionaremos uma observação automática no cadastro dos donos com os dados da fazenda.</p>
+                </div>
+
+                <!-- Configurações Fiscais e Observações -->
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold mb-3 text-purple-400">🧾 Configurações Fiscais</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Atividade</label>
+                            <input type="text" id="clientActivity" placeholder="Descreva a atividade principal" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Regime Tributário</label>
+                            <select id="clientTaxRegime" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                <option value="">Selecione</option>
+                                <option value="Simples Nacional">Simples Nacional</option>
+                                <option value="Lucro Presumido">Lucro Presumido</option>
+                                <option value="Lucro Real">Lucro Real</option>
+                                <option value="Pessoa Física">Pessoa Física</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Prazo de Pagamento (dias)</label>
+                            <input type="number" id="clientPaymentTerms" min="0" step="1" placeholder="30" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Limite de Crédito</label>
+                            <input type="number" id="clientCreditLimit" min="0" step="0.01" placeholder="0.00" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Observações</label>
+                            <textarea id="clientNotes" rows="3" placeholder="Anotações gerais" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600"></textarea>
                         </div>
                     </div>
                 </div>
@@ -322,19 +421,123 @@
             }
         }
 
+        // Buscar CNPJ (BrasilAPI) e preencher automaticamente quando for PJ
+        async function buscarCnpjEmpresa() {
+            const tipo = document.getElementById('entityType').value;
+            if (tipo !== 'J') return;
+            const input = document.getElementById('clientCnpj');
+            const cnpj = (input.value || '').replace(/\D/g, '');
+            if (cnpj.length !== 14) return;
+            try {
+                const data = await apiService.request('/utils/cnpj/' + cnpj + '/', { method: 'GET' });
+                // Preencher campos
+                document.getElementById('clientName').value = data.name || '';
+                document.getElementById('clientTradeName').value = data.trade_name || '';
+                document.getElementById('clientEmail').value = data.email || '';
+                document.getElementById('clientPhone').value = data.phone || '';
+                document.getElementById('clientCep').value = data.zip_code || '';
+                document.getElementById('clientLogradouro').value = data.street || '';
+                document.getElementById('clientNumero').value = data.number || '';
+                document.getElementById('clientComplemento').value = data.complement || '';
+                document.getElementById('clientBairro').value = data.neighborhood || '';
+                document.getElementById('clientCidade').value = data.city || '';
+                document.getElementById('clientUf').value = data.state || '';
+                showToast('Dados da empresa preenchidos automaticamente.', 'success');
+            } catch (e) {
+                console.error('Erro ao buscar CNPJ:', e);
+                showToast('Não foi possível consultar o CNPJ.', 'error');
+            }
+        }
+
+        // Máscaras de entrada para CPF/CNPJ/Telefone
+        function maskCPF(value) {
+            const v = value.replace(/\D/g, '').slice(0, 11);
+            if (v.length <= 3) return v;
+            if (v.length <= 6) return `${v.slice(0,3)}.${v.slice(3)}`;
+            if (v.length <= 9) return `${v.slice(0,3)}.${v.slice(3,6)}.${v.slice(6)}`;
+            return `${v.slice(0,3)}.${v.slice(3,6)}.${v.slice(6,9)}-${v.slice(9,11)}`;
+        }
+
+        function maskCNPJ(value) {
+            const v = value.replace(/\D/g, '').slice(0, 14);
+            if (v.length <= 2) return v;
+            if (v.length <= 5) return `${v.slice(0,2)}.${v.slice(2)}`;
+            if (v.length <= 8) return `${v.slice(0,2)}.${v.slice(2,5)}.${v.slice(5)}`;
+            if (v.length <= 12) return `${v.slice(0,2)}.${v.slice(2,5)}.${v.slice(5,8)}/${v.slice(8)}`;
+            return `${v.slice(0,2)}.${v.slice(2,5)}.${v.slice(5,8)}/${v.slice(8,12)}-${v.slice(12,14)}`;
+        }
+
+        function maskPhone(value) {
+            const v = value.replace(/\D/g, '').slice(0, 11);
+            if (v.length <= 2) return v;
+            if (v.length <= 7) return `(${v.slice(0,2)}) ${v.slice(2)}`;
+            if (v.length === 10) return `(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6,10)}`;
+            return `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7,11)}`;
+        }
+
+        function applyMasks() {
+            const entityType = document.getElementById('entityType').value;
+            const docInput = document.getElementById('clientCnpj');
+            if (docInput) {
+                docInput.addEventListener('input', () => {
+                    let raw = docInput.value || '';
+                    const digits = raw.replace(/\D/g, '');
+
+                    // Auto-ajuste do tipo: se passar de 11 dígitos, considerar PJ
+                    const typeSelect = document.getElementById('entityType');
+                    if (digits.length > 11 && typeSelect && typeSelect.value !== 'J') {
+                        typeSelect.value = 'J';
+                        applyPersonTypeVisibility();
+                    } else if (digits.length <= 11 && typeSelect && typeSelect.value !== 'F') {
+                        // Se reduzir para 11 ou menos, considerar PF
+                        typeSelect.value = 'F';
+                        applyPersonTypeVisibility();
+                    }
+
+                    const currentType = document.getElementById('entityType').value;
+                    docInput.value = (currentType === 'J') ? maskCNPJ(raw) : maskCPF(raw);
+                    // Disparar consulta de CNPJ ao completar 14 dígitos
+                    if (currentType === 'J' && digits.length === 14) {
+                        buscarCnpjEmpresa();
+                    }
+                });
+            }
+
+            const phoneInput = document.getElementById('clientPhone');
+            const mobileInput = document.getElementById('clientMobile');
+            if (phoneInput) phoneInput.addEventListener('input', () => { phoneInput.value = maskPhone(phoneInput.value || ''); });
+            if (mobileInput) mobileInput.addEventListener('input', () => { mobileInput.value = maskPhone(mobileInput.value || ''); });
+
+            const ownersInput = document.getElementById('farmOwnersCpfs');
+            if (ownersInput) {
+                ownersInput.addEventListener('blur', () => {
+                    const parts = ownersInput.value.split(',').map(s => s.trim()).filter(Boolean);
+                    ownersInput.value = parts.map(p => maskCPF(p)).join(', ');
+                });
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', applyMasks);
+        document.getElementById('entityType').addEventListener('change', applyMasks);
+
         // Load clients on page load
         window.addEventListener('DOMContentLoaded', async () => {
             await loadClients();
             feather.replace();
         });
 
+        // DESABILITADO - Usando React agora
         async function loadClients() {
+            // Função antiga desabilitada - React carrega os clientes automaticamente
+            return;
+            /*
             const loadingState = document.getElementById('loadingState');
             const clientsContainer = document.getElementById('clientsContainer');
             const emptyState = document.getElementById('emptyState');
 
             try {
-                clients = await apiService.getClientes();
+                const data = await apiService.getClientes();
+                clients = Array.isArray(data) ? data : (data?.results || []);
                 filteredClients = clients;
                 
                 if (clients.length === 0) {
@@ -355,6 +558,7 @@
                     </div>
                 `;
             }
+            */
         }
 
         function renderClientsTable() {
@@ -362,24 +566,24 @@
             
             tableBody.innerHTML = filteredClients.map(client => `
                 <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-all">
-                    <td class="px-6 py-4 font-medium">${client.nome_razao_social || 'N/A'}</td>
-                    <td class="px-6 py-4 text-sm text-gray-400">${client.cnpj_cpf || 'N/A'}</td>
+                    <td class="px-6 py-4 font-medium">${client.name || client.nome_razao_social || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${client.tax_id || client.cnpj_cpf || 'N/A'}</td>
                     <td class="px-6 py-4 text-sm text-gray-400">${client.email || 'N/A'}</td>
                     <td class="px-6 py-4">
                         <span class="px-3 py-1 rounded-full text-xs font-semibold ${
-                            client.ativo
+                            (client.status === 'active' || client.ativo)
                             ? 'bg-green-600/20 text-green-400 border border-green-600/30' 
                             : 'bg-gray-600/20 text-gray-400 border border-gray-600/30'
                         }">
-                            ${client.ativo ? 'Ativo' : 'Inativo'}
+                            ${(client.status === 'active' || client.ativo) ? 'Ativo' : 'Inativo'}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-400">${client.data_cadastro ? new Date(client.data_cadastro).toLocaleDateString('pt-BR') : 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-400">${client.created_at ? new Date(client.created_at).toLocaleDateString('pt-BR') : (client.data_cadastro ? new Date(client.data_cadastro).toLocaleDateString('pt-BR') : 'N/A')}</td>
                     <td class="px-6 py-4 text-right">
-                        <button onclick="editClient('${client.id}')" class="text-blue-400 hover:text-blue-300 mr-3" title="Editar">
+                        <button onclick="editClient(${client.id})" class="text-blue-400 hover:text-blue-300 mr-3" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button onclick="deleteClient('${client.id}')" class="text-red-400 hover:text-red-300" title="Deletar">
+                        <button onclick="deleteClient(${client.id})" class="text-red-400 hover:text-red-300" title="Deletar">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -399,10 +603,10 @@
             filteredClients = clients.filter(client => {
                 const matchesSearch = !search || 
                     client.nome_razao_social.toLowerCase().includes(search) ||
-                    (client.cnpj_cpf && client.cnpj_cpf.includes(search));
+                    (client.cnpj_cpf && client.cnpj_cpf.includes(search)) ||
                     (client.cpf && client.cpf.includes(search));
                 
-                const matchesStatus = !status || client.status === status;
+                const matchesStatus = !status || (status === 'ativo' ? client.ativo : !client.ativo);
                 
                 return matchesSearch && matchesStatus;
             });
@@ -412,9 +616,11 @@
 
         function openClientModal() {
             document.getElementById('clientModal').classList.remove('hidden');
-            document.getElementById('modalTitle').textContent = 'Novo Cliente';
+            const titleEl = document.getElementById('modalTitle');
+            if (titleEl) titleEl.textContent = '';
             document.getElementById('clientForm').reset();
             document.getElementById('clientForm').onsubmit = handleClientSubmit;
+            applyPersonTypeVisibility();
         }
 
         function closeClientModal() {
@@ -424,24 +630,81 @@
         async function handleClientSubmit(event) {
             event.preventDefault();
 
+            const entityType = document.getElementById('entityType').value; // 'F', 'J', 'FAZENDA'
+
+            // Fluxo especial: Fazenda
+            if (entityType === 'FAZENDA') {
+                const farmName = document.getElementById('farmName').value.trim();
+                const farmAreaHa = document.getElementById('farmAreaHa').value.trim();
+                const ownersRaw = document.getElementById('farmOwnersCpfs').value.trim();
+                const ownersCpfs = ownersRaw.split(',').map(s => s.replace(/\D/g, '')).filter(s => s.length === 11);
+                const matricula = document.getElementById('farmMatricula').value.trim();
+                const car = document.getElementById('farmCAR').value.trim();
+                const itr = document.getElementById('farmITR').value.trim();
+                const ccir = document.getElementById('farmCCIR').value.trim();
+
+                const city = document.getElementById('clientCidade').value.trim();
+                const state = document.getElementById('clientUf').value.trim();
+
+                if (!farmName || ownersCpfs.length === 0) {
+                    showToast('Informe o nome da fazenda e ao menos um CPF de dono.', 'error');
+                    return;
+                }
+
+                // Criar fazenda via API e vincular donos por CPF
+                try {
+                    await apiService.request(`${CONFIG.ENDPOINTS.CLIENTES.replace('/clients', '')}/farms/`, {
+                        method: 'POST',
+                        body: {
+                            name: farmName,
+                            area_ha: farmAreaHa ? parseFloat(farmAreaHa) : null,
+                            city,
+                            state,
+                            matricula: matricula || null,
+                            car: car || null,
+                            itr: itr || null,
+                            ccir: ccir || null,
+                            owners_cpfs: ownersCpfs
+                        }
+                    });
+                } catch (e) {
+                    showToast('Erro ao criar fazenda: ' + (e.message || 'Verifique os dados'), 'error');
+                    return;
+                }
+
+                showToast('Fazenda criada e vinculada aos donos.', 'success');
+                closeClientModal();
+                await loadClients();
+                return;
+            }
+
             const cnpjCpf = document.getElementById('clientCnpj').value.replace(/\D/g, '');
-            const tipoPessoa = cnpjCpf.length === 11 ? 'F' : 'J'; // CPF = F, CNPJ = J
+            const tipoPessoa = cnpjCpf.length === 11 ? 'PF' : 'PJ'; // Mapear para modelo (PF/PJ)
 
             const clientData = {
-                nome_razao_social: document.getElementById('clientName').value,
-                cnpj_cpf: cnpjCpf,
+                // Campos conforme serializers.ClientSerializer
+                person_type: tipoPessoa,
+                name: document.getElementById('clientName').value,
+                trade_name: document.getElementById('clientTradeName').value,
+                tax_id: cnpjCpf,
+                state_registration: document.getElementById('clientStateReg').value,
+                municipal_registration: document.getElementById('clientMunicipalReg').value,
                 email: document.getElementById('clientEmail').value,
-                telefone: document.getElementById('clientPhone').value.replace(/\D/g, ''),
-                tipo_pessoa: document.getElementById('clientTipoPessoa').value,
-                ativo: document.getElementById('clientStatus').value === 'true',
-                // Endereço
-                cep: document.getElementById('clientCep').value.replace(/\D/g, ''),
-                logradouro: document.getElementById('clientLogradouro').value,
-                numero: document.getElementById('clientNumero').value,
-                complemento: document.getElementById('clientComplemento').value,
-                bairro: document.getElementById('clientBairro').value,
-                cidade: document.getElementById('clientCidade').value,
-                uf: document.getElementById('clientUf').value
+                phone: document.getElementById('clientPhone').value.replace(/\D/g, ''),
+                mobile: document.getElementById('clientMobile').value.replace(/\D/g, ''),
+                zip_code: document.getElementById('clientCep').value.replace(/\D/g, ''),
+                street: document.getElementById('clientLogradouro').value,
+                number: document.getElementById('clientNumero').value,
+                complement: document.getElementById('clientComplemento').value,
+                neighborhood: document.getElementById('clientBairro').value,
+                city: document.getElementById('clientCidade').value,
+                state: document.getElementById('clientUf').value,
+                activity: document.getElementById('clientActivity')?.value || '',
+                status: document.getElementById('clientStatus').value === 'true' ? 'active' : 'inactive',
+                tax_regime: document.getElementById('clientTaxRegime')?.value || '',
+                payment_terms: parseInt(document.getElementById('clientPaymentTerms')?.value || '30', 10),
+                credit_limit: parseFloat(document.getElementById('clientCreditLimit')?.value || '0'),
+                notes: document.getElementById('clientNotes')?.value || ''
             };
 
             try {
@@ -458,44 +721,84 @@
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
 
-            document.getElementById('modalTitle').textContent = 'Editar Cliente';
-            document.getElementById('clientName').value = client.nome_razao_social || '';
-            document.getElementById('clientCnpj').value = client.cnpj_cpf || '';
+            const titleEl = document.getElementById('modalTitle');
+            if (titleEl) titleEl.textContent = ''; // permanece oculto
+            document.getElementById('clientName').value = client.name || '';
+            document.getElementById('clientCnpj').value = client.tax_id || '';
+            document.getElementById('clientTradeName').value = client.trade_name || '';
             document.getElementById('clientEmail').value = client.email || '';
-            document.getElementById('clientPhone').value = client.telefone || '';
-            document.getElementById('clientTipoPessoa').value = client.tipo_pessoa || 'J';
-            document.getElementById('clientStatus').value = client.ativo ? 'true' : 'false';
+            document.getElementById('clientPhone').value = client.phone || '';
+            document.getElementById('clientMobile').value = client.mobile || '';
+            document.getElementById('clientTipoPessoa').value = client.person_type === 'PF' ? 'F' : 'J';
+            document.getElementById('clientStatus').value = client.status === 'active' ? 'true' : 'false';
+            document.getElementById('clientStateReg').value = client.state_registration || '';
+            document.getElementById('clientMunicipalReg').value = client.municipal_registration || '';
+            applyPersonTypeVisibility();
             
             // Preencher endereço
-            document.getElementById('clientCep').value = client.cep || '';
-            document.getElementById('clientLogradouro').value = client.logradouro || '';
-            document.getElementById('clientNumero').value = client.numero || '';
-            document.getElementById('clientComplemento').value = client.complemento || '';
-            document.getElementById('clientBairro').value = client.bairro || '';
-            document.getElementById('clientCidade').value = client.cidade || '';
-            document.getElementById('clientUf').value = client.uf || '';
+            document.getElementById('clientCep').value = client.zip_code || '';
+            document.getElementById('clientLogradouro').value = client.street || '';
+            document.getElementById('clientNumero').value = client.number || '';
+            document.getElementById('clientComplemento').value = client.complement || '';
+            document.getElementById('clientBairro').value = client.neighborhood || '';
+            document.getElementById('clientCidade').value = client.city || '';
+            document.getElementById('clientUf').value = client.state || '';
 
             document.getElementById('clientForm').onsubmit = async (event) => {
                 event.preventDefault();
                 
                 const cnpjCpf = document.getElementById('clientCnpj').value.replace(/\D/g, '');
                 
-                const updateData = {
-                    nome_razao_social: document.getElementById('clientName').value,
-                    cnpj_cpf: cnpjCpf,
+                // Validação básica do CPF/CNPJ
+                if (![11, 14].includes(cnpjCpf.length)) {
+                    showToast('CPF deve ter 11 dígitos ou CNPJ 14 dígitos', 'error');
+                    return;
+                }
+
+                // Montar objeto completo a partir do formulário
+                const fullData = {
+                    person_type: cnpjCpf.length === 11 ? 'PF' : 'PJ',
+                    name: document.getElementById('clientName').value,
+                    trade_name: document.getElementById('clientTradeName').value,
+                    tax_id: cnpjCpf,
                     email: document.getElementById('clientEmail').value,
-                    telefone: document.getElementById('clientPhone').value.replace(/\D/g, ''),
-                    tipo_pessoa: document.getElementById('clientTipoPessoa').value,
-                    ativo: document.getElementById('clientStatus').value === 'true',
-                    // Endereço
-                    cep: document.getElementById('clientCep').value.replace(/\D/g, ''),
-                    logradouro: document.getElementById('clientLogradouro').value,
-                    numero: document.getElementById('clientNumero').value,
-                    complemento: document.getElementById('clientComplemento').value,
-                    bairro: document.getElementById('clientBairro').value,
-                    cidade: document.getElementById('clientCidade').value,
-                    uf: document.getElementById('clientUf').value
+                    phone: document.getElementById('clientPhone').value.replace(/\D/g, ''),
+                    mobile: document.getElementById('clientMobile').value.replace(/\D/g, ''),
+                    state_registration: document.getElementById('clientStateReg').value,
+                    municipal_registration: document.getElementById('clientMunicipalReg').value,
+                    status: document.getElementById('clientStatus').value === 'true' ? 'active' : 'inactive',
+                    zip_code: document.getElementById('clientCep').value.replace(/\D/g, ''),
+                    street: document.getElementById('clientLogradouro').value,
+                    number: document.getElementById('clientNumero').value,
+                    complement: document.getElementById('clientComplemento').value,
+                    neighborhood: document.getElementById('clientBairro').value,
+                    city: document.getElementById('clientCidade').value,
+                    state: document.getElementById('clientUf').value,
+                    activity: document.getElementById('clientActivity')?.value || '',
+                    tax_regime: document.getElementById('clientTaxRegime')?.value || '',
+                    payment_terms: parseInt(document.getElementById('clientPaymentTerms')?.value || '30', 10),
+                    credit_limit: parseFloat(document.getElementById('clientCreditLimit')?.value || '0'),
+                    notes: document.getElementById('clientNotes')?.value || ''
                 };
+
+                // Enviar apenas campos alterados (PATCH incremental)
+                const updateData = {};
+                Object.keys(fullData).forEach((key) => {
+                    const newVal = fullData[key];
+                    const oldVal = client[key] ?? '';
+                    // Normalizar para comparação
+                    const normNew = typeof newVal === 'string' ? newVal.trim() : newVal;
+                    const normOld = typeof oldVal === 'string' ? oldVal.trim() : oldVal;
+                    if (normNew !== normOld) {
+                        updateData[key] = newVal;
+                    }
+                });
+
+                // Se nada mudou, evitar requisição
+                if (Object.keys(updateData).length === 0) {
+                    showToast('Nenhuma alteração detectada.', 'success');
+                    return;
+                }
 
                 try {
                     await apiService.atualizarCliente(clientId, updateData);
@@ -503,7 +806,7 @@
                     await loadClients();
                     showToast('Cliente atualizado com sucesso!', 'success');
                 } catch (error) {
-                    showToast('Erro ao atualizar cliente: ' + error.message, 'error');
+                    showToast('Erro ao atualizar cliente: ' + (error.message || 'Verifique os campos'), 'error');
                 }
             };
 
@@ -587,6 +890,43 @@
                 nav.appendChild(link);
             }
         })();
+
+        // Alternar campos por tipo de pessoa
+        function applyPersonTypeVisibility() {
+            const tipoPessoa = document.getElementById('clientTipoPessoa').value; // 'J' ou 'F'
+            const entityType = document.getElementById('entityType').value; // 'J', 'F', 'FAZENDA'
+            const isPJ = (entityType === 'J');
+            const pjFields = document.querySelectorAll('[data-group="pj"]');
+            pjFields.forEach(el => {
+                el.classList.toggle('hidden', !isPJ);
+            });
+            const farmFields = document.querySelectorAll('[data-group="farm"]');
+            farmFields.forEach(el => {
+                el.classList.toggle('hidden', entityType !== 'FAZENDA');
+            });
+
+            const docLabel = document.getElementById('docLabel');
+            const cnpjInput = document.getElementById('clientCnpj');
+            if (entityType === 'J') {
+                docLabel.textContent = 'CNPJ *';
+                cnpjInput.placeholder = '00.000.000/0000-00';
+            } else if (entityType === 'F') {
+                docLabel.textContent = 'CPF *';
+                cnpjInput.placeholder = '000.000.000-00';
+            } else {
+                docLabel.textContent = 'Documento (CPF/CNPJ)';
+                cnpjInput.placeholder = 'Digite o documento se aplicável';
+            }
+        }
+
+        document.getElementById('clientTipoPessoa').addEventListener('change', applyPersonTypeVisibility);
+        document.getElementById('entityType').addEventListener('change', applyPersonTypeVisibility);
     </script>
+
+    <!-- React via CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- App React -->
+    <script src="/src/js/react-app.js?v=20251202020000"></script>
 </body>
 </html>

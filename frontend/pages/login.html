@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | Contabiliza.IA</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Contabiliza.IA</title>
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <link rel="stylesheet" href="/dist/styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
   <script src="/src/js/config.js?v=20251112d"></script>
@@ -116,8 +117,8 @@
       <!-- Credenciais Demo -->
       <div class="bg-white/10 rounded-lg p-4 text-sm mb-6">
         <p class="font-semibold mb-2">Credenciais de Teste:</p>
-        <p class="text-white/80">Email: <code class="bg-white/20 px-2 py-1 rounded">admin@test.com</code></p>
-        <p class="text-white/80">Senha: <code class="bg-white/20 px-2 py-1 rounded">123456</code></p>
+        <p class="text-white/80">Email: <code class="bg-white/20 px-2 py-1 rounded">admin@contabiliza.ia</code></p>
+        <p class="text-white/80">Senha: <code class="bg-white/20 px-2 py-1 rounded">admin123</code></p>
       </div>
     </div>
 
@@ -164,6 +165,12 @@
       }
 
       try {
+        // Debug: log request details
+        const requestUrl = `${CONFIG.API_BASE}${CONFIG.ENDPOINTS.AUTH}/login/`;
+        const requestBody = { email, password: senha };
+        console.log('Login request URL:', requestUrl);
+        console.log('Login request body:', requestBody);
+
         // Mostrar loading
         loginBtn.disabled = true;
         loginText.classList.add('hidden');
@@ -171,6 +178,7 @@
 
         // Fazer login
         const response = await apiService.login(email, senha);
+        console.log('Login response:', response);
 
         if (response && response.token) {
           // Salvar token de dev
@@ -191,8 +199,10 @@
         }
 
       } catch (error) {
+        // Debug: log error details
+        console.error('Login error:', error);
         // Mostrar erro
-        alert('Erro ao fazer login: ' + error.message);
+        alert('Erro ao fazer login: ' + (error && error.message ? error.message : 'Erro ao processar requisição'));
 
       } finally {
         // Esconder loading

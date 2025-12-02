@@ -18,7 +18,7 @@ class API {
     const defaultOptions = {
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
+        ...(token && { 'Authorization': `Token ${token}` })
       }
     };
 
@@ -234,7 +234,7 @@ class API {
     return this.request(`${CONFIG.ENDPOINTS.CASH_FLOW}/${queryString ? '?' + queryString : ''}`);
   }
 
-  // ==================== JURÍDICO ====================
+  // ==================== LEGAL ====================
   
   async getLawyers() {
     return this.request(`${CONFIG.ENDPOINTS.LAWYERS}/`);
@@ -401,7 +401,7 @@ class API {
     return this.request(`${CONFIG.ENDPOINTS.DASHBOARD}/weekly-performance/`);
   }
 
-  // ==================== USUÁRIOS ====================
+  // ==================== USERS ====================
   
   async getUsers(params = {}) {
     const queryString = new URLSearchParams(params).toString();
@@ -454,5 +454,5 @@ class API {
   }
 }
 
-// Criar instância global
+// Create global instance
 window.api = new API();

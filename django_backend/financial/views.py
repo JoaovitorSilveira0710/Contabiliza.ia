@@ -15,6 +15,7 @@ from .serializers import (
     AccountsPayableSerializer, AccountsReceivableSerializer, CashFlowSerializer
 )
 from invoices.models import Invoice
+from .services.receipt_analyzer import analyze_receipt
 
 
 class FinancialCategoryViewSet(viewsets.ModelViewSet):
@@ -97,7 +98,50 @@ class FinancialTransactionViewSet(viewsets.ModelViewSet):
         return queryset.select_related('category', 'account', 'client', 'created_by').order_by('-due_date')
     
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        instance = serializer.save(created_by=self.request.user)
+        # If there is an attachment, try to analyze and auto-fill missing fields
+        try:
+            if instance.attachment and hasattr(instance.attachment, 'path'):
+                content_type = getattr(getattr(instance.attachment, 'file', None), 'content_type', None)
+                result = analyze_receipt(instance.attachment.path, content_type)
+                updated_fields = []
+                # payment method
+                if not instance.payment_method and result.get('method'):
+                    instance.payment_method = result['method']
+                    updated_fields.append('payment_method')
+                # payment date
+                if not instance.payment_date and result.get('payment_date'):
+                    instance.payment_date = result['payment_date']
+                    updated_fields.append('payment_date')
+                # If status is pending but we have a payment date, set proper status
+                if result.get('payment_date') and instance.status in ['pending', 'overdue']:
+                    if instance.transaction_type == 'expense':
+                        instance.status = 'paid'
+                    else:
+                        instance.status = 'received'
+                    updated_fields.append('status')
+                # Append extracted info to notes
+                notes_parts = []
+                if result.get('txid'):
+                    notes_parts.append(f"TXID: {result['txid']}")
+                if result.get('amount'):
+                    notes_parts.append(f"Valor detectado: R$ {result['amount']}")
+                if result.get('method'):
+                    notes_parts.append(f"Método detectado: {result['method']}")
+                if result.get('payment_date'):
+                    notes_parts.append(f"Data pagamento detectada: {result['payment_date']}")
+                if notes_parts:
+                    snippet = ' | '.join(notes_parts)
+                    raw_excerpt = result.get('raw_excerpt')
+                    if raw_excerpt:
+                        snippet += f" | Trecho: {raw_excerpt}"
+                    instance.notes = (instance.notes + "\n" + snippet) if instance.notes else snippet
+                    updated_fields.append('notes')
+                if updated_fields:
+                    instance.save(update_fields=list(set(updated_fields)))
+        except Exception:
+            # Silently ignore analyzer failures to not block creation
+            pass
     
     @action(detail=True, methods=['post'])
     def pay(self, request, pk=None):

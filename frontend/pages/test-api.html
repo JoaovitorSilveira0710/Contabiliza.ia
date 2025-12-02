@@ -80,7 +80,7 @@
                 const data = await response.json();
                 
                 result.innerHTML = `
-                    <p class="success">✅ Sucesso!</p>
+                    <p class="success"><i class="fas fa-check-circle"></i> Sucesso!</p>
                     <p>Status: ${response.status}</p>
                     <p>Total de notas: ${data.length}</p>
                     <pre>${JSON.stringify(data[0], null, 2)}</pre>
@@ -104,7 +104,7 @@
             
             let html = '<ul style="list-style: none; padding: 0;">';
             for (const [key, value] of Object.entries(checks)) {
-                const icon = value ? '✅' : '❌';
+                const icon = value ? '<i class="fas fa-check-circle text-green-500"></i>' : '<i class="fas fa-times-circle text-red-500"></i>';
                 const cssClass = value ? 'success' : 'error';
                 html += `<li class="${cssClass}">${icon} ${key}: ${JSON.stringify(value)}</li>`;
             }
@@ -125,7 +125,7 @@
                 const notas = await apiService.getNotasFiscais();
                 
                 result.innerHTML = `
-                    <p class="success">✅ apiService funcionando!</p>
+                    <p class="success"><i class="fas fa-check-circle"></i> apiService funcionando!</p>
                     <p>Total de notas: ${notas.length}</p>
                     <p>Primeira nota:</p>
                     <pre>${JSON.stringify(notas[0], null, 2)}</pre>
@@ -148,7 +148,7 @@
             await new Promise(r => setTimeout(r, 500));
             await testApiService();
             
-            result.innerHTML = '<p class="success">✅ Todos os testes concluídos! Veja resultados acima.</p>';
+            result.innerHTML = '<p class="success"><i class="fas fa-check-circle"></i> Todos os testes concluídos! Veja resultados acima.</p>';
         }
 
         // Executar verificação ao carregar

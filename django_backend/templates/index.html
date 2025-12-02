@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Contabiliza.IA - Início{% endblock %}
+{% block head %}
+    <script>
+      // Se autenticado, ir para dashboard; caso contrário, exibir landing
+      (function(){
+        const email = localStorage.getItem('USER_EMAIL');
+        const role = localStorage.getItem('USER_ROLE');
+        if (email && role) {
+          window.location.href = '/pages/dashboard.html';
+        }
+      })();
+    </script>
+{% endblock %}
+{% block content %}
+  <div class="min-h-screen flex items-center justify-center">
+    <div class="text-center">
+      <h1 class="text-3xl font-bold">Contabiliza.IA</h1>
+      <p class="text-gray-300 mt-2">Bem-vindo! Faça login para continuar.</p>
+      <a href="/pages/login.html" class="mt-6 inline-block px-6 py-2 bg-indigo-600 rounded">Login</a>
+    </div>
+  </div>
+{% endblock %}

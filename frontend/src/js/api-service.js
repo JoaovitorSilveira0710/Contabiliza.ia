@@ -13,7 +13,7 @@ class ApiService {
    * Fazer requisição HTTP
    */
   async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
+    let url = `${this.baseURL}${endpoint}`;
     const method = options.method || 'GET';
     const headers = {
       'Content-Type': 'application/json',
@@ -23,7 +23,7 @@ class ApiService {
     // Adicionar token se autenticado
     const token = UTILS.getToken();
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers['Authorization'] = `Token ${token}`;
     }
 
     // Remover Content-Type se for FormData
@@ -37,7 +37,16 @@ class ApiService {
       body: options.body instanceof FormData ? options.body : JSON.stringify(options.body)
     };
 
-    console.log(`📡 ${method} ${endpoint}`);
+    // Avoid stale GET caching (especially on Edge/Chrome)
+    if (method.toUpperCase() === 'GET') {
+      const sep = url.includes('?') ? '&' : '?';
+      url = `${url}${sep}_=${Date.now()}`;
+      // Prevent using browser cache without adding forbidden CORS headers
+      config.cache = 'no-store';
+    }
+
+    // Debug request line
+    console.log(`${method} ${endpoint}`);
 
     try {
       const response = await this._fetchWithTimeout(url, config, this.timeout);
@@ -46,7 +55,7 @@ class ApiService {
         await this._handleError(response);
       }
 
-      // Para respostas sem conteúdo (DELETE 204, etc)
+      // For responses with no content (DELETE 204, etc)
       if (response.status === 204) {
         return { success: true };
       }
@@ -135,12 +144,12 @@ class ApiService {
     }
   }
 
-  // ==================== AUTENTICAÇÃO ====================
+  // ==================== AUTHENTICATION ====================
 
   async login(email, senha) {
-    const response = await this.request(`${CONFIG.ENDPOINTS.AUTH}/login`, {
+    const response = await this.request(`${CONFIG.ENDPOINTS.AUTH}/login/`, {
       method: 'POST',
-      body: { email, senha }
+      body: { email, password: senha }
     });
     if (response.token) {
       UTILS.setToken(response.token);
@@ -183,16 +192,20 @@ class ApiService {
   }
 
   async atualizarCliente(id, dados) {
-    return this.request(`${CONFIG.ENDPOINTS.CLIENTES}/${id}`, {
+    return this.request(`${CONFIG.ENDPOINTS.CLIENTES}/${id}/`, {
       method: 'PATCH',
       body: dados
     });
   }
 
   async excluirCliente(id) {
-    return this.request(`${CONFIG.ENDPOINTS.CLIENTES}/${id}`, {
+    return this.request(`${CONFIG.ENDPOINTS.CLIENTES}/${id}/`, {
       method: 'DELETE'
     });
+  }
+
+  async deletarCliente(id) {
+    return this.excluirCliente(id);
   }
 
   // ==================== NOTAS FISCAIS ====================
@@ -244,43 +257,130 @@ class ApiService {
   }
 
   async autorizarNotaFiscal(id) {
-    return this.request(`${CONFIG.ENDPOINTS.NOTAS_FISCAIS}/${id}/autorizar`, {
+    // DRF action change_status (PATCH) requer status
+    return this.request(`${CONFIG.ENDPOINTS.NOTAS_FISCAIS}/${id}/change_status/`, {
+      method: 'PATCH',
+      body: { status: 'authorized' }
+    });
+  }
+
+  async cancelarNotaFiscal(id, motivo) {
+    // DRF action cancel (POST)
+    return this.request(`${CONFIG.ENDPOINTS.NOTAS_FISCAIS}/${id}/cancel/`, {
+      method: 'POST',
+      body: { motivo: motivo || 'Cancelamento solicitado' }
+    });
+  }
+
+  async generateXMLNotaFiscal(id) {
+    return this.request(`${CONFIG.ENDPOINTS.NOTAS_FISCAIS}/${id}/generate_xml/`, {
       method: 'POST',
       body: {}
     });
   }
 
-  async cancelarNotaFiscal(id, motivo) {
-    return this.request(`${CONFIG.ENDPOINTS.NOTAS_FISCAIS}/${id}/cancelar`, {
+  async generatePDFNotaFiscal(id) {
+    return this.request(`${CONFIG.ENDPOINTS.NOTAS_FISCAIS}/${id}/generate_pdf/`, {
       method: 'POST',
-      body: { motivo: motivo || 'Cancelamento solicitado' }
+      body: {}
     });
+  }
+
+  async downloadXMLNotaFiscal(id) {
+    // Primeiro gera o XML
+    await this.request(`${CONFIG.ENDPOINTS.NOTAS_FISCAIS}/${id}/generate_xml/`, {
+      method: 'POST'
+    });
+    
+    // Depois faz o download
+    const url = `${this.baseURL}${CONFIG.ENDPOINTS.NOTAS_FISCAIS}/${id}/download_xml/`;
+    const token = UTILS.getToken();
+    const resp = await fetch(url, {
+      headers: token ? { Authorization: `Token ${token}` } : {}
+    });
+    if (!resp.ok) throw new Error('Falha ao baixar XML');
+    const blob = await resp.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `NFe_${id}.xml`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    return true;
+  }
+
+  async downloadPDFNotaFiscal(id) {
+    // Primeiro gera o PDF
+    await this.request(`${CONFIG.ENDPOINTS.NOTAS_FISCAIS}/${id}/generate_pdf/`, {
+      method: 'POST'
+    });
+    
+    // Depois faz o download
+    const url = `${this.baseURL}${CONFIG.ENDPOINTS.NOTAS_FISCAIS}/${id}/download_pdf/`;
+    const token = UTILS.getToken();
+    const resp = await fetch(url, {
+      headers: token ? { Authorization: `Token ${token}` } : {}
+    });
+    if (!resp.ok) throw new Error('Falha ao baixar PDF');
+    const blob = await resp.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `DANFE_${id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    return true;
+  }
+
+  // ==================== NOTIFICATIONS ====================
+
+  async criarNotificacao(dados) {
+    // Generic endpoint; adjust according to backend
+    const endpoint = CONFIG.ENDPOINTS.NOTIFICACOES || '/notifications';
+    const url = endpoint.endsWith('/') ? endpoint : `${endpoint}/`;
+    const resp = await this.request(url, {
+      method: 'POST',
+      body: dados
+    });
+    try {
+      // Update notification icon/counter if available in UI
+      if (typeof window.updateNotificationBadge === 'function') {
+        window.updateNotificationBadge('increment');
+      }
+    } catch {}
+    return resp;
   }
 
   // ==================== FINANCEIRO ====================
 
   async getLancamentos(filtros = {}) {
     const params = new URLSearchParams(filtros).toString();
-    const endpoint = params ? `${CONFIG.ENDPOINTS.FINANCEIRO}/lancamentos/?${params}` : `${CONFIG.ENDPOINTS.FINANCEIRO}/lancamentos/`;
+    const endpoint = params ? `${CONFIG.ENDPOINTS.FINANCEIRO}/?${params}` : `${CONFIG.ENDPOINTS.FINANCEIRO}/`;
     return this.request(endpoint);
   }
 
+  async getTransacoesFinanceiras(filtros = {}) {
+    return this.getLancamentos(filtros);
+  }
+
   async criarLancamento(dados) {
-    return this.request(`${CONFIG.ENDPOINTS.FINANCEIRO}/lancamentos/`, {
+    return this.request(`${CONFIG.ENDPOINTS.FINANCEIRO}/`, {
       method: 'POST',
       body: dados
     });
   }
 
   async atualizarLancamento(id, dados) {
-    return this.request(`${CONFIG.ENDPOINTS.FINANCEIRO}/lancamentos/${id}`, {
+    return this.request(`${CONFIG.ENDPOINTS.FINANCEIRO}/${id}/`, {
       method: 'PATCH',
       body: dados
     });
   }
 
   async excluirLancamento(id) {
-    return this.request(`${CONFIG.ENDPOINTS.FINANCEIRO}/lancamentos/${id}`, {
+    return this.request(`${CONFIG.ENDPOINTS.FINANCEIRO}/${id}/`, {
       method: 'DELETE'
     });
   }
@@ -297,16 +397,16 @@ class ApiService {
     return this.request(`${CONFIG.ENDPOINTS.DASHBOARD}/`);
   }
 
-  // ==================== JURÍDICO ====================
+  // ==================== LEGAL ====================
 
   async getProcessos(filtros = {}) {
     const params = new URLSearchParams(filtros).toString();
-    const endpoint = params ? `${CONFIG.ENDPOINTS.JURIDICO}/processos/?${params}` : `${CONFIG.ENDPOINTS.JURIDICO}/processos/`;
+    const endpoint = params ? `${CONFIG.ENDPOINTS.JURIDICO}/?${params}` : `${CONFIG.ENDPOINTS.JURIDICO}/`;
     return this.request(endpoint);
   }
 
   async getProcessoById(id) {
-    return this.request(`${CONFIG.ENDPOINTS.JURIDICO}/processos/${id}`);
+    return this.request(`${CONFIG.ENDPOINTS.JURIDICO}/processos/${id}/`);
   }
 
   async criarProcesso(dados) {
@@ -317,19 +417,19 @@ class ApiService {
   }
 
   async atualizarProcesso(id, dados) {
-    return this.request(`${CONFIG.ENDPOINTS.JURIDICO}/processos/${id}`, {
+    return this.request(`${CONFIG.ENDPOINTS.JURIDICO}/processos/${id}/`, {
       method: 'PATCH',
       body: dados
     });
   }
 
   async excluirProcesso(id) {
-    return this.request(`${CONFIG.ENDPOINTS.JURIDICO}/processos/${id}`, {
+    return this.request(`${CONFIG.ENDPOINTS.JURIDICO}/processos/${id}/`, {
       method: 'DELETE'
     });
   }
 }
 
-// Instância global
+// Global instance
 const apiService = new ApiService();
 window.apiService = apiService;

@@ -5,13 +5,13 @@
 
 const CONFIG = {
   // API Base URL
-  API_BASE: localStorage.getItem('API_BASE') || 'http://localhost:8000/api',
-  BASE_URL: localStorage.getItem('API_BASE') || 'http://localhost:8000/api',
+  API_BASE: localStorage.getItem('API_BASE') || 'http://127.0.0.1:8000/api',
+  BASE_URL: localStorage.getItem('API_BASE') || 'http://127.0.0.1:8000/api',
   
   // Endpoints (sincronizados com Django backend)
   ENDPOINTS: {
     // Core
-    AUTH: '/api-auth',
+    AUTH: '/auth',
     USERS: '/users',
     
     // Clients
@@ -47,10 +47,12 @@ const CONFIG = {
     
     // Dashboard
     DASHBOARD: '/dashboard',
-    CONTABIL: '/contabil'
+    CONTABIL: '/contabil',
+    // Notifications
+    NOTIFICACOES: '/notifications'
   },
 
-  // Configurações
+  // Settings
   TIMEOUT: 30000,
   RETRY_ATTEMPTS: 3,
   
@@ -216,11 +218,8 @@ const UTILS = {
    * Verificar se usuário está autenticado
    */
   isAuthenticated() {
-    // Considera logado se houver token OU (USER_EMAIL e USER_ROLE)
-    if (this.getToken()) return true;
-    const email = localStorage.getItem('USER_EMAIL') || localStorage.getItem('MASTER_EMAIL');
-    const role = localStorage.getItem('USER_ROLE') || (localStorage.getItem('MASTER_EMAIL') ? 'master' : null);
-    return !!(email && role);
+    // Requires token to make authenticated requests
+    return !!this.getToken();
   },
 
   getCurrentUser() {
@@ -298,7 +297,7 @@ const UTILS = {
         setTimeout(() => toast.remove(), 180);
       }, 3000);
     } catch (e) {
-      // Fallback mínimo
+      // Minimal fallback
       console.log(`[${type.toUpperCase()}] ${message}`);
     }
   }
@@ -307,3 +306,36 @@ const UTILS = {
 // Exportar para uso global
 window.CONFIG = CONFIG;
 window.UTILS = UTILS;
+
+/**
+ * Helper para fetch com autenticação automática
+ */
+window.authenticatedFetch = async function(url, options = {}) {
+  const token = UTILS.getToken();
+  const defaultHeaders = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    defaultHeaders['Authorization'] = `Token ${token}`;
+  }
+  
+  const config = {
+    ...options,
+    headers: {
+      ...defaultHeaders,
+      ...options.headers
+    }
+  };
+  
+  const response = await fetch(url, config);
+  
+  // Redirect to login if not authorized
+  if (response.status === 401) {
+    UTILS.clearToken();
+    window.location.href = '/pages/login.html';
+    throw new Error('Não autorizado');
+  }
+  
+  return response;
+};

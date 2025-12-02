@@ -7,7 +7,8 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Financeiro - Contabiliza.IA</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="stylesheet" href="/dist/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/src/styles/globals.css?v=20251127003">
     <script src="/src/libs/chart.min.js?v=20251127003"></script>
@@ -182,12 +183,15 @@
 
                 <!-- Transactions Table -->
                 <div class="glass-card rounded-xl overflow-hidden">
-                    <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                    <!-- React Table Root -->
+                    <div id="react-financeiro-table-root" class="p-6"></div>
+
+                    <div class="p-6 border-b border-gray-700 flex justify-between items-center hidden">
                         <h3 class="text-lg font-semibold">Lançamentos Recentes</h3>
                         <input type="text" id="searchInput" placeholder="Buscar..." class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 w-48">
                     </div>
 
-                    <div id="loadingState" class="text-center py-12">
+                    <div id="loadingState" class="hidden text-center py-12">
                         <i class="fas fa-spinner fa-spin text-4xl text-purple-600 mb-4"></i>
                         <p class="text-gray-400">Carregando lançamentos...</p>
                     </div>
@@ -208,7 +212,7 @@
                         </tbody>
                     </table>
 
-                    <div id="emptyState" class="text-center py-12">
+                    <div id="emptyState" class="hidden text-center py-12">
                         <i class="fas fa-inbox text-5xl text-gray-700 mb-4"></i>
                         <p class="text-gray-400">Nenhum lançamento encontrado</p>
                     </div>
@@ -228,59 +232,110 @@
             </div>
 
             <form id="lancamentoForm" onsubmit="handleLancamentoSubmit(event)">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Cliente</label>
-                        <select id="cliente_id" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
-                            <option value="">Selecione um cliente...</option>
-                        </select>
+                <!-- Tabs -->
+                <div class="flex border-b border-gray-700 mb-4">
+                    <button type="button" id="tabDados" class="px-4 py-2 text-sm font-medium border-b-2 border-purple-600 text-purple-400">Dados</button>
+                    <button type="button" id="tabComprovante" class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white">Comprovante</button>
+                </div>
+
+                <!-- Conteúdo: Dados -->
+                <div id="tabContentDados" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Cliente</label>
+                            <select id="cliente_id" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                <option value="">Selecione um cliente...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Descrição</label>
+                            <input type="text" id="descricao" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Descrição</label>
-                        <input type="text" id="descricao" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Tipo</label>
+                            <select id="tipo" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                <option value="receita">Receita</option>
+                                <option value="despesa">Despesa</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Categoria</label>
+                            <select id="categoria" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600"></select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Método de Pagamento</label>
+                            <select id="metodo_pagamento" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                <option value="">Selecionar...</option>
+                                <option value="pix">PIX</option>
+                                <option value="money">Dinheiro</option>
+                                <option value="bank_transfer">TED/Transferência</option>
+                                <option value="debit_card">Cartão de Débito</option>
+                                <option value="credit_card">Cartão de Crédito</option>
+                                <option value="boleto">Boleto</option>
+                                <option value="other">Outro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-medium mb-2">Valor</label>
+                            <input type="number" id="valor" step="0.01" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-medium mb-2">Data</label>
+                            <input type="date" id="data" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-medium mb-2">Status</label>
+                            <select id="status" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                                <option value="pendente" selected>Pendente</option>
+                                <option value="pago" id="statusPagoLabel">Pago</option>
+                                <option value="atrasado">Atrasado</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Tipo</label>
-                        <select id="tipo" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
-                            <option value="receita">Receita</option>
-                            <option value="despesa">Despesa</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Categoria</label>
-                        <select id="categoria" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
-                            <!-- Opções serão preenchidas dinamicamente pelo tipo -->
-                        </select>
+                <!-- Conteúdo: Comprovante -->
+                <div id="tabContentComprovante" class="space-y-4 hidden">
+                    <div class="bg-gray-900 border border-gray-700 rounded-lg p-4">
+                        <p class="text-sm text-gray-300 mb-2">Anexar comprovante (PDF, JPG, PNG, etc.)</p>
+                        <!-- Hidden file input -->
+                        <input id="comprovante_pdf" type="file" accept="application/pdf,image/*" class="hidden" />
+
+                        <!-- Dropzone / Button -->
+                        <div id="comprovante_drop" class="flex flex-col items-center justify-center gap-2 w-full p-6 border-2 border-dashed border-gray-600 rounded-lg bg-gray-800 hover:border-purple-600 hover:bg-gray-800/70 transition-colors cursor-pointer">
+                            <div class="w-10 h-10 rounded-full bg-purple-600/20 flex items-center justify-center">
+                                <i class="fas fa-file-arrow-up text-purple-400"></i>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm text-gray-200"><span class="text-purple-400 font-semibold">Clique para escolher</span> ou arraste o arquivo aqui</p>
+                                <p class="text-xs text-gray-400">PDF ou imagens até 10MB</p>
+                            </div>
+                        </div>
+
+                        <!-- Selected file info -->
+                        <div id="comprovante_file_info" class="hidden mt-3 flex items-center justify-between gap-3 px-3 py-2 bg-gray-800 border border-gray-700 rounded">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <i class="fas fa-file text-gray-300"></i>
+                                <span id="comprovante_file_name" class="text-sm text-gray-200 truncate"></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="comprovante_remove_btn" class="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded">Remover</button>
+                                <button type="button" id="comprovante_replace_btn" class="px-2 py-1 text-xs bg-purple-600 hover:bg-purple-700 rounded">Trocar</button>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-gray-400 mt-2">Aceita PDF e imagens. Opcional, recomendado para PIX/TED.</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Valor</label>
-                        <input type="number" id="valor" step="0.01" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Data</label>
-                        <input type="date" id="data" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Status</label>
-                        <select id="status" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
-                            <option value="pendente" selected>Pendente</option>
-                            <option value="pago" id="statusPagoLabel">Pago</option>
-                            <option value="atrasado">Atrasado</option>
-                            <option value="cancelado">Cancelado</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="flex gap-3 justify-end">
+                <div class="flex gap-3 justify-end mt-6">
                     <button type="button" onclick="closeLancamentoModal()" class="px-6 py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all">
                         Cancelar
                     </button>
@@ -299,34 +354,38 @@
         let cashFlowChart = null;
         let categoriesChart = null;
         
-        // Categorias por tipo segundo restrições do backend
-        const CATEGORIAS = {
-            receita: [
-                { value: 'servicos', label: 'Serviços / Vendas' },
-                { value: 'honorarios', label: 'Honorários' },
-                { value: 'outros', label: 'Outros' },
-            ],
-            despesa: [
-                { value: 'impostos', label: 'Impostos' },
-                { value: 'folha_pagamento', label: 'Folha de Pagamento' },
-                { value: 'aluguel', label: 'Aluguel' },
-                { value: 'telefonia', label: 'Água, Luz e Internet' },
-                { value: 'material', label: 'Materiais e Suprimentos' },
-                { value: 'servicos', label: 'Serviços Terceiros' },
-                { value: 'outros', label: 'Outros' },
-            ]
-        };
-
-        function preencherCategoriasPorTipo() {
-            const tipo = document.getElementById('tipo').value;
+        // Carregar categorias do backend por tipo (revenue|expense)
+        async function preencherCategoriasPorTipo() {
+            const tipo = document.getElementById('tipo').value; // 'receita' | 'despesa'
+            const mappedType = tipo === 'receita' ? 'revenue' : 'expense';
             const categoriaSelect = document.getElementById('categoria');
             categoriaSelect.innerHTML = '';
-            (CATEGORIAS[tipo] || CATEGORIAS.despesa).forEach(opt => {
+            try {
+                const endpoint = `${CONFIG.ENDPOINTS.FINANCIAL_CATEGORIES}/?category_type=${mappedType}&is_active=true`;
+                const resp = await apiService.request(endpoint);
+                const categorias = Array.isArray(resp) ? resp : (resp?.results || []);
+                if (!categorias.length) {
+                    const o = document.createElement('option');
+                    o.value = '';
+                    o.textContent = 'Sem categorias';
+                    o.disabled = true;
+                    categoriaSelect.appendChild(o);
+                    return;
+                }
+                categorias.forEach(cat => {
+                    const o = document.createElement('option');
+                    o.value = cat.id; // enviar ID da categoria
+                    o.textContent = cat.name;
+                    categoriaSelect.appendChild(o);
+                });
+            } catch (e) {
+                console.warn('Falha ao carregar categorias', e);
                 const o = document.createElement('option');
-                o.value = opt.value;
-                o.textContent = opt.label;
+                o.value = '';
+                o.textContent = 'Erro ao carregar categorias';
+                o.disabled = true;
                 categoriaSelect.appendChild(o);
-            });
+            }
         }
 
         function atualizarRotuloStatus() {
@@ -337,43 +396,129 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             setupCharts();
-            await Promise.all([loadLancamentos(), loadNotasFiscais()]);
+            await Promise.all([reloadFinanceiroData(), loadNotasFiscais()]);
             if (window.feather && feather.replace) {
                 feather.replace();
             }
             preencherCategoriasPorTipo();
             atualizarRotuloStatus();
+            // Tabs handlers
+            const btnDados = document.getElementById('tabDados');
+            const btnComp = document.getElementById('tabComprovante');
+            const tabDados = document.getElementById('tabContentDados');
+            const tabComp = document.getElementById('tabContentComprovante');
+            if (btnDados && btnComp && tabDados && tabComp) {
+                btnDados.addEventListener('click', () => {
+                    btnDados.classList.add('border-purple-600','text-purple-400');
+                    btnComp.classList.remove('border-purple-600','text-purple-400');
+                    btnComp.classList.add('text-gray-400');
+                    tabDados.classList.remove('hidden');
+                    tabComp.classList.add('hidden');
+                });
+                btnComp.addEventListener('click', () => {
+                    btnComp.classList.add('border-purple-600','text-purple-400');
+                    btnDados.classList.remove('border-purple-600','text-purple-400');
+                    btnDados.classList.add('text-gray-400');
+                    tabComp.classList.remove('hidden');
+                    tabDados.classList.add('hidden');
+                });
+            }
             document.getElementById('tipo').addEventListener('change', () => {
                 preencherCategoriasPorTipo();
                 atualizarRotuloStatus();
             });
+            const metodo = document.getElementById('metodo_pagamento');
+            if (metodo) {
+                metodo.addEventListener('change', () => {
+                    // Sugerir uso do comprovante quando PIX ou TED
+                    if (['pix','bank_transfer'].includes(metodo.value)) {
+                        // Mostrar aba Comprovante
+                        const tabBtn = document.getElementById('tabComprovante');
+                        if (tabBtn) tabBtn.click();
+                    }
+                });
+            }
+
+            // File dropzone wiring
+            const fileInput = document.getElementById('comprovante_pdf');
+            const drop = document.getElementById('comprovante_drop');
+            const info = document.getElementById('comprovante_file_info');
+            const nameEl = document.getElementById('comprovante_file_name');
+            const removeBtn = document.getElementById('comprovante_remove_btn');
+            const replaceBtn = document.getElementById('comprovante_replace_btn');
+
+            function humanSize(bytes) {
+                if (!bytes && bytes !== 0) return '';
+                const units = ['B','KB','MB','GB'];
+                let i = 0; let v = bytes;
+                while (v >= 1024 && i < units.length-1) { v /= 1024; i++; }
+                return `${v.toFixed(v < 10 && i>0 ? 1 : 0)} ${units[i]}`;
+            }
+
+            function showFile(f) {
+                if (!f) { info.classList.add('hidden'); return; }
+                nameEl.textContent = `${f.name} • ${humanSize(f.size)}`;
+                info.classList.remove('hidden');
+            }
+
+            function setFile(f) {
+                if (!f) return;
+                const dt = new DataTransfer();
+                dt.items.add(f);
+                fileInput.files = dt.files;
+                showFile(f);
+            }
+
+            if (drop && fileInput) {
+                drop.addEventListener('click', () => fileInput.click());
+                drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('border-purple-600'); });
+                drop.addEventListener('dragleave', () => drop.classList.remove('border-purple-600'));
+                drop.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    drop.classList.remove('border-purple-600');
+                    const f = e.dataTransfer?.files?.[0];
+                    if (f) setFile(f);
+                });
+                fileInput.addEventListener('change', () => {
+                    const f = fileInput.files?.[0];
+                    showFile(f);
+                });
+            }
+            if (removeBtn) {
+                removeBtn.addEventListener('click', () => {
+                    fileInput.value = '';
+                    info.classList.add('hidden');
+                });
+            }
+            if (replaceBtn) {
+                replaceBtn.addEventListener('click', () => fileInput.click());
+            }
         });
 
-        async function loadLancamentos() {
-            const loadingState = document.getElementById('loadingState');
-            const transactionsTable = document.getElementById('transactionsTable');
-            const emptyState = document.getElementById('emptyState');
-
+        // Recarregar dados financeiros para gráficos e resumo e notificar React
+        async function reloadFinanceiroData() {
             try {
-                const data = await apiService.getLancamentos();
-                lancamentos = data || [];
-                filteredLancamentos = lancamentos;
-
+                const resp = await apiService.getTransacoesFinanceiras();
+                const list = Array.isArray(resp) ? resp : (resp?.results || []);
+                // mapear para o formato usado pelos gráficos anteriores
+                lancamentos = list.map(t => ({
+                    tipo: t.transaction_type === 'revenue' ? 'receita' : (t.transaction_type === 'expense' ? 'despesa' : 'transferencia'),
+                    // Para compatibilidade com gráficos/summary legados, tratar 'paid' e 'received' como 'pago'
+                    status: (t.status === 'paid' || t.status === 'received') ? 'pago' :
+                            (t.status === 'overdue' ? 'atrasado' :
+                            (t.status === 'cancelled' ? 'cancelado' : 'pendente')),
+                    valor: Number(t.final_amount ?? t.amount ?? 0),
+                    data_pagamento: t.payment_date || null,
+                    data_vencimento: t.due_date || null,
+                    categoria: t.category_name || 'outros',
+                    created_at: t.created_at || null
+                }));
                 updateSummary();
-
-                if (lancamentos.length === 0) {
-                    loadingState.classList.add('hidden');
-                    emptyState.classList.remove('hidden');
-                    updateCharts(); // Atualizar gráficos mesmo sem dados
-                } else {
-                    loadingState.classList.add('hidden');
-                    renderTransactionsTable();
-                    transactionsTable.classList.remove('hidden');
-                    updateCharts();
-                }
-            } catch (error) {
-                console.error('Erro ao carregar lançamentos:', error);
-                loadingState.innerHTML = `<p class="text-gray-400">Erro ao carregar dados</p>`;
+                updateCharts();
+                // Disparar evento para React recarregar tabela
+                window.dispatchEvent(new Event('financeiro:refresh'));
+            } catch (e) {
+                console.warn('Falha ao recarregar dados financeiros', e);
             }
         }
 
@@ -382,7 +527,15 @@
                 const now = new Date();
                 const mes = now.getMonth() + 1;
                 const ano = now.getFullYear();
-                const res = await fetch(`/api/financeiro/importar-notas?mes=${mes}&ano=${ano}`, { method: 'POST' });
+                const token = UTILS.getToken();
+                const url = `${CONFIG.API_BASE}${CONFIG.ENDPOINTS.FINANCEIRO}/importar-notas/?mes=${mes}&ano=${ano}`;
+                const res = await fetch(url, { 
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Token ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
                 const data = await res.json();
                 showToast(`Importadas: ${data.lancamentos_criados} • Ignoradas: ${data.notas_ignoradas}`, 'success');
                 await loadLancamentos();
@@ -435,6 +588,19 @@
                 updateSummary();
             } catch (error) {
                 console.error('Erro ao carregar notas fiscais:', error);
+            }
+        }
+
+        // Obter conta bancária padrão (primeira ativa)
+        async function getDefaultAccountId() {
+            try {
+                const resp = await apiService.request(`${CONFIG.ENDPOINTS.BANK_ACCOUNTS}/`);
+                const contas = Array.isArray(resp) ? resp : (resp?.results || []);
+                const ativa = contas.find(c => c.is_active !== false) || contas[0];
+                return ativa ? ativa.id : null;
+            } catch (e) {
+                console.warn('Falha ao carregar contas bancárias', e);
+                return null;
             }
         }
 
@@ -560,6 +726,14 @@
             });
         }
 
+        function parseYMDLocal(s) {
+            if (!s || typeof s !== 'string') return null;
+            const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (!m) return null;
+            const y = parseInt(m[1],10), mo = parseInt(m[2],10)-1, d = parseInt(m[3],10);
+            return new Date(y, mo, d);
+        }
+
         function updateCharts() {
             // Atualiza gráficos com base nos lançamentos atuais
             try {
@@ -581,7 +755,7 @@
                         .filter(l => {
                             const ref = l.data_pagamento || l.data_vencimento;
                             if (!ref) return false;
-                            const d = new Date(ref);
+                            const d = parseYMDLocal(ref) || new Date(ref);
                             return monthKey(d) === key;
                         })
                         .reduce((sum, l) => sum + Number(l.valor || 0), 0);
@@ -594,7 +768,7 @@
                         .filter(l => {
                             const ref = l.data_pagamento || l.data_vencimento;
                             if (!ref) return false;
-                            const d = new Date(ref);
+                            const d = parseYMDLocal(ref) || new Date(ref);
                             return monthKey(d) === key;
                         })
                         .reduce((sum, l) => sum + Number(l.valor || 0), 0);
@@ -619,7 +793,7 @@
                         // Usar data_pagamento se existir, senão data_criacao, senão data_vencimento
                         const ref = l.data_pagamento || l.created_at || l.data_criacao || l.data_vencimento;
                         if (!ref) return false;
-                        const refDate = new Date(ref);
+                        const refDate = parseYMDLocal(ref) || new Date(ref);
                         const refKey = monthKey(refDate);
                         return refKey === currentKey;
                     });
@@ -719,8 +893,9 @@
         async function loadClientesSelect() {
             try {
                 console.log('🔍 Carregando clientes...');
-                const clientes = await apiService.getClientes();
-                console.log('✅ Clientes carregados:', clientes);
+                const resp = await apiService.getClientes();
+                const clientes = Array.isArray(resp) ? resp : (resp?.results || resp?.items || []);
+                console.log(`Clients loaded: ${clientes.length}`);
                 
                 const select = document.getElementById('cliente_id');
                 if (!select) {
@@ -739,7 +914,7 @@
                 const listaOrdenada = clientes
                     .map(c => ({
                         id: c.id,
-                        nome: c.nome_razao_social || c.nome_fantasia || c.razao_social || c.nome || `Cliente ${c.id}`
+                        nome: c.name || c.trade_name || c.nome_razao_social || c.nome_fantasia || c.razao_social || c.nome || `Cliente ${c.id}`
                     }))
                     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
 
@@ -750,7 +925,7 @@
                     select.appendChild(option);
                 });
 
-                console.log(`✅ ${listaOrdenada.length} clientes adicionados (ordenados)`);
+                console.log(`${listaOrdenada.length} clients added (sorted)`);
             } catch (error) {
                 console.error('❌ Erro ao carregar clientes:', error);
                 showToast('Erro ao carregar lista de clientes', 'error');
@@ -764,32 +939,64 @@
         async function handleLancamentoSubmit(event) {
             event.preventDefault();
 
-            const statusValue = document.getElementById('status').value;
-            const dataVencimento = document.getElementById('data').value; // YYYY-MM-DD formato
+            const statusValue = document.getElementById('status').value; // pendente|pago|atrasado|cancelado
+            const tipoBr = document.getElementById('tipo').value; // receita|despesa
+            const dataVencimento = document.getElementById('data').value; // YYYY-MM-DD
+            const categoriaId = document.getElementById('categoria').value;
+            const clienteId = document.getElementById('cliente_id').value || null;
 
-            const lancamento = {
-                cliente_id: document.getElementById('cliente_id').value || null,
-                descricao: document.getElementById('descricao').value,
-                tipo: document.getElementById('tipo').value,
-                categoria: document.getElementById('categoria').value,
-                valor: parseFloat(document.getElementById('valor').value),
-                data_vencimento: dataVencimento, // Envia exatamente como está
-                status: statusValue
+            // Mapear para backend
+            const transaction_type = (tipoBr === 'receita') ? 'revenue' : 'expense';
+            let status = 'pending';
+            if (statusValue === 'pendente') status = 'pending';
+            else if (statusValue === 'atrasado') status = 'overdue';
+            else if (statusValue === 'cancelado') status = 'cancelled';
+            else if (statusValue === 'pago') status = (transaction_type === 'revenue') ? 'received' : 'paid';
+
+            // Pegar conta padrão
+            const accountId = await getDefaultAccountId();
+            if (!accountId) {
+                showToast('Nenhuma conta bancária ativa encontrada', 'error');
+                return;
+            }
+
+            const payload = {
+                client: clienteId ? parseInt(clienteId) : null,
+                description: document.getElementById('descricao').value,
+                transaction_type,
+                category: categoriaId ? parseInt(categoriaId) : null,
+                amount: parseFloat(document.getElementById('valor').value),
+                due_date: dataVencimento,
+                competence_date: dataVencimento, // usar vencimento como competência por padrão
+                status,
+                account: accountId,
+                payment_method: (document.getElementById('metodo_pagamento')?.value || '') || null
             };
 
-            // Se marcado como pago/recebido, define data_pagamento para hoje
-            if (statusValue === 'pago') {
-                const today = new Date();
-                const yyyy = today.getFullYear();
-                const mm = String(today.getMonth() + 1).padStart(2, '0');
-                const dd = String(today.getDate()).padStart(2, '0');
-                lancamento.data_pagamento = `${yyyy}-${mm}-${dd}`;
+            if (status === 'paid' || status === 'received') {
+                payload.payment_date = dataVencimento;
             }
 
             try {
-                const resultado = await apiService.criarLancamento(lancamento);
+                const fileInput = document.getElementById('comprovante_pdf');
+                const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+                if (file) {
+                    const fd = new FormData();
+                    Object.entries(payload).forEach(([k,v]) => {
+                        if (v !== undefined && v !== null && v !== '') fd.append(k, v);
+                    });
+                    fd.append('attachment', file, file.name);
+                    await apiService.criarLancamento(fd);
+                } else {
+                    await apiService.criarLancamento(payload);
+                }
                 closeLancamentoModal();
-                await loadLancamentos();
+                await reloadFinanceiroData();
+                if (typeof window.financeiroReload === 'function') {
+                    await window.financeiroReload();
+                } else {
+                    window.dispatchEvent(new Event('financeiro:refresh'));
+                }
                 showToast('Lançamento criado com sucesso!', 'success');
             } catch (error) {
                 showToast('Erro ao criar lançamento: ' + (error.message || 'Erro desconhecido'), 'error');
@@ -934,7 +1141,13 @@
         })();
 
         // Versão do sistema
-        console.log('💼 Contabiliza.IA - Sistema Financeiro v1.0');
+        console.log('Contabiliza.IA - Financial System v1.0');
     </script>
+
+    <!-- React via CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- App React -->
+    <script src="/src/js/react-app.js?v=20251202020000"></script>
 </body>
 </html>

@@ -1,15 +1,15 @@
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework import viewsets, status, permissions
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+import requests
 from django.db.models import Q
-from .models import Client, ClientContact
-from .serializers import ClientSerializer, ClientListSerializer, ClientContactSerializer
+from .models import Client, Farm
+from .serializers import ClientSerializer, ClientListSerializer, FarmSerializer
 
 
 class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_serializer_class(self):
         if self.action == 'list':
@@ -92,16 +92,47 @@ class ClientViewSet(viewsets.ModelViewSet):
         })
 
 
-class ClientContactViewSet(viewsets.ModelViewSet):
-    queryset = ClientContact.objects.all()
-    serializer_class = ClientContactSerializer
-    permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        queryset = ClientContact.objects.all()
-        client_id = self.request.query_params.get('client_id', None)
-        
-        if client_id:
-            queryset = queryset.filter(client_id=client_id)
-        
-        return queryset
+class FarmViewSet(viewsets.ModelViewSet):
+    queryset = Farm.objects.all()
+    serializer_class = FarmSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def cnpj_lookup(request, cnpj):
+    """Buscar dados de CNPJ em tempo real via BrasilAPI e mapear para campos de Client.
+    """
+    cnpj_digits = ''.join(filter(str.isdigit, cnpj))
+    if len(cnpj_digits) != 14:
+        return Response({'error': 'CNPJ inválido. Deve ter 14 dígitos.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        resp = requests.get(f'https://brasilapi.com.br/api/cnpj/v1/{cnpj_digits}', timeout=10)
+        if resp.status_code != 200:
+            return Response({'error': 'Não foi possível consultar o CNPJ.'}, status=status.HTTP_400_BAD_REQUEST)
+        data = resp.json()
+    except Exception:
+        return Response({'error': 'Falha na consulta de CNPJ.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Mapear campos para o nosso cliente
+    mapped = {
+        'person_type': 'PJ',
+        'name': data.get('razao_social') or data.get('nome_fantasia') or '',
+        'trade_name': data.get('nome_fantasia') or '',
+        'tax_id': cnpj_digits,
+        'email': (data.get('email') or '').lower(),
+        'phone': (data.get('ddd_telefone_1') or '').replace('\n', '').replace(' ', ''),
+        'zip_code': (data.get('cep') or '').replace('-', ''),
+        'street': data.get('logradouro') or '',
+        'number': data.get('numero') or '',
+        'complement': data.get('complemento') or '',
+        'neighborhood': data.get('bairro') or '',
+        'city': data.get('municipio') or '',
+        'state': data.get('uf') or '',
+        'state_registration': data.get('inscricao_estadual') or None,
+        'municipal_registration': None,
+        'status': 'active'
+    }
+
+    return Response(mapped)

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Login | Contabiliza.IA{% endblock %}
+{% block content %}
+  <div class="min-h-screen flex items-center justify-center">
+    <div class="bg-gray-800 p-6 rounded">
+      <h2 class="text-xl font-bold mb-4">Login</h2>
+      <form id="dtlLoginForm">
+        <input id="email" type="email" placeholder="email" class="w-full mb-3 px-3 py-2 bg-gray-700 rounded" required>
+        <input id="password" type="password" placeholder="senha" class="w-full mb-3 px-3 py-2 bg-gray-700 rounded" required>
+        <button type="submit" class="w-full px-3 py-2 bg-indigo-600 rounded">Entrar</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+<script src="/src/js/api-service.js"></script>
+<script>
+  document.getElementById('dtlLoginForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    try {
+      const resp = await apiService.login(email, password);
+      if (resp && resp.token) {
+        localStorage.setItem('token', resp.token);
+        const userEmail = (resp.user && resp.user.email) || email;
+        const role = userEmail.toLowerCase() === 'master@contabiliza.ia' ? 'master' : 'admin';
+        localStorage.setItem('USER_EMAIL', userEmail);
+        localStorage.setItem('USER_ROLE', role);
+        window.location.href = '/pages/dashboard.html';
+      }
+    } catch (err) {
+      alert('Erro ao fazer login: ' + (err.message || 'verifique as credenciais'));
+    }
+  });
+</script>
+{% endblock %}

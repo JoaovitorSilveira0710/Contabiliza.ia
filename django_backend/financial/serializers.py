@@ -46,12 +46,14 @@ class FinancialTransactionSerializer(serializers.ModelSerializer):
 class FinancialTransactionListSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     account_name = serializers.CharField(source='account.name', read_only=True)
+    client_name = serializers.CharField(source='client.name', read_only=True)
     
     class Meta:
         model = FinancialTransaction
         fields = [
-            'id', 'transaction_type', 'description', 'category_name', 'account_name',
-            'amount', 'final_amount', 'due_date', 'payment_date', 'status'
+            'id', 'transaction_type', 'description', 'client_name', 'category_name', 'account_name',
+            'amount', 'final_amount', 'due_date', 'payment_date', 'status',
+            'payment_method', 'attachment'
         ]
 
 

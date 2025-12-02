@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Configurações</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/src/styles/globals.css">
@@ -359,9 +360,15 @@
     // Buscar e listar usuários
     async function fetchUsuarios() {
       try {
-        const [resUsers, resOnline] = await Promise.all([
-          fetch(`${CONFIG.API_BASE}/usuarios/`),
-          fetch(`${CONFIG.API_BASE.replace('/api','')}/api/monitoramento/usuarios-online`)
+        const token = UTILS.getToken();
+        const headers = {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json'
+        };
+        
+        const [resUsuarios, resMonitoramento] = await Promise.all([
+          fetch(`${CONFIG.API_BASE}/users/`, { headers }),
+          fetch(`${CONFIG.API_BASE.replace('/api','')}/api/monitoramento/usuarios-online`, { headers })
         ]);
         
         const data = await resUsers.json();
@@ -423,10 +430,12 @@
       }
 
       try {
-        const res = await fetch(`${CONFIG.API_BASE}/usuarios/${userId}`, {
+        const token = UTILS.getToken();
+        const res = await fetch(`${CONFIG.API_BASE}/users/${userId}`, {
           method: 'DELETE',
           headers: {
-            'x-user-email': userEmail
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
           }
         });
 
@@ -460,11 +469,12 @@
       }
 
       try {
-        const res = await fetch(`${CONFIG.API_BASE}/usuarios/`, {
+        const token = UTILS.getToken();
+        const res = await fetch(`${CONFIG.API_BASE}/users/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-user-email': userEmail
+            'Authorization': `Token ${token}`
           },
           body: JSON.stringify(payload)
         });

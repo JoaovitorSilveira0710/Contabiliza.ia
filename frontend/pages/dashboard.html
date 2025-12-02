@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard | Contabiliza.IA</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Contabiliza.IA</title>
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <link rel="icon" href="/src/styles/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/dist/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="/src/js/config.js?v=20251124"></script>
@@ -278,12 +280,18 @@
     async function loadDashboard() {
       try {
         // Buscar dados reais das APIs
-        const [clientesData, lancamentosData, notasData, processosData] = await Promise.all([
+        const [clientesResp, lancamentosResp, notasResp, processosResp] = await Promise.all([
           apiService.getClientes().catch(() => []),
           apiService.getLancamentos().catch(() => []),
           apiService.getNotasFiscais().catch(() => []),
           apiService.getProcessos().catch(() => [])
         ]);
+
+        // Normalizar respostas paginadas (DRF) para arrays simples
+        const clientesData = Array.isArray(clientesResp) ? clientesResp : (clientesResp?.results || []);
+        const lancamentosData = Array.isArray(lancamentosResp) ? lancamentosResp : (lancamentosResp?.results || []);
+        const notasData = Array.isArray(notasResp) ? notasResp : (notasResp?.results || []);
+        const processosData = Array.isArray(processosResp) ? processosResp : (processosResp?.results || []);
 
         // Processar clientes
         const totalClientes = Array.isArray(clientesData) ? clientesData.length : 0;
@@ -324,7 +332,7 @@
     async function loadClientes() {
       try {
         const clientes = await apiService.getClientes();
-        const clientesArray = Array.isArray(clientes) ? clientes : [];
+        const clientesArray = Array.isArray(clientes) ? clientes : (clientes?.results || []);
         const clientesRecentes = clientesArray.slice(0, 5);
         
         const tbody = document.getElementById('clientesTable');
@@ -582,7 +590,9 @@
   </script>
   
   <!-- Scripts de configuração -->
-  <script src="../src/js/config.js"></script>
-  <script src="../src/js/api.js"></script>
+  <!-- Removido include duplicado de config.js para evitar 'Identifier CONFIG already declared' -->
+  <!-- <script src="../src/js/config.js"></script> -->
+  <!-- Removido api.js legado se não utilizado -->
+  <!-- <script src="../src/js/api.js"></script> -->
 </body>
 </html>

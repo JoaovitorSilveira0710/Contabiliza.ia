@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login</title>
+</head>
+<body>
+    <h1>Teste de Login</h1>
+    <button onclick="testLogin()">Testar Login</button>
+    <button onclick="testClients()">Testar Clientes (com token)</button>
+    <button onclick="clearStorage()">Limpar LocalStorage</button>
+    <pre id="output"></pre>
+
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(msg) {
+            output.textContent += msg + '\n';
+            console.log(msg);
+        }
+
+        async function testLogin() {
+            output.textContent = '';
+            log('=== TESTE DE LOGIN ===');
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/auth/login/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@contabiliza.ia',
+                        password: 'admin123'
+                    })
+                });
+                
+                log('Status: ' + response.status);
+                const data = await response.json();
+                log('Response: ' + JSON.stringify(data, null, 2));
+                
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('USER_EMAIL', data.user.email);
+                    localStorage.setItem('USER_ROLE', 'admin');
+                    log('✓ Token salvo: ' + data.token);
+                }
+            } catch (error) {
+                log('✗ Erro: ' + error.message);
+            }
+        }
+
+        async function testClients() {
+            output.textContent = '';
+            log('=== TESTE DE CLIENTES ===');
+            
+            const token = localStorage.getItem('token');
+            log('Token atual: ' + (token || 'NENHUM'));
+            
+            if (!token) {
+                log('✗ Faça login primeiro!');
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/clients/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Token ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                log('Status: ' + response.status);
+                const data = await response.json();
+                log('Clientes encontrados: ' + (data.results ? data.results.length : data.length || 0));
+                log('Response: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                log('✗ Erro: ' + error.message);
+            }
+        }
+
+        function clearStorage() {
+            localStorage.clear();
+            output.textContent = 'LocalStorage limpo!';
+        }
+    </script>
+</body>
+</html>

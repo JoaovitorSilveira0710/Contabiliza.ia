@@ -1,192 +1,290 @@
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.graphics.barcode import code128
+from reportlab.graphics.shapes import Drawing
 from django.core.files.base import ContentFile
 import io
 from datetime import datetime
 
 
 class InvoicePDFGenerator:
-    """Gerador de PDF para DANFE (Documento Auxiliar da Nota Fiscal Eletrônica)"""
+    """Gerador de PDF para DANFE (Documento Auxiliar da Nota Fiscal Eletrônica) - Layout Padrão SEFAZ"""
     
     def __init__(self, invoice):
         self.invoice = invoice
         self.width, self.height = A4
         self.styles = getSampleStyleSheet()
         
-        # Estilos personalizados
+        # Estilos personalizados conforme layout DANFE
         self.title_style = ParagraphStyle(
-            'CustomTitle',
+            'DANFETitle',
             parent=self.styles['Heading1'],
-            fontSize=16,
-            textColor=colors.HexColor('#1a237e'),
-            spaceAfter=12,
+            fontSize=18,
+            textColor=colors.black,
+            fontName='Helvetica-Bold',
+            spaceAfter=3,
             alignment=TA_CENTER
         )
         
         self.header_style = ParagraphStyle(
             'Header',
             parent=self.styles['Normal'],
+            fontSize=7,
+            textColor=colors.black,
+            spaceAfter=3,
+            fontName='Helvetica'
+        )
+        
+        self.field_label_style = ParagraphStyle(
+            'FieldLabel',
+            parent=self.styles['Normal'],
+            fontSize=6,
+            textColor=colors.black,
+            fontName='Helvetica-Bold'
+        )
+        
+        self.field_value_style = ParagraphStyle(
+            'FieldValue',
+            parent=self.styles['Normal'],
             fontSize=8,
-            textColor=colors.HexColor('#333333'),
-            spaceAfter=6
+            textColor=colors.black,
+            fontName='Helvetica'
         )
     
     def generate_pdf(self):
-        """Gera o PDF da DANFE"""
+        """Gera o PDF da DANFE com layout mais aderente ao modelo oficial."""
         buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=10*mm, bottomMargin=10*mm)
-        
-        # Elementos do PDF
+        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=6*mm, bottomMargin=8*mm, leftMargin=8*mm, rightMargin=8*mm)
+
         elements = []
-        
-        # Cabeçalho
-        elements.append(Paragraph("DANFE", self.title_style))
-        elements.append(Paragraph("Documento Auxiliar da Nota Fiscal Eletrônica", self.header_style))
-        elements.append(Spacer(1, 10))
-        
-        # Informações da NF-e
-        info_data = [
-            ['NÚMERO', 'SÉRIE', 'DATA EMISSÃO', 'TIPO'],
-            [
-                self.invoice.number,
-                self.invoice.series,
-                self.invoice.issue_date.strftime('%d/%m/%Y %H:%M'),
-                dict(self.invoice.INVOICE_TYPE_CHOICES)[self.invoice.invoice_type]
-            ]
-        ]
-        
-        info_table = Table(info_data, colWidths=[40*mm, 30*mm, 50*mm, 60*mm])
-        info_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a237e')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
-        ]))
-        elements.append(info_table)
-        elements.append(Spacer(1, 10))
-        
-        # Chave de Acesso
-        if self.invoice.access_key:
-            elements.append(Paragraph(f"<b>Chave de Acesso:</b> {self.invoice.access_key}", self.header_style))
-            elements.append(Spacer(1, 10))
-        
-        # Emitente
-        elements.append(Paragraph("<b>EMITENTE</b>", self.title_style))
-        emit_data = [
-            ['Nome/Razão Social', self.invoice.issuer_name],
-            ['CNPJ', self.invoice.issuer_tax_id]
-        ]
-        emit_table = Table(emit_data, colWidths=[50*mm, 130*mm])
-        emit_table.setStyle(self._get_table_style())
-        elements.append(emit_table)
-        elements.append(Spacer(1, 10))
-        
-        # Destinatário
-        client = self.invoice.client
-        elements.append(Paragraph("<b>DESTINATÁRIO</b>", self.title_style))
-        dest_data = [
-            ['Nome/Razão Social', client.name],
-            ['CPF/CNPJ', client.tax_id],
-            ['Endereço', f"{client.street}, {client.number}"],
-            ['Bairro', client.neighborhood],
-            ['Cidade/UF', f"{client.city}/{client.state}"],
-            ['CEP', client.zip_code],
-            ['Email', client.email],
-            ['Telefone', client.phone]
-        ]
-        dest_table = Table(dest_data, colWidths=[50*mm, 130*mm])
-        dest_table.setStyle(self._get_table_style())
-        elements.append(dest_table)
-        elements.append(Spacer(1, 15))
-        
-        # Itens
-        elements.append(Paragraph("<b>ITENS DA NOTA FISCAL</b>", self.title_style))
-        
-        items_data = [['Cód', 'Descrição', 'Qtd', 'Vl. Unit.', 'Total']]
-        
-        for item in self.invoice.items.all():
-            items_data.append([
-                item.code,
-                item.description,
-                f"{item.quantity:.2f}",
-                f"R$ {item.unit_value:.2f}",
-                f"R$ {item.total_value:.2f}"
-            ])
-        
-        items_table = Table(items_data, colWidths=[25*mm, 85*mm, 20*mm, 25*mm, 25*mm])
-        items_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a237e')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ]))
-        elements.append(items_table)
-        elements.append(Spacer(1, 15))
-        
-        # Totais
-        elements.append(Paragraph("<b>VALORES TOTAIS</b>", self.title_style))
-        totals_data = [
-            ['Base de Cálculo ICMS', f"R$ {self.invoice.icms_base:.2f}"],
-            ['Valor do ICMS', f"R$ {self.invoice.icms_value:.2f}"],
-            ['Valor do IPI', f"R$ {self.invoice.ipi_value:.2f}"],
-            ['Valor do PIS', f"R$ {self.invoice.pis_value:.2f}"],
-            ['Valor do COFINS', f"R$ {self.invoice.cofins_value:.2f}"],
-            ['Desconto', f"R$ {self.invoice.discount:.2f}"],
-            ['Frete', f"R$ {self.invoice.shipping:.2f}"],
-            ['VALOR TOTAL DA NOTA', f"R$ {self.invoice.total_value:.2f}"]
-        ]
-        
-        totals_table = Table(totals_data, colWidths=[90*mm, 90*mm])
-        totals_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#1a237e')),
-            ('TEXTCOLOR', (0, -1), (-1, -1), colors.whitesmoke),
-            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, -1), (-1, -1), 12),
-            ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
-            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('BACKGROUND', (0, 0), (-1, -2), colors.lightgrey),
-        ]))
-        elements.append(totals_table)
-        elements.append(Spacer(1, 15))
-        
-        # Observações
-        if self.invoice.notes:
-            elements.append(Paragraph("<b>OBSERVAÇÕES</b>", self.title_style))
-            elements.append(Paragraph(self.invoice.notes, self.header_style))
-        
+
+        # Cabeçalho consolidado (título + dados NF + chave + barcode)
+        elements.extend(self._build_header_block())
+        elements.append(Spacer(1, 2*mm))
+
+        # Quadro emitente + quadro destinatário
+        elements.extend(self._build_parties_block())
+        elements.append(Spacer(1, 2*mm))
+
+        # Dados de operação (natureza, data/hora, protocolo)
+        elements.extend(self._build_operation_block())
+        elements.append(Spacer(1, 2*mm))
+
+        # Itens (tabela padrão)
+        elements.extend(self._build_items_block())
+        elements.append(Spacer(1, 2*mm))
+
+        # Totais/impostos
+        elements.extend(self._build_totals_block())
+        elements.append(Spacer(1, 2*mm))
+
+        # Informações adicionais
+        elements.extend(self._build_additional_info_block())
+        elements.append(Spacer(1, 2*mm))
+
+        # Canhoto de recebimento
+        elements.extend(self._build_receipt_block())
+
         # Rodapé
-        elements.append(Spacer(1, 20))
+        elements.append(Spacer(1, 4*mm))
         footer = Paragraph(
-            f"Documento emitido por computador. Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}",
-            ParagraphStyle('Footer', parent=self.styles['Normal'], fontSize=8, textColor=colors.grey, alignment=TA_CENTER)
+            f"Documento emitido eletronicamente - Contabiliza.IA - {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}",
+            ParagraphStyle('Footer', parent=self.styles['Normal'], fontSize=7, alignment=TA_CENTER, textColor=colors.grey)
         )
         elements.append(footer)
-        
-        # Gerar PDF
+
         doc.build(elements)
-        
-        # Salvar arquivo
         pdf_content = buffer.getvalue()
         buffer.close()
-        
+
         filename = f"DANFE_{self.invoice.number}_{self.invoice.series}.pdf"
         self.invoice.pdf_file.save(filename, ContentFile(pdf_content))
-        
         return pdf_content
+
+    # ===================== BLOCO CABEÇALHO =====================
+    def _format_access_key(self):
+        key = self.invoice.access_key or ('0' * 44)
+        return ' '.join([key[i:i+4] for i in range(0, len(key), 4)])
+
+    def _barcode_drawing(self, key):
+        # Fallback: se Code128 não puder ser embutido no Drawing, retorna Paragraph informativo
+        try:
+            bc = code128.Code128(key, barHeight=12*mm, barWidth=0.28*mm)
+            drawing = Drawing(180*mm, 15*mm)
+            # Alguns builds do reportlab exigem add() direto
+            drawing.add(bc)
+            return drawing
+        except Exception:
+            return Paragraph(f"<b>[BARCODE]</b> {key}", self.field_value_style)
+
+    def _build_header_block(self):
+        elements = []
+        formatted_key = self._format_access_key()
+        key_raw = self.invoice.access_key or ('0' * 44)
+        # Linha superior: DANFE + página (simplificado: sempre 1/1)
+        header_data = [
+            [Paragraph('<b>DANFE</b><br/><font size=6>Documento Auxiliar da Nota Fiscal Eletrônica</font>', self.field_value_style),
+             Paragraph(f'<b>NF-e Nº:</b> {self.invoice.number}<br/><b>Série:</b> {self.invoice.series}<br/><b>Página:</b> 1/1', self.field_value_style)]
+        ]
+        table = Table(header_data, colWidths=[120*mm, 60*mm])
+        table.setStyle(TableStyle([
+            ('BOX', (0, 0), (-1, -1), 0.7, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('ALIGN', (1, 0), (1, 0), 'LEFT'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(table)
+
+        # Chave de acesso + barcode
+        key_data = [[Paragraph('<b>CHAVE DE ACESSO</b>', self.field_label_style)], [Paragraph(formatted_key, self.field_value_style)], [self._barcode_drawing(key_raw)]]
+        key_table = Table(key_data, colWidths=[180*mm])
+        key_table.setStyle(TableStyle([
+            ('BOX', (0, 0), (-1, -1), 0.7, colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('BACKGROUND', (0, 0), (0, 0), colors.lightgrey),
+            ('TOPPADDING', (0, 0), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ]))
+        elements.append(key_table)
+        return elements
+
+    # ===================== PARTES (EMITENTE/DEST) =====================
+    def _build_parties_block(self):
+        elements = []
+        client = self.invoice.client
+        emit_html = f"""<b>EMITENTE</b><br/>{self.invoice.issuer_name}<br/>CNPJ: {self.invoice.issuer_tax_id}"""
+        dest_html = f"""<b>DESTINATÁRIO</b><br/>{client.name}<br/>CPF/CNPJ: {client.tax_id}<br/>Endereço: {client.street}, {client.number} - {client.neighborhood} - {client.city}/{client.state} - CEP: {client.zip_code}"""
+        parties_data = [[Paragraph(emit_html, self.field_value_style), Paragraph(dest_html, self.field_value_style)]]
+        parties_table = Table(parties_data, colWidths=[90*mm, 90*mm])
+        parties_table.setStyle(TableStyle([
+            ('BOX', (0, 0), (-1, -1), 0.7, colors.black),
+            ('INNERGRID', (0, 0), (-1, -1), 0.7, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('FONTSIZE', (0, 0), (-1, -1), 7),
+            ('LEFTPADDING', (0, 0), (-1, -1), 4),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+        ]))
+        elements.append(parties_table)
+        return elements
+
+    # ===================== DADOS OPERAÇÃO =====================
+    def _build_operation_block(self):
+        elements = []
+        natureza = getattr(self.invoice, 'additional_info', '') or 'NATUREZA DA OPERAÇÃO'
+        op_data = [
+            [Paragraph('<b>NATUREZA DA OPERAÇÃO</b><br/>' + natureza, self.field_value_style),
+             Paragraph('<b>DATA/HORA EMISSÃO</b><br/>' + self.invoice.issue_date.strftime('%d/%m/%Y %H:%M:%S'), self.field_value_style),
+             Paragraph('<b>PROTOCOLO AUTORIZAÇÃO</b><br/>' + (self.invoice.protocol or '-'), self.field_value_style)]
+        ]
+        op_table = Table(op_data, colWidths=[90*mm, 45*mm, 45*mm])
+        op_table.setStyle(TableStyle([
+            ('BOX', (0, 0), (-1, -1), 0.7, colors.black),
+            ('INNERGRID', (0, 0), (-1, -1), 0.7, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('FONTSIZE', (0, 0), (-1, -1), 7),
+        ]))
+        elements.append(op_table)
+        return elements
+
+    # ===================== ITENS =====================
+    def _build_items_block(self):
+        elements = []
+        header = ['cProd', 'xProd', 'NCM', 'CFOP', 'uCom', 'qCom', 'vUnCom', 'vProd', 'vBC', 'vICMS', 'vIPI']
+        rows = [header]
+        for item in self.invoice.items.all():
+            rows.append([
+                item.code,
+                item.description[:25] + ('...' if len(item.description) > 25 else ''),
+                item.ncm or '-',
+                item.cfop,
+                item.unit,
+                f"{item.quantity:.2f}",
+                f"{item.unit_value:.2f}",
+                f"{item.total_value:.2f}",
+                f"{item.total_value:.2f}",  # vBC (aprox total item)
+                f"{item.icms_value:.2f}",
+                f"{item.ipi_value:.2f}"
+            ])
+        if len(rows) == 1:
+            rows.append(['-', 'Nenhum item', '-', '-', '-', '-', '-', '-', '-', '-', '-'])
+        col_widths = [16*mm, 32*mm, 10*mm, 10*mm, 10*mm, 12*mm, 16*mm, 16*mm, 14*mm, 14*mm, 14*mm]
+        table = Table(rows, colWidths=col_widths, repeatRows=1)
+        table.setStyle(TableStyle([
+            ('BOX', (0, 0), (-1, -1), 0.6, colors.black),
+            ('INNERGRID', (0, 0), (-1, -1), 0.4, colors.black),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 6),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(table)
+        return elements
+
+    # ===================== TOTAIS =====================
+    def _build_totals_block(self):
+        elements = []
+        t = self.invoice
+        data = [
+            [Paragraph('<b>Base ICMS</b><br/>' + f"R$ {t.icms_base:.2f}", self.field_value_style),
+             Paragraph('<b>Valor ICMS</b><br/>' + f"R$ {t.icms_value:.2f}", self.field_value_style),
+             Paragraph('<b>Base ICMS ST</b><br/>R$ 0,00', self.field_value_style),
+             Paragraph('<b>Valor ICMS ST</b><br/>R$ 0,00', self.field_value_style),
+             Paragraph('<b>Valor Produtos</b><br/>' + f"R$ {t.total_products:.2f}", self.field_value_style)],
+            [Paragraph('<b>Frete</b><br/>' + f"R$ {t.shipping:.2f}", self.field_value_style),
+             Paragraph('<b>Seguro</b><br/>' + f"R$ {t.insurance:.2f}", self.field_value_style),
+             Paragraph('<b>Desconto</b><br/>' + f"R$ {t.discount:.2f}", self.field_value_style),
+             Paragraph('<b>Outras Desp.</b><br/>' + f"R$ {t.other_expenses:.2f}", self.field_value_style),
+             Paragraph('<b>Valor IPI</b><br/>' + f"R$ {t.ipi_value:.2f}", self.field_value_style)],
+            [Paragraph('<b>Valor Total da NF</b>', self.field_label_style), '', '', '', Paragraph(f"R$ {t.total_value:.2f}", ParagraphStyle('TotNF', parent=self.field_value_style, fontSize=10, fontName='Helvetica-Bold'))]
+        ]
+        table = Table(data, colWidths=[36*mm, 36*mm, 36*mm, 36*mm, 36*mm])
+        table.setStyle(TableStyle([
+            ('BOX', (0, 0), (-1, -1), 0.7, colors.black),
+            ('INNERGRID', (0, 0), (-1, -2), 0.5, colors.black),
+            ('BACKGROUND', (0, 2), (-1, 2), colors.lightgrey),
+            ('SPAN', (0, 2), (3, 2)),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTSIZE', (0, 0), (-1, -1), 7),
+        ]))
+        elements.append(table)
+        return elements
+
+    # ===================== INFO ADICIONAL =====================
+    def _build_additional_info_block(self):
+        elements = []
+        info = self.invoice.notes or 'Sem informações complementares.'
+        fisco = 'Reservado ao Fisco'
+        data = [[Paragraph('<b>INFORMAÇÕES COMPLEMENTARES</b><br/>' + info, self.field_value_style), Paragraph('<b>RESERVADO AO FISCO</b><br/>' + fisco, self.field_value_style)]]
+        table = Table(data, colWidths=[120*mm, 60*mm])
+        table.setStyle(TableStyle([
+            ('BOX', (0, 0), (-1, -1), 0.7, colors.black),
+            ('INNERGRID', (0, 0), (-1, -1), 0.7, colors.black),
+            ('FONTSIZE', (0, 0), (-1, -1), 7),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ]))
+        elements.append(table)
+        return elements
+
+    # ===================== CANHOTO =====================
+    def _build_receipt_block(self):
+        elements = []
+        txt = ('Recebemos de ' + self.invoice.issuer_name + ' os produtos/mercadorias constantes da NF-e indicada ' \
+               'abaixo. Em ' + datetime.now().strftime('%d/%m/%Y') + '. ______________________________________ Assinatura')
+        receipt = Paragraph('<b>RECIBO DO DESTINATÁRIO</b><br/>' + txt, ParagraphStyle('Rec', parent=self.field_value_style, fontSize=7))
+        box = Table([[receipt]], colWidths=[180*mm])
+        box.setStyle(TableStyle([
+            ('BOX', (0, 0), (-1, -1), 0.7, colors.black),
+            ('LEFTPADDING', (0, 0), (-1, -1), 4),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+            ('TOPPADDING', (0, 0), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(box)
+        return elements
     
     def _get_table_style(self):
         """Estilo padrão para tabelas"""

@@ -267,7 +267,7 @@ class UIHelper {
   static createTable(data, columns) {
     let html = '<table class="w-full"><thead><tr>';
     
-    // Cabeçalho
+    // Header
     columns.forEach(col => {
       html += `<th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">${col.label}</th>`;
     });
