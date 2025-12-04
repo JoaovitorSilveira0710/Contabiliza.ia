@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="/dist/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/src/styles/globals.css">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body class="bg-gray-900 text-white">
@@ -67,10 +69,15 @@
                             <i class="fas fa-clock text-purple-400"></i>
                             <span id="currentDateTime"></span>
                         </div>
-                        <!-- Filtros -->
-                        <button onclick="toggleFilters()" class="p-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-all" title="Filtros">
-                            <i class="fas fa-filter text-xl"></i>
-                        </button>
+                        <!-- Busca e Filtro -->
+                        <div class="hidden md:flex items-center gap-2">
+                            <button class="p-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-all" title="Buscar" onclick="window.dispatchEvent(new Event('react:focus-search'))">
+                                <i class="fas fa-magnifying-glass text-lg"></i>
+                            </button>
+                            <button class="p-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-all" title="Filtros" onclick="toggleFilters()">
+                                <i class="fas fa-filter text-lg"></i>
+                            </button>
+                        </div>
                         <!-- Notificações -->
                         <button class="relative p-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-all" title="Notificações">
                             <i class="fas fa-bell text-xl"></i>
@@ -368,6 +375,7 @@
     <script src="/src/js/config.js?v=20251124"></script>
     <script src="/src/js/api-service.js?v=20251124"></script>
     <script>
+                // Removido: acionamento do ícone de busca no header
         let clients = [];
         let filteredClients = [];
 
@@ -407,7 +415,7 @@
                 document.getElementById('clientLogradouro').value = data.logradouro || '';
                 document.getElementById('clientBairro').value = data.bairro || '';
                 document.getElementById('clientCidade').value = data.localidade || '';
-                document.getElementById('clientUf').value = data.uf || '';
+                document.getElementById('clientUf').value = data.state || '';
 
                 // Focar no campo número
                 document.getElementById('clientNumero').focus();
@@ -526,6 +534,20 @@
             feather.replace();
         });
 
+        // Focar busca da tabela React quando o ícone de busca do header for clicado
+        window.addEventListener('react:focus-search', () => {
+            // Tenta focar inputs de busca conhecidos
+            const selectors = [
+                'input[placeholder*="Buscar por nome, CPF/CNPJ"]',
+                'input[placeholder*="Buscar por cliente, descrição"]',
+                'input[placeholder*="🔍 Buscar"]'
+            ];
+            for (const sel of selectors) {
+                const el = document.querySelector(sel);
+                if (el) { el.focus(); break; }
+            }
+        });
+
         // DESABILITADO - Usando React agora
         async function loadClients() {
             // Função antiga desabilitada - React carrega os clientes automaticamente
@@ -602,11 +624,11 @@
 
             filteredClients = clients.filter(client => {
                 const matchesSearch = !search || 
-                    client.nome_razao_social.toLowerCase().includes(search) ||
-                    (client.cnpj_cpf && client.cnpj_cpf.includes(search)) ||
-                    (client.cpf && client.cpf.includes(search));
+                    (client.name && client.name.toLowerCase().includes(search)) ||
+                    (client.tax_id && client.tax_id.includes(search)) ||
+                    (client.trade_name && client.trade_name.toLowerCase().includes(search));
                 
-                const matchesStatus = !status || (status === 'ativo' ? client.ativo : !client.ativo);
+                const matchesStatus = !status || (status === 'active' ? client.status === 'active' : client.status !== 'active');
                 
                 return matchesSearch && matchesStatus;
             });
@@ -614,7 +636,7 @@
             renderClientsTable();
         }
 
-        function openClientModal() {
+        window.openClientModal = function() {
             document.getElementById('clientModal').classList.remove('hidden');
             const titleEl = document.getElementById('modalTitle');
             if (titleEl) titleEl.textContent = '';
@@ -674,7 +696,8 @@
 
                 showToast('Fazenda criada e vinculada aos donos.', 'success');
                 closeClientModal();
-                await loadClients();
+                // Recarregar tabela React
+                if (window.location) window.location.reload();
                 return;
             }
 
@@ -710,114 +733,132 @@
             try {
                 await apiService.criarCliente(clientData);
                 closeClientModal();
-                await loadClients();
                 showToast('Cliente criado com sucesso!', 'success');
+                // Recarregar tabela React
+                if (window.location) window.location.reload();
             } catch (error) {
                 showToast('Erro ao criar cliente: ' + error.message, 'error');
             }
         }
 
-        async function editClient(clientId) {
-            const client = clients.find(c => c.id === clientId);
-            if (!client) return;
-
-            const titleEl = document.getElementById('modalTitle');
-            if (titleEl) titleEl.textContent = ''; // permanece oculto
-            document.getElementById('clientName').value = client.name || '';
-            document.getElementById('clientCnpj').value = client.tax_id || '';
-            document.getElementById('clientTradeName').value = client.trade_name || '';
-            document.getElementById('clientEmail').value = client.email || '';
-            document.getElementById('clientPhone').value = client.phone || '';
-            document.getElementById('clientMobile').value = client.mobile || '';
-            document.getElementById('clientTipoPessoa').value = client.person_type === 'PF' ? 'F' : 'J';
-            document.getElementById('clientStatus').value = client.status === 'active' ? 'true' : 'false';
-            document.getElementById('clientStateReg').value = client.state_registration || '';
-            document.getElementById('clientMunicipalReg').value = client.municipal_registration || '';
-            applyPersonTypeVisibility();
-            
-            // Preencher endereço
-            document.getElementById('clientCep').value = client.zip_code || '';
-            document.getElementById('clientLogradouro').value = client.street || '';
-            document.getElementById('clientNumero').value = client.number || '';
-            document.getElementById('clientComplemento').value = client.complement || '';
-            document.getElementById('clientBairro').value = client.neighborhood || '';
-            document.getElementById('clientCidade').value = client.city || '';
-            document.getElementById('clientUf').value = client.state || '';
-
-            document.getElementById('clientForm').onsubmit = async (event) => {
-                event.preventDefault();
+        window.editClient = async function(clientId) {
+            // Recarregar dados do cliente via API
+            try {
+                const resp = await apiService.getClientes();
+                const clientsList = Array.isArray(resp) ? resp : (resp?.results || []);
+                const client = clientsList.find(c => c.id === clientId);
                 
-                const cnpjCpf = document.getElementById('clientCnpj').value.replace(/\D/g, '');
-                
-                // Validação básica do CPF/CNPJ
-                if (![11, 14].includes(cnpjCpf.length)) {
-                    showToast('CPF deve ter 11 dígitos ou CNPJ 14 dígitos', 'error');
+                if (!client) {
+                    showToast('Cliente não encontrado', 'error');
                     return;
                 }
 
-                // Montar objeto completo a partir do formulário
-                const fullData = {
-                    person_type: cnpjCpf.length === 11 ? 'PF' : 'PJ',
-                    name: document.getElementById('clientName').value,
-                    trade_name: document.getElementById('clientTradeName').value,
-                    tax_id: cnpjCpf,
-                    email: document.getElementById('clientEmail').value,
-                    phone: document.getElementById('clientPhone').value.replace(/\D/g, ''),
-                    mobile: document.getElementById('clientMobile').value.replace(/\D/g, ''),
-                    state_registration: document.getElementById('clientStateReg').value,
-                    municipal_registration: document.getElementById('clientMunicipalReg').value,
-                    status: document.getElementById('clientStatus').value === 'true' ? 'active' : 'inactive',
-                    zip_code: document.getElementById('clientCep').value.replace(/\D/g, ''),
-                    street: document.getElementById('clientLogradouro').value,
-                    number: document.getElementById('clientNumero').value,
-                    complement: document.getElementById('clientComplemento').value,
-                    neighborhood: document.getElementById('clientBairro').value,
-                    city: document.getElementById('clientCidade').value,
-                    state: document.getElementById('clientUf').value,
-                    activity: document.getElementById('clientActivity')?.value || '',
-                    tax_regime: document.getElementById('clientTaxRegime')?.value || '',
-                    payment_terms: parseInt(document.getElementById('clientPaymentTerms')?.value || '30', 10),
-                    credit_limit: parseFloat(document.getElementById('clientCreditLimit')?.value || '0'),
-                    notes: document.getElementById('clientNotes')?.value || ''
+                const titleEl = document.getElementById('modalTitle');
+                if (titleEl) titleEl.textContent = ''; // permanece oculto
+                document.getElementById('clientName').value = client.name || '';
+                document.getElementById('clientCnpj').value = client.tax_id || '';
+                document.getElementById('clientTradeName').value = client.trade_name || '';
+                document.getElementById('clientEmail').value = client.email || '';
+                document.getElementById('clientPhone').value = client.phone || '';
+                document.getElementById('clientMobile').value = client.mobile || '';
+                document.getElementById('clientTipoPessoa').value = client.person_type === 'PF' ? 'F' : 'J';
+                document.getElementById('clientStatus').value = client.status === 'active' ? 'true' : 'false';
+                document.getElementById('clientStateReg').value = client.state_registration || '';
+                document.getElementById('clientMunicipalReg').value = client.municipal_registration || '';
+                applyPersonTypeVisibility();
+                
+                // Preencher endereço
+                document.getElementById('clientCep').value = client.zip_code || '';
+                document.getElementById('clientLogradouro').value = client.street || '';
+                document.getElementById('clientNumero').value = client.number || '';
+                document.getElementById('clientComplemento').value = client.complement || '';
+                document.getElementById('clientBairro').value = client.neighborhood || '';
+                document.getElementById('clientCidade').value = client.city || '';
+                document.getElementById('clientUf').value = client.state || '';
+
+                document.getElementById('clientForm').onsubmit = async (event) => {
+                    event.preventDefault();
+                    
+                    const cnpjCpf = document.getElementById('clientCnpj').value.replace(/\D/g, '');
+                    
+                    // Validação básica do CPF/CNPJ
+                    if (![11, 14].includes(cnpjCpf.length)) {
+                        showToast('CPF deve ter 11 dígitos ou CNPJ 14 dígitos', 'error');
+                        return;
+                    }
+
+                    // Montar objeto completo a partir do formulário
+                    const fullData = {
+                        person_type: cnpjCpf.length === 11 ? 'PF' : 'PJ',
+                        name: document.getElementById('clientName').value,
+                        trade_name: document.getElementById('clientTradeName').value,
+                        tax_id: cnpjCpf,
+                        email: document.getElementById('clientEmail').value,
+                        phone: document.getElementById('clientPhone').value.replace(/\D/g, ''),
+                        mobile: document.getElementById('clientMobile').value.replace(/\D/g, ''),
+                        state_registration: document.getElementById('clientStateReg').value,
+                        municipal_registration: document.getElementById('clientMunicipalReg').value,
+                        status: document.getElementById('clientStatus').value === 'true' ? 'active' : 'inactive',
+                        zip_code: document.getElementById('clientCep').value.replace(/\D/g, ''),
+                        street: document.getElementById('clientLogradouro').value,
+                        number: document.getElementById('clientNumero').value,
+                        complement: document.getElementById('clientComplemento').value,
+                        neighborhood: document.getElementById('clientBairro').value,
+                        city: document.getElementById('clientCidade').value,
+                        state: document.getElementById('clientUf').value,
+                        activity: document.getElementById('clientActivity')?.value || '',
+                        tax_regime: document.getElementById('clientTaxRegime')?.value || '',
+                        payment_terms: parseInt(document.getElementById('clientPaymentTerms')?.value || '30', 10),
+                        credit_limit: parseFloat(document.getElementById('clientCreditLimit')?.value || '0'),
+                        notes: document.getElementById('clientNotes')?.value || ''
+                    };
+
+                    // Enviar apenas campos alterados (PATCH incremental)
+                    const updateData = {};
+                    Object.keys(fullData).forEach((key) => {
+                        const newVal = fullData[key];
+                        const oldVal = client[key] ?? '';
+                        // Normalizar para comparação
+                        const normNew = typeof newVal === 'string' ? newVal.trim() : newVal;
+                        const normOld = typeof oldVal === 'string' ? oldVal.trim() : oldVal;
+                        if (normNew !== normOld) {
+                            updateData[key] = newVal;
+                        }
+                    });
+
+                    // Se nada mudou, evitar requisição
+                    if (Object.keys(updateData).length === 0) {
+                        showToast('Nenhuma alteração detectada.', 'success');
+                        return;
+                    }
+
+                    try {
+                        await apiService.atualizarCliente(clientId, updateData);
+                        closeClientModal();
+                        showToast('Cliente atualizado com sucesso!', 'success');
+                        // Recarregar tabela React
+                        if (window.location) window.location.reload();
+                    } catch (error) {
+                        showToast('Erro ao atualizar cliente: ' + (error.message || 'Verifique os campos'), 'error');
+                    }
                 };
 
-                // Enviar apenas campos alterados (PATCH incremental)
-                const updateData = {};
-                Object.keys(fullData).forEach((key) => {
-                    const newVal = fullData[key];
-                    const oldVal = client[key] ?? '';
-                    // Normalizar para comparação
-                    const normNew = typeof newVal === 'string' ? newVal.trim() : newVal;
-                    const normOld = typeof oldVal === 'string' ? oldVal.trim() : oldVal;
-                    if (normNew !== normOld) {
-                        updateData[key] = newVal;
-                    }
-                });
-
-                // Se nada mudou, evitar requisição
-                if (Object.keys(updateData).length === 0) {
-                    showToast('Nenhuma alteração detectada.', 'success');
-                    return;
-                }
-
-                try {
-                    await apiService.atualizarCliente(clientId, updateData);
-                    closeClientModal();
-                    await loadClients();
-                    showToast('Cliente atualizado com sucesso!', 'success');
-                } catch (error) {
-                    showToast('Erro ao atualizar cliente: ' + (error.message || 'Verifique os campos'), 'error');
-                }
-            };
-
-            document.getElementById('clientModal').classList.remove('hidden');
+                document.getElementById('clientModal').classList.remove('hidden');
+            } catch (error) {
+                showToast('Erro ao carregar dados do cliente', 'error');
+            }
         }
 
-        async function deleteClient(clientId) {
+        window.deleteClient = async function(clientId) {
+            if (!confirm('Tem certeza que deseja excluir este cliente?')) {
+                return;
+            }
+            
             try {
                 await apiService.excluirCliente(clientId);
-                await loadClients();
                 showToast('Cliente deletado com sucesso!', 'success');
+                // Recarregar tabela React
+                if (window.location) window.location.reload();
             } catch (error) {
                 showToast('Erro ao deletar cliente: ' + error.message, 'error');
             }
@@ -923,10 +964,7 @@
         document.getElementById('entityType').addEventListener('change', applyPersonTypeVisibility);
     </script>
 
-    <!-- React via CDN -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <!-- App React -->
-    <script src="/src/js/react-app.js?v=20251202020000"></script>
+    <script src="/src/js/react-app.js?v=20251202030000"></script>
 </body>
 </html>

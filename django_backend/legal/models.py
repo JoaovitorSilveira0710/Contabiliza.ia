@@ -62,6 +62,18 @@ class LegalProcess(models.Model):
     actual_end_date = models.DateField('Data de Término', null=True, blank=True)
     estimated_value = models.DecimalField('Valor Estimado', max_digits=15, decimal_places=2, null=True, blank=True)
     actual_value = models.DecimalField('Valor Real', max_digits=15, decimal_places=2, null=True, blank=True)
+    
+    # Fields for lawyer fee control
+    lawyer_fee_percentage = models.DecimalField('Percentual de Honorários', max_digits=5, decimal_places=2, null=True, blank=True, help_text='Percentual sobre o valor da causa')
+    lawyer_fee_fixed = models.DecimalField('Honorários Fixos', max_digits=15, decimal_places=2, null=True, blank=True)
+    lawyer_fee_paid = models.DecimalField('Honorários Pagos', max_digits=15, decimal_places=2, default=0)
+    lawyer_fee_notes = models.TextField('Observações sobre Honorários', blank=True)
+    
+    # Integration extra fields
+    opposing_parties = models.TextField('Partes Contrárias', blank=True, help_text='Nomes das partes contrárias separados por vírgula')
+    case_class = models.CharField('Classe Processual', max_length=100, blank=True)
+    last_sync_date = models.DateTimeField('Última Sincronização', null=True, blank=True)
+    
     notes = models.TextField('Observações', blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='created_legal_processes')
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
@@ -74,6 +86,26 @@ class LegalProcess(models.Model):
 
     def __str__(self):
         return f"{self.process_number} - {self.title}"
+    
+    def calculate_lawyer_fee(self):
+        """Calculate total lawyer fee value"""
+        total = 0
+        
+        # Fixed lawyer fees
+        if self.lawyer_fee_fixed:
+            total += self.lawyer_fee_fixed
+        
+        # Percentage fees based on case value
+        if self.lawyer_fee_percentage and self.actual_value:
+            total += (self.actual_value * self.lawyer_fee_percentage / 100)
+        
+        return total
+    
+    def get_lawyer_fee_balance(self):
+        """Returns the pending lawyer fee balance"""
+        total = self.calculate_lawyer_fee()
+        paid = self.lawyer_fee_paid or 0
+        return total - paid
 
 
 class Hearing(models.Model):

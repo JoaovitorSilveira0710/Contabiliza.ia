@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DANFE - Documento Auxiliar da Nota Fiscal Eletrônica</title>
+    <link rel="stylesheet" href="/dist/styles.css">
+    <style>
+        @media print {
+            body { margin: 0; padding: 10px; }
+            .no-print { display: none !important; }
+            .danfe-container { box-shadow: none; max-width: 100%; }
+        }
+        
+        .danfe-container {
+            max-width: 210mm;
+            margin: 0 auto;
+            background: white;
+            color: black;
+            font-family: 'Courier New', monospace;
+            font-size: 8pt;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .danfe-header {
+            border: 1.2px solid #000;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 0;
+        }
+        
+        .danfe-section {
+            border: 1.2px solid #000;
+            padding: 3px 5px;
+        }
+        
+        .danfe-section.no-border-left {
+            border-left: none;
+        }
+        
+        .danfe-section.no-border-right {
+            border-right: none;
+        }
+        
+        .danfe-label {
+            font-size: 6pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .danfe-value {
+            font-size: 9pt;
+            font-weight: bold;
+            margin-top: 1px;
+        }
+        
+        .danfe-title {
+            font-size: 12pt;
+            font-weight: bold;
+            text-align: center;
+            padding: 3px 0;
+        }
+        
+        .barcode-area {
+            text-align: center;
+            padding: 6px 4px;
+            border: 1.2px solid #000;
+        }
+        
+        .barcode-img {
+            width: 100%;
+            max-width: 420px;
+            height: 80px;
+            background: repeating-linear-gradient(90deg, #000 0px, #000 2px, #fff 2px, #fff 4px);
+            margin: 4px auto;
+        }
+        
+        .access-key {
+            font-family: monospace;
+            font-size: 7pt;
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 3fr 1fr 1fr;
+            gap: 0;
+        }
+        
+        .grid-4 {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 0;
+        }
+        
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+        
+        .products-table th,
+        .products-table td {
+            border: 1.2px solid #000;
+            padding: 2px 3px;
+            font-size: 7pt;
+        }
+        
+        .products-table th {
+            background: #f0f0f0;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .taxes-section {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0;
+            margin-top: 6px;
+        }
+        
+        .additional-info {
+            border: 1.2px solid #000;
+            padding: 4px;
+            margin-top: 6px;
+            min-height: 60px;
+            font-size: 7pt;
+        }
+        
+        .footer-info {
+            text-align: center;
+            font-size: 6pt;
+            margin-top: 6px;
+            padding: 4px;
+            border-top: 1.2px solid #000;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Status da Nota (não imprime) -->
+    <div id="status_banner" class="no-print fixed top-4 left-4 z-50 hidden"></div>
+    <!-- Ambiente limpo: sem botões de ação -->
+
+    <!-- Container DANFE -->
+    <div class="danfe-container p-4 my-6">
+        <!-- CABEÇALHO -->
+        <div class="danfe-header">
+            <!-- Brasão do Paraná e Dados do Emitente -->
+            <div class="danfe-section">
+                <div class="text-center mb-2">
+                    <img id="parana_coat" alt="Brasão do Paraná" style="display:inline-block; height:50px; width:auto; object-fit:contain;" />
+                    <div id="parana_coat_fallback" class="font-bold text-base" style="display:none;">Brasão do Paraná</div>
+                </div>
+                <div class="danfe-label">Emitente</div>
+                <div class="danfe-value" id="issuer_name">ANDRE DE ARAUJO SILVA</div>
+                <div class="mt-1" id="issuer_address">FAZENDA RIO PRETO, SN - ZONA RURAL</div>
+                <div id="issuer_city_state">Dom Bosco/MG - CEP: 38654-000</div>
+                <div id="issuer_phone">Tel: (00) 0000-0000</div>
+            </div>
+            
+            <!-- DANFE -->
+            <div class="danfe-section no-border-left no-border-right">
+                <div class="danfe-title">DANFE</div>
+                <div class="text-center text-xs">Documento Auxiliar da Nota Fiscal Eletrônica</div>
+                
+                <div class="text-center mt-2">
+                    <div class="danfe-label">Tipo de Operação</div>
+                    <div class="danfe-value text-base" id="operation_type">0 - ENTRADA</div>
+                </div>
+                
+                <div class="mt-2 grid-2">
+                    <div>
+                        <div class="danfe-label">Nº</div>
+                        <div class="danfe-value" id="invoice_number">000.000.118</div>
+                    </div>
+                    <div>
+                        <div class="danfe-label">Série</div>
+                        <div class="danfe-value" id="invoice_series">922</div>
+                    </div>
+                </div>
+                
+                <div class="mt-2">
+                    <div class="danfe-label">Folha</div>
+                    <div class="danfe-value">1/1</div>
+                </div>
+            </div>
+            
+            <!-- Código de Barras e Chave -->
+            <div class="danfe-section no-border-left">
+                <div class="barcode-area">
+                    <div class="danfe-label">Chave de Acesso</div>
+                    <div class="barcode-img"></div>
+                    <div class="access-key" id="access_key">—</div>
+                </div>
+                <div class="mt-2 text-center text-xs">
+                    Consulte a autenticidade da NF-e no portal da SEFAZ<br>
+                    www.nfe.fazenda.gov.br/portal
+                </div>
+            </div>
+        </div>
+
+        <!-- NATUREZA DA OPERAÇÃO -->
+        <div class="danfe-section" style="margin-top: 4px;">
+            <div class="danfe-label">Natureza da Operação</div>
+            <div class="danfe-value" id="operation_nature">VENDA DE SOJA</div>
+        </div>
+
+        <!-- PROTOCOLO E INSCRIÇÃO -->
+        <div class="grid-2" style="margin-top: 4px;">
+            <div class="danfe-section">
+                <div class="danfe-label">Protocolo de Autorização de Uso</div>
+                <div class="danfe-value" id="protocol">131245875255850 - 21/03/2024 10:27:03</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Inscrição Estadual</div>
+                <div class="danfe-value" id="issuer_ie">0023150260429</div>
+            </div>
+        </div>
+
+        <!-- DESTINATÁRIO/REMETENTE -->
+        <div class="danfe-section" style="margin-top: 8px; background: #f0f0f0;">
+            <div class="danfe-label">Destinatário/Remetente</div>
+        </div>
+        
+        <div class="grid-3">
+            <div class="danfe-section">
+                <div class="danfe-label">Nome/Razão Social</div>
+                <div class="danfe-value" id="receiver_name">ADAS SAFRAS INDUSTRIAL E COMERCIO LTDA</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">CNPJ/CPF</div>
+                <div class="danfe-value" id="receiver_tax_id">44.409.255/0001-22</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Data de Emissão</div>
+                <div class="danfe-value" id="issue_date">21/03/2024</div>
+            </div>
+        </div>
+        
+        <div class="grid-4">
+            <div class="danfe-section">
+                <div class="danfe-label">Endereço</div>
+                <div class="danfe-value" id="receiver_address">RUA EPIA-01, 4998</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Bairro/Distrito</div>
+                <div class="danfe-value" id="receiver_district">MANSÕES SUL</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">CEP</div>
+                <div class="danfe-value" id="receiver_zip">38617-358</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Data de Entrada/Saída</div>
+                <div class="danfe-value" id="exit_date">21/03/2024</div>
+            </div>
+        </div>
+        
+        <div class="grid-4">
+            <div class="danfe-section">
+                <div class="danfe-label">Município</div>
+                <div class="danfe-value" id="receiver_city">MANSÕES SUL</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">UF</div>
+                <div class="danfe-value" id="receiver_state">MG</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Fone/Fax</div>
+                <div class="danfe-value" id="receiver_phone">(38) 3876-7010</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Inscrição Estadual</div>
+                <div class="danfe-value" id="receiver_ie">4206632054</div>
+            </div>
+        </div>
+
+        <!-- CÁLCULO DO IMPOSTO -->
+        <div class="danfe-section" style="margin-top: 8px; background: #f0f0f0;">
+            <div class="danfe-label">Cálculo do Imposto</div>
+        </div>
+        
+        <div class="taxes-section">
+            <div class="danfe-section">
+                <div class="danfe-label">Base de Cálculo do ICMS</div>
+                <div class="danfe-value" id="icms_base">R$ 0,00</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Valor do ICMS</div>
+                <div class="danfe-value" id="icms_value">R$ 0,00</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Base de Cálculo ICMS ST</div>
+                <div class="danfe-value">R$ 0,00</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Valor do ICMS ST</div>
+                <div class="danfe-value">R$ 0,00</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Valor Total dos Produtos</div>
+                <div class="danfe-value" id="total_products">R$ 87.866,67</div>
+            </div>
+        </div>
+        
+        <div class="taxes-section">
+            <div class="danfe-section">
+                <div class="danfe-label">Valor do Frete</div>
+                <div class="danfe-value" id="shipping_value">R$ 0,00</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Valor do Seguro</div>
+                <div class="danfe-value" id="insurance_value">R$ 0,00</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Desconto</div>
+                <div class="danfe-value" id="discount_value">R$ 0,00</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Outras Despesas</div>
+                <div class="danfe-value" id="other_expenses">R$ 0,00</div>
+            </div>
+            <div class="danfe-section no-border-left">
+                <div class="danfe-label">Valor Total da Nota</div>
+                <div class="danfe-value text-lg" id="total_value">R$ 87.866,67</div>
+            </div>
+        </div>
+
+        <!-- TRANSPORTADOR/VOLUMES TRANSPORTADOS -->
+        <div class="danfe-section" style="margin-top: 8px; background: #f0f0f0;">
+            <div class="danfe-label">Transportador / Volumes Transportados</div>
+        </div>
+        
+        <div class="danfe-section">
+            <div class="danfe-label">Frete por Conta</div>
+            <div class="danfe-value">0 - PRÓPRIA CONTA DO REMETENTE</div>
+        </div>
+
+        <!-- DADOS DO PRODUTO / SERVIÇOS -->
+        <div class="danfe-section" style="margin-top: 8px; background: #f0f0f0;">
+            <div class="danfe-label">Dados do Produto / Serviços</div>
+        </div>
+        
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th style="width: 10%">Código</th>
+                    <th style="width: 34%">Descrição do Produto / Serviços</th>
+                    <th style="width: 8%">NCM/SH</th>
+                    <th style="width: 6%">CST</th>
+                    <th style="width: 6%">CFOP</th>
+                    <th style="width: 6%">Unid</th>
+                    <th style="width: 8%">Quant.</th>
+                    <th style="width: 8%">Valor Unit.</th>
+                    <th style="width: 8%">Valor Total</th>
+                    <th style="width: 8%">BC ICMS</th>
+                    <th style="width: 8%">Valor ICMS</th>
+                    <th style="width: 8%">Valor IPI</th>
+                    <th style="width: 8%">Alíq. ICMS</th>
+                    <th style="width: 8%">Alíq. IPI</th>
+                </tr>
+            </thead>
+            <tbody id="products_tbody">
+                <tr>
+                    <td>12019000</td>
+                    <td>SOJA EM GRÃO</td>
+                    <td>12010090</td>
+                    <td>040</td>
+                    <td>5101</td>
+                    <td>kg</td>
+                    <td class="text-right">52.600,00000</td>
+                    <td class="text-right">1,6697</td>
+                    <td class="text-right">87.866,67</td>
+                    <td class="text-right">0,00</td>
+                    <td class="text-right">0,00</td>
+                    <td class="text-right">0,00</td>
+                    <td class="text-right">0</td>
+                    <td class="text-right">0</td>
+                    <td class="text-right">0,00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- DADOS ADICIONAIS -->
+        <div class="danfe-section" style="margin-top: 8px; background: #f0f0f0;">
+            <div class="danfe-label">Dados Adicionais</div>
+        </div>
+        
+        <div class="additional-info">
+            <div class="danfe-label">Informações Complementares</div>
+            <div id="additional_info" style="margin-top: 4px;">
+                INFORMAÇÃO COMPLEMENTAR<br>
+                MERCADORIA SUJEITA AO REGIME DE SUBSTITUIÇÃO TRIBUTÁRIA EM OPERAÇÃO INTERNA NO ESTADO DO PRODUTOR (RIS-IGO ARTIGO 8 DO ANEXO X DO RCTE/MG).<br>
+                PRESTAÇÕES SERVIÇOS TRANSPORTE ISENTA NOS TERMOS DO ITEM X DO ANEXO I DO RICMS/MG.
+            </div>
+        </div>
+
+        <!-- RODAPÉ -->
+        <div class="footer-info">
+            <strong>INFORMAÇÃO FISCAL COMPLEMENTAR</strong><br>
+            Valor aproximado dos tributos (Federais e Estaduais): R$ 0,00 (0,00%) - Fonte: IBGE
+        </div>
+    </div>
+
+    <script src="/src/js/config.js"></script>
+    <script src="/src/js/api-service.js"></script>
+    <script>
+        // Util: leitura opcional de XML (query string ?xml=URL)
+        async function tryLoadFromXML() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const xmlUrl = urlParams.get('xml');
+            if (!xmlUrl) return null;
+            const resp = await fetch(xmlUrl);
+            if (!resp.ok) throw new Error('Falha ao baixar XML');
+            const xmlText = await resp.text();
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(xmlText, 'application/xml');
+            return convertXMLToInvoice(xml);
+        }
+
+        function textContentNS(el, ns, tag) {
+            const n = el.getElementsByTagNameNS(ns, tag)[0];
+            return n ? (n.textContent || '').trim() : '';
+        }
+
+        function convertXMLToInvoice(doc) {
+            const NS = 'http://www.portalfiscal.inf.br/nfe';
+            const nfeProc = doc.getElementsByTagNameNS(NS, 'nfeProc')[0] || doc;
+            const NFe = nfeProc.getElementsByTagNameNS(NS, 'NFe')[0];
+            const infNFe = NFe.getElementsByTagNameNS(NS, 'infNFe')[0];
+            const ide = infNFe.getElementsByTagNameNS(NS, 'ide')[0];
+            const emit = infNFe.getElementsByTagNameNS(NS, 'emit')[0];
+            const dest = infNFe.getElementsByTagNameNS(NS, 'dest')[0];
+            const total = infNFe.getElementsByTagNameNS(NS, 'total')[0];
+            const icmstot = total ? total.getElementsByTagNameNS(NS, 'ICMSTot')[0] : null;
+            const protNFe = nfeProc.getElementsByTagNameNS(NS, 'protNFe')[0];
+            const infProt = protNFe ? protNFe.getElementsByTagNameNS(NS, 'infProt')[0] : null;
+
+            const det = infNFe.getElementsByTagNameNS(NS, 'det');
+            const items = [];
+            for (let i = 0; i < det.length; i++) {
+                const d = det[i];
+                const prod = d.getElementsByTagNameNS(NS, 'prod')[0];
+                items.push({
+                    code: textContentNS(prod, NS, 'cProd'),
+                    description: textContentNS(prod, NS, 'xProd'),
+                    ncm: textContentNS(prod, NS, 'NCM'),
+                    cfop: textContentNS(prod, NS, 'CFOP'),
+                    unit: textContentNS(prod, NS, 'uCom'),
+                    quantity: parseFloat(textContentNS(prod, NS, 'qCom') || '0'),
+                    unit_value: parseFloat(textContentNS(prod, NS, 'vUnCom') || '0'),
+                    total_value: parseFloat(textContentNS(prod, NS, 'vProd') || '0'),
+                    icms_rate: 0,
+                    icms_value: 0,
+                    ipi_rate: 0,
+                    ipi_value: 0,
+                });
+            }
+
+            const access_key = infNFe.getAttribute('Id')?.replace('NFe','') || textContentNS(infProt, NS, 'chNFe');
+            const operation_type = textContentNS(ide, NS, 'tpNF') === '0' ? 'entrada' : 'saida';
+
+            return {
+                // Ide
+                number: textContentNS(ide, NS, 'nNF'),
+                series: textContentNS(ide, NS, 'serie'),
+                issue_date: textContentNS(ide, NS, 'dhEmi'),
+                exit_date: textContentNS(ide, NS, 'dhSaiEnt'),
+                operation_nature: textContentNS(ide, NS, 'natOp'),
+                operation_type,
+                access_key,
+
+                // Emitente
+                issuer_name: textContentNS(emit, NS, 'xNome'),
+                issuer_state: textContentNS(emit, NS, 'UF'),
+                issuer_state_registration: textContentNS(emit, NS, 'IE'),
+                issuer_address: textContentNS(emit.getElementsByTagNameNS(NS, 'enderEmit')[0], NS, 'xLgr'),
+                issuer_number: textContentNS(emit.getElementsByTagNameNS(NS, 'enderEmit')[0], NS, 'nro'),
+                issuer_district: textContentNS(emit.getElementsByTagNameNS(NS, 'enderEmit')[0], NS, 'xBairro'),
+                issuer_city: textContentNS(emit.getElementsByTagNameNS(NS, 'enderEmit')[0], NS, 'xMun'),
+                issuer_zip_code: textContentNS(emit.getElementsByTagNameNS(NS, 'enderEmit')[0], NS, 'CEP'),
+                issuer_phone: '',
+
+                // Destinatário
+                receiver_name: textContentNS(dest, NS, 'xNome'),
+                receiver_tax_id: textContentNS(dest, NS, 'CNPJ') || textContentNS(dest, NS, 'CPF'),
+                receiver_address: textContentNS(dest.getElementsByTagNameNS(NS, 'enderDest')[0], NS, 'xLgr'),
+                receiver_number: textContentNS(dest.getElementsByTagNameNS(NS, 'enderDest')[0], NS, 'nro'),
+                receiver_district: textContentNS(dest.getElementsByTagNameNS(NS, 'enderDest')[0], NS, 'xBairro'),
+                receiver_city: textContentNS(dest.getElementsByTagNameNS(NS, 'enderDest')[0], NS, 'xMun'),
+                receiver_state: textContentNS(dest.getElementsByTagNameNS(NS, 'enderDest')[0], NS, 'UF'),
+                receiver_zip_code: textContentNS(dest.getElementsByTagNameNS(NS, 'enderDest')[0], NS, 'CEP'),
+                receiver_phone: '',
+                receiver_state_registration: textContentNS(dest, NS, 'IE'),
+
+                // Totais
+                icms_base: parseFloat(textContentNS(icmstot, NS, 'vBC') || '0'),
+                icms_value: parseFloat(textContentNS(icmstot, NS, 'vICMS') || '0'),
+                total_products: parseFloat(textContentNS(icmstot, NS, 'vProd') || '0'),
+                shipping: parseFloat(textContentNS(icmstot, NS, 'vFrete') || '0'),
+                insurance: parseFloat(textContentNS(icmstot, NS, 'vSeg') || '0'),
+                discount: parseFloat(textContentNS(icmstot, NS, 'vDesc') || '0'),
+                other_expenses: parseFloat(textContentNS(icmstot, NS, 'vOutro') || '0'),
+                total_value: parseFloat(textContentNS(icmstot, NS, 'vNF') || '0'),
+
+                // Protocolo
+                protocol: `${textContentNS(infProt, NS, 'nProt')} - ${textContentNS(infProt, NS, 'dhRecbto')}`,
+                status: (textContentNS(infProt, NS, 'cStat') === '100') ? 'authorized' : 'pending',
+
+                items,
+            };
+        }
+
+        // Carregar dados: tenta XML (?xml=...), senão API por id
+        async function loadInvoiceData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const invoiceId = urlParams.get('id');
+            try {
+                const fromXml = await tryLoadFromXML();
+                if (fromXml) return populateDANFE(fromXml);
+            } catch (e) {
+                console.warn('Falha ao carregar por XML:', e);
+            }
+            if (!invoiceId) return;
+            try {
+                const invoice = await apiService.getNotaFiscalById(invoiceId);
+                populateDANFE(invoice);
+            } catch (error) {
+                console.error('Erro ao carregar nota fiscal:', error);
+            }
+        }
+        
+        function populateDANFE(invoice) {
+            // Brasão do Paraná (configurável via CONFIG.paranaCoatUrl)
+            try {
+                const coatEl = document.getElementById('parana_coat');
+                const coatFallback = document.getElementById('parana_coat_fallback');
+                // Tentar via CONFIG, senão usar caminho relativo a partir de /pages
+                const primaryUrl = (window.CONFIG && window.CONFIG.paranaCoatUrl) ? window.CONFIG.paranaCoatUrl : null;
+                const fallbackUrl = '../assets/brasao-parana.png';
+                const chosenUrl = primaryUrl || fallbackUrl;
+                coatEl.src = chosenUrl;
+                coatEl.onload = function(){
+                    coatEl.style.display = 'inline-block';
+                    coatFallback.style.display = 'none';
+                };
+                coatEl.onerror = function(){
+                    // tenta o fallback relativo se a primária falhar
+                    if (chosenUrl !== fallbackUrl) {
+                        coatEl.src = fallbackUrl;
+                    } else {
+                        coatEl.style.display = 'none';
+                        coatFallback.style.display = 'block';
+                    }
+                };
+            } catch {}
+
+            // Status banner
+            const statusBanner = document.getElementById('status_banner');
+            const status = invoice.status || 'draft';
+            const map = {
+                authorized: { label: 'Autorizada', cls: 'bg-green-600 text-white border border-green-700' },
+                cancelled: { label: 'Cancelada', cls: 'bg-red-600 text-white border border-red-700' },
+                denied: { label: 'Negada', cls: 'bg-orange-600 text-white border border-orange-700' },
+                pending: { label: 'Pendente', cls: 'bg-yellow-500 text-black border border-yellow-600' },
+                draft: { label: 'Rascunho', cls: 'bg-gray-600 text-white border border-gray-700' }
+            };
+            const meta = map[status] || map.draft;
+            statusBanner.className = `no-print fixed top-4 left-4 z-50 px-3 py-2 rounded-lg shadow ${meta.cls}`;
+            statusBanner.textContent = `Status: ${meta.label}`;
+            statusBanner.style.display = 'block';
+
+            // Emitente
+            document.getElementById('issuer_name').textContent = invoice.issuer_name || '';
+            document.getElementById('issuer_address').textContent = `${invoice.issuer_address || ''}, ${invoice.issuer_number || ''}`;
+            document.getElementById('issuer_city_state').textContent = `${invoice.issuer_city || ''}/${invoice.issuer_state || ''} - CEP: ${invoice.issuer_zip_code || ''}`;
+            document.getElementById('issuer_phone').textContent = `Tel: ${invoice.issuer_phone || ''}`;
+            document.getElementById('issuer_ie').textContent = invoice.issuer_state_registration || '';
+            
+            // Nota Fiscal
+            document.getElementById('invoice_number').textContent = invoice.number || '';
+            document.getElementById('invoice_series').textContent = invoice.series || '';
+            document.getElementById('access_key').textContent = formatAccessKey(invoice.access_key || '');
+            document.getElementById('operation_type').textContent = invoice.operation_type === 'entrada' ? '0 - ENTRADA' : '1 - SAÍDA';
+            document.getElementById('operation_nature').textContent = invoice.operation_nature || '';
+            document.getElementById('protocol').textContent = invoice.protocol || '';
+            
+            // Destinatário
+            document.getElementById('receiver_name').textContent = invoice.receiver_name || '';
+            document.getElementById('receiver_tax_id').textContent = formatCNPJ(invoice.receiver_tax_id || '');
+            document.getElementById('receiver_address').textContent = `${invoice.receiver_address || ''}, ${invoice.receiver_number || ''}`;
+            document.getElementById('receiver_district').textContent = invoice.receiver_district || '';
+            document.getElementById('receiver_zip').textContent = invoice.receiver_zip_code || '';
+            document.getElementById('receiver_city').textContent = invoice.receiver_city || '';
+            document.getElementById('receiver_state').textContent = invoice.receiver_state || '';
+            document.getElementById('receiver_phone').textContent = invoice.receiver_phone || '';
+            document.getElementById('receiver_ie').textContent = invoice.receiver_state_registration || '';
+            
+            // Datas
+            document.getElementById('issue_date').textContent = formatDate(invoice.issue_date);
+            document.getElementById('exit_date').textContent = formatDate(invoice.issue_date);
+            
+            // Valores
+            document.getElementById('icms_base').textContent = formatCurrency(invoice.icms_base);
+            document.getElementById('icms_value').textContent = formatCurrency(invoice.icms_value);
+            document.getElementById('total_products').textContent = formatCurrency(invoice.total_products);
+            document.getElementById('shipping_value').textContent = formatCurrency(invoice.shipping);
+            document.getElementById('insurance_value').textContent = formatCurrency(invoice.insurance);
+            document.getElementById('discount_value').textContent = formatCurrency(invoice.discount);
+            document.getElementById('other_expenses').textContent = formatCurrency(invoice.other_expenses);
+            document.getElementById('total_value').textContent = formatCurrency(invoice.total_value);
+            
+            // Informações adicionais
+            if (invoice.notes || invoice.additional_info) {
+                document.getElementById('additional_info').innerHTML = `${invoice.notes || ''}<br>${invoice.additional_info || ''}`;
+            }
+            
+            // Produtos
+            if (invoice.items && invoice.items.length > 0) {
+                populateProducts(invoice.items);
+            }
+        }
+        
+        function populateProducts(items) {
+            const tbody = document.getElementById('products_tbody');
+            tbody.innerHTML = items.map(item => `
+                <tr>
+                    <td>${item.code}</td>
+                    <td>${item.description}</td>
+                    <td>${item.ncm || ''}</td>
+                    <td>040</td>
+                    <td>${item.cfop}</td>
+                    <td>${item.unit}</td>
+                    <td class="text-right">${parseFloat(item.quantity).toFixed(5)}</td>
+                    <td class="text-right">${parseFloat(item.unit_value).toFixed(2)}</td>
+                    <td class="text-right">${parseFloat(item.total_value).toFixed(2)}</td>
+                    <td class="text-right">0,00</td>
+                    <td class="text-right">${parseFloat(item.icms_value || 0).toFixed(2)}</td>
+                    <td class="text-right">${parseFloat(item.ipi_value || 0).toFixed(2)}</td>
+                    <td class="text-right">${parseFloat(item.icms_rate || 0)}</td>
+                    <td class="text-right">${parseFloat(item.ipi_rate || 0)}</td>
+                    <td class="text-right">0,00</td>
+                </tr>
+            `).join('');
+        }
+        
+        function formatAccessKey(key) {
+            if (!key) return '';
+            const digits = String(key).replace(/\D/g,'');
+            return digits.replace(/(.{4})/g,'$1 ').trim();
+        }
+        
+        function formatCNPJ(cnpj) {
+            if (!cnpj) return '';
+            return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+        
+        function formatCurrency(value) {
+            if (!value) return 'R$ 0,00';
+            return 'R$ ' + parseFloat(value).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+        
+        function getInvoiceId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
+        async function authorizeNota() {
+            const id = getInvoiceId();
+            if (!id) return alert('ID da nota não encontrado');
+            try {
+                await apiService.autorizarNotaFiscal(id);
+                alert('Nota autorizada com sucesso');
+                // Recarregar dados para refletir possível mudança
+                await loadInvoiceData();
+            } catch (e) {
+                console.error(e);
+                alert('Falha ao autorizar a nota');
+            }
+        }
+
+        async function downloadXML() {
+            const id = getInvoiceId();
+            if (!id) return alert('ID da nota não encontrado');
+            try {
+                await apiService.downloadXMLNotaFiscal(id);
+            } catch (e) {
+                console.error(e);
+                alert('Falha ao baixar XML');
+            }
+        }
+
+        async function downloadPDF() {
+            const id = getInvoiceId();
+            if (!id) return alert('ID da nota não encontrado');
+            try {
+                await apiService.downloadPDFNotaFiscal(id);
+            } catch (e) {
+                console.error(e);
+                alert('Falha ao baixar PDF');
+            }
+        }
+        
+        // Carregar ao iniciar
+        window.addEventListener('DOMContentLoaded', loadInvoiceData);
+    </script>
+</body>
+</html>

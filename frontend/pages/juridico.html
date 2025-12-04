@@ -53,6 +53,9 @@
                 <div class="flex justify-between items-center px-6 py-4">
                     <div class="flex items-center gap-4">
                         <h1 class="text-2xl font-bold">Jurídico</h1>
+                        <button onclick="openBuscaTribunalModal()" class="px-6 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
+                            <i class="fas fa-search"></i> Buscar no Tribunal
+                        </button>
                         <button onclick="openProcessoModal()" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:shadow-lg transition-all flex items-center gap-2">
                             <i class="fas fa-gavel"></i> Novo Processo
                         </button>
@@ -201,6 +204,108 @@
         </main>
     </div>
 
+    <!-- Modal de Busca no Tribunal -->
+    <div id="buscaTribunalModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+        <div class="bg-gray-800 rounded-xl p-8 max-w-4xl w-full mx-4 my-8 glass-card">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Buscar Processo no Tribunal</h2>
+                <button onclick="closeBuscaTribunalModal()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">Número do Processo (formato CNJ)</label>
+                <div class="flex gap-2">
+                    <input type="text" id="numeroProcessoBusca" placeholder="0000000-00.0000.0.00.0000" class="flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-600" onkeypress="if(event.key === 'Enter'){buscarProcessoTribunal();}">
+                    <button onclick="buscarProcessoTribunal()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all flex items-center gap-2">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">
+                    <i class="fas fa-info-circle"></i> 
+                    Exemplo: 0001234-56.2024.8.16.0001 (formato CNJ com 20 dígitos) - Pressione Enter para buscar
+                </p>
+            </div>
+
+            <!-- Loading -->
+            <div id="buscaLoading" class="hidden text-center py-8">
+                <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+                <p class="text-gray-400">Buscando processo nos sistemas dos tribunais...</p>
+            </div>
+
+            <!-- Resultado da Busca -->
+            <div id="resultadoBusca" class="hidden">
+                <div class="bg-gray-700/50 rounded-lg p-6 mb-4">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fas fa-check-circle text-green-400"></i>
+                        Processo Encontrado
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="text-sm text-gray-400">Número do Processo</label>
+                            <p id="resultNumero" class="font-semibold"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-400">Tribunal</label>
+                            <p id="resultTribunal" class="font-semibold"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-400">Vara/Comarca</label>
+                            <p id="resultVara" class="font-semibold"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-400">Classe</label>
+                            <p id="resultClasse" class="font-semibold"></p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="text-sm text-gray-400">Assunto</label>
+                            <p id="resultAssunto" class="font-semibold"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-400">Status</label>
+                            <p id="resultStatus" class="font-semibold"></p>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-400">Valor da Causa</label>
+                            <p id="resultValor" class="font-semibold"></p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="text-sm text-gray-400">Partes</label>
+                        <div id="resultPartes" class="mt-2 space-y-2"></div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="text-sm text-gray-400">Últimas Movimentações</label>
+                        <div id="resultMovimentacoes" class="mt-2 space-y-2 max-h-48 overflow-y-auto"></div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 justify-end">
+                    <button onclick="closeBuscaTribunalModal()" class="px-6 py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all">
+                        Cancelar
+                    </button>
+                    <button onclick="importarProcessoDoBusca()" class="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg hover:shadow-lg transition-all">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        Importar para o Sistema
+                    </button>
+                </div>
+            </div>
+
+            <!-- Erro -->
+            <div id="buscaErro" class="hidden text-center py-8">
+                <i class="fas fa-exclamation-triangle text-4xl text-yellow-600 mb-4"></i>
+                <p id="mensagemErro" class="text-gray-400"></p>
+                <button onclick="document.getElementById('buscaErro').classList.add('hidden')" class="mt-4 px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all">
+                    Tentar Novamente
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Process Modal -->
     <div id="processoModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
         <div class="bg-gray-800 rounded-xl p-8 max-w-2xl w-full mx-4 my-8 glass-card">
@@ -213,12 +318,18 @@
 
             <form id="processoForm" onsubmit="handleProcessoSubmit(event)">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
+                    <div class="md:col-span-2">
                         <label class="block text-sm font-medium mb-2">Número do Processo</label>
-                        <input type="text" id="numeroProcesso" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                        <div class="flex gap-2">
+                            <input type="text" id="numeroProcesso" required class="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600" placeholder="0000000-00.0000.0.00.0000" onkeypress="if(event.key === 'Enter'){event.preventDefault(); buscarDadosProcessoAutomatico();}">
+                            <button type="button" onclick="buscarDadosProcessoAutomatico()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all flex items-center gap-2" title="Buscar dados no tribunal">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                        <div id="buscaAutomaticaStatus" class="hidden mt-2 text-sm"></div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium mb-2">Tribunal</label>
+                        <label class="block text-sm font-medium mb-2">Tribunal/Vara</label>
                         <input type="text" id="tribunal" required class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
                     </div>
                 </div>
@@ -273,6 +384,33 @@
                     <div>
                         <label class="block text-sm font-medium mb-2">Próximo Prazo</label>
                         <input type="date" id="proximoPrazo" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                    </div>
+                </div>
+
+                <!-- Seção de Honorários -->
+                <div class="mb-6 border-t border-gray-700 pt-4">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fas fa-money-bill-wave text-green-400"></i>
+                        Honorários Advocatícios
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Honorários Fixos (R$)</label>
+                            <input type="number" step="0.01" id="honorariosFixos" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600" placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Percentual sobre Causa (%)</label>
+                            <input type="number" step="0.01" id="honorariosPercentual" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600" placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Honorários Pagos (R$)</label>
+                            <input type="number" step="0.01" id="honorariosPagos" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600" placeholder="0.00">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-medium mb-2">Observações sobre Honorários</label>
+                            <textarea id="honorariosObs" rows="2" class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-600" placeholder="Informações adicionais"></textarea>
+                        </div>
                     </div>
                 </div>
 
@@ -448,7 +586,12 @@
                 prioridade: document.getElementById('prioridade').value,
                 status: document.getElementById('statusProcesso').value,
                 data_prazo: document.getElementById('proximoPrazo').value,
-                cliente_id: '00000000-0000-0000-0000-000000000001'
+                cliente_id: '00000000-0000-0000-0000-000000000001',
+                // Honorários
+                lawyer_fee_fixed: parseFloat(document.getElementById('honorariosFixos').value) || null,
+                lawyer_fee_percentage: parseFloat(document.getElementById('honorariosPercentual').value) || null,
+                lawyer_fee_paid: parseFloat(document.getElementById('honorariosPagos').value) || 0,
+                lawyer_fee_notes: document.getElementById('honorariosObs').value || ''
             };
 
             try {
@@ -479,6 +622,12 @@
             document.getElementById('prioridade').value = processo.prioridade || 'baixa';
             document.getElementById('statusProcesso').value = processo.status || 'ativo';
             document.getElementById('proximoPrazo').value = processo.data_prazo || '';
+            
+            // Honorários
+            document.getElementById('honorariosFixos').value = processo.lawyer_fee_fixed || '';
+            document.getElementById('honorariosPercentual').value = processo.lawyer_fee_percentage || '';
+            document.getElementById('honorariosPagos').value = processo.lawyer_fee_paid || 0;
+            document.getElementById('honorariosObs').value = processo.lawyer_fee_notes || '';
 
             // Mudar comportamento do formulário para atualização
             document.getElementById('processoForm').onsubmit = async (event) => {
@@ -491,7 +640,12 @@
                     advogado_responsavel: document.getElementById('advogado').value,
                     tipo_acao: document.getElementById('tipoAcao').value,
                     status: document.getElementById('statusProcesso').value,
-                    data_prazo: document.getElementById('proximoPrazo').value || null
+                    data_prazo: document.getElementById('proximoPrazo').value || null,
+                    // Honorários
+                    lawyer_fee_fixed: parseFloat(document.getElementById('honorariosFixos').value) || null,
+                    lawyer_fee_percentage: parseFloat(document.getElementById('honorariosPercentual').value) || null,
+                    lawyer_fee_paid: parseFloat(document.getElementById('honorariosPagos').value) || 0,
+                    lawyer_fee_notes: document.getElementById('honorariosObs').value || ''
                 };
 
                 try {
@@ -528,6 +682,260 @@
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
+
+        // ==================== BUSCA DE PROCESSOS NO TRIBUNAL ====================
+        
+        let dadosBuscaTribunal = null;
+
+        async function buscarDadosProcessoAutomatico() {
+            const numeroProcesso = document.getElementById('numeroProcesso').value.trim();
+            const statusDiv = document.getElementById('buscaAutomaticaStatus');
+            
+            if (!numeroProcesso) {
+                showToast('Digite o número do processo', 'error');
+                return;
+            }
+
+            // Mostra loading
+            statusDiv.className = 'mt-2 text-sm text-blue-400';
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Buscando dados no tribunal...';
+            statusDiv.classList.remove('hidden');
+
+            try {
+                const resultado = await apiService.buscarProcessoTribunal(numeroProcesso);
+                
+                if (resultado.success && resultado.data) {
+                    const data = resultado.data;
+                    
+                    // Preenche automaticamente os campos
+                    document.getElementById('tribunal').value = data.vara || '';
+                    document.getElementById('assunto').value = data.assunto || '';
+                    
+                    // Partes contrárias
+                    if (data.partes && data.partes.reus && data.partes.reus.length > 0) {
+                        document.getElementById('partes').value = data.partes.reus.join(', ');
+                    }
+                    
+                    // Tipo de ação baseado na classe
+                    const tipoAcao = inferirTipoAcao(data.classe || '');
+                    document.getElementById('tipoAcao').value = tipoAcao;
+                    
+                    // Status
+                    document.getElementById('statusProcesso').value = mapearStatus(data.status);
+                    
+                    // Valor da causa (pode ser usado para cálculo de honorários)
+                    if (data.valor_causa) {
+                        // Você pode adicionar um campo oculto ou usar para sugestão
+                        const valor = parseFloat(data.valor_causa);
+                        // Sugestão de honorários (exemplo: 10% do valor da causa)
+                        if (valor > 0 && !document.getElementById('honorariosPercentual').value) {
+                            document.getElementById('honorariosPercentual').value = '10.00';
+                        }
+                    }
+                    
+                    // Mostra sucesso
+                    statusDiv.className = 'mt-2 text-sm text-green-400';
+                    statusDiv.innerHTML = `
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Dados encontrados! Tribunal: ${resultado.court || 'N/A'}
+                        ${resultado.mock ? ' <span class="text-yellow-400">(Dados simulados)</span>' : ''}
+                    `;
+                    
+                    showToast('Dados do processo carregados com sucesso!', 'success');
+                    
+                    // Esconde mensagem após 5 segundos
+                    setTimeout(() => {
+                        statusDiv.classList.add('hidden');
+                    }, 5000);
+                    
+                } else {
+                    throw new Error(resultado.error || 'Processo não encontrado');
+                }
+            } catch (error) {
+                statusDiv.className = 'mt-2 text-sm text-red-400';
+                statusDiv.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${error.message}`;
+                showToast(error.message, 'error');
+                
+                // Esconde mensagem após 5 segundos
+                setTimeout(() => {
+                    statusDiv.classList.add('hidden');
+                }, 5000);
+            }
+        }
+
+        function openBuscaTribunalModal() {
+            document.getElementById('buscaTribunalModal').classList.remove('hidden');
+            document.getElementById('numeroProcessoBusca').value = '';
+            document.getElementById('buscaLoading').classList.add('hidden');
+            document.getElementById('resultadoBusca').classList.add('hidden');
+            document.getElementById('buscaErro').classList.add('hidden');
+            dadosBuscaTribunal = null;
+        }
+
+        function closeBuscaTribunalModal() {
+            document.getElementById('buscaTribunalModal').classList.add('hidden');
+        }
+
+        async function buscarProcessoTribunal() {
+            const numeroProcesso = document.getElementById('numeroProcessoBusca').value.trim();
+            
+            if (!numeroProcesso) {
+                showToast('Digite o número do processo', 'error');
+                return;
+            }
+
+            // Esconde tudo e mostra loading
+            document.getElementById('resultadoBusca').classList.add('hidden');
+            document.getElementById('buscaErro').classList.add('hidden');
+            document.getElementById('buscaLoading').classList.remove('hidden');
+
+            try {
+                const resultado = await apiService.buscarProcessoTribunal(numeroProcesso);
+                
+                if (resultado.success) {
+                    dadosBuscaTribunal = resultado;
+                    exibirResultadoBusca(resultado);
+                    document.getElementById('buscaLoading').classList.add('hidden');
+                    document.getElementById('resultadoBusca').classList.remove('hidden');
+                } else {
+                    throw new Error(resultado.error || 'Erro ao buscar processo');
+                }
+            } catch (error) {
+                document.getElementById('buscaLoading').classList.add('hidden');
+                document.getElementById('buscaErro').classList.remove('hidden');
+                document.getElementById('mensagemErro').textContent = error.message;
+            }
+        }
+
+        function exibirResultadoBusca(resultado) {
+            const data = resultado.data;
+            
+            document.getElementById('resultNumero').textContent = data.numero_processo || 'N/A';
+            document.getElementById('resultTribunal').textContent = resultado.court || 'N/A';
+            document.getElementById('resultVara').textContent = data.vara || 'N/A';
+            document.getElementById('resultClasse').textContent = data.classe || 'N/A';
+            document.getElementById('resultAssunto').textContent = data.assunto || 'N/A';
+            
+            // Status traduzido
+            const statusMap = {
+                'active': 'Ativo',
+                'suspended': 'Suspenso',
+                'archived': 'Arquivado',
+                'finished': 'Finalizado'
+            };
+            document.getElementById('resultStatus').textContent = statusMap[data.status] || data.status || 'N/A';
+            
+            // Valor
+            if (data.valor_causa) {
+                document.getElementById('resultValor').textContent = UTILS.formatarReal(parseFloat(data.valor_causa));
+            } else {
+                document.getElementById('resultValor').textContent = 'Não informado';
+            }
+
+            // Partes
+            const partesDiv = document.getElementById('resultPartes');
+            partesDiv.innerHTML = '';
+            
+            if (data.partes) {
+                if (data.partes.autores && data.partes.autores.length > 0) {
+                    partesDiv.innerHTML += `
+                        <div class="bg-blue-600/20 border border-blue-600/30 rounded p-2">
+                            <strong class="text-blue-400">Autores:</strong> ${data.partes.autores.join(', ')}
+                        </div>
+                    `;
+                }
+                if (data.partes.reus && data.partes.reus.length > 0) {
+                    partesDiv.innerHTML += `
+                        <div class="bg-red-600/20 border border-red-600/30 rounded p-2">
+                            <strong class="text-red-400">Réus:</strong> ${data.partes.reus.join(', ')}
+                        </div>
+                    `;
+                }
+            }
+
+            // Movimentações
+            const movDiv = document.getElementById('resultMovimentacoes');
+            movDiv.innerHTML = '';
+            
+            if (data.movimentacoes && data.movimentacoes.length > 0) {
+                data.movimentacoes.slice(0, 5).forEach(mov => {
+                    movDiv.innerHTML += `
+                        <div class="bg-gray-800/50 rounded p-2 text-sm">
+                            <strong class="text-purple-400">${mov.data || 'N/A'}</strong>
+                            <p class="text-gray-300 mt-1">${mov.descricao || 'Sem descrição'}</p>
+                        </div>
+                    `;
+                });
+            } else {
+                movDiv.innerHTML = '<p class="text-gray-500 text-sm">Nenhuma movimentação disponível</p>';
+            }
+
+            // Alerta se for mock
+            if (resultado.mock) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'bg-yellow-600/20 border border-yellow-600/30 rounded-lg p-3 mb-4';
+                alertDiv.innerHTML = `
+                    <i class="fas fa-info-circle text-yellow-400"></i>
+                    <span class="text-yellow-400 ml-2">${resultado.message || 'Dados simulados'}</span>
+                `;
+                document.querySelector('#resultadoBusca .bg-gray-700\\/50').prepend(alertDiv);
+            }
+        }
+
+        function importarProcessoDoBusca() {
+            if (!dadosBuscaTribunal) {
+                showToast('Nenhum processo para importar', 'error');
+                return;
+            }
+
+            const data = dadosBuscaTribunal.data;
+            
+            // Preenche o formulário com os dados do tribunal
+            document.getElementById('numeroProcesso').value = data.numero_processo || '';
+            document.getElementById('tribunal').value = data.vara || '';
+            document.getElementById('assunto').value = data.assunto || '';
+            
+            // Partes contrárias
+            if (data.partes && data.partes.reus) {
+                document.getElementById('partes').value = data.partes.reus.join(', ');
+            }
+            
+            // Tipo de ação baseado na classe
+            const tipoAcao = inferirTipoAcao(data.classe || '');
+            document.getElementById('tipoAcao').value = tipoAcao;
+            
+            // Status
+            document.getElementById('statusProcesso').value = mapearStatus(data.status);
+            
+            // Fecha o modal de busca e abre o de criação
+            closeBuscaTribunalModal();
+            openProcessoModal();
+            
+            showToast('Dados importados! Preencha os campos restantes', 'success');
+        }
+
+        function inferirTipoAcao(classe) {
+            classe = classe.toLowerCase();
+            
+            if (classe.includes('trabalh')) return 'trabalhista';
+            if (classe.includes('tribut') || classe.includes('fiscal')) return 'tributario';
+            if (classe.includes('consumidor')) return 'consumerista';
+            if (classe.includes('administrativ')) return 'administrativo';
+            
+            return 'civel'; // Default
+        }
+
+        function mapearStatus(status) {
+            const map = {
+                'active': 'ativo',
+                'suspended': 'suspenso',
+                'archived': 'encerrado',
+                'finished': 'encerrado'
+            };
+            return map[status] || 'ativo';
+        }
+
+        // ==================== FIM BUSCA TRIBUNAL ====================
 
         function logout() {
             localStorage.removeItem('token');

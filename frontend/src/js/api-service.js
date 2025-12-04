@@ -177,7 +177,9 @@ class ApiService {
   async getClientes(filtros = {}) {
     const params = new URLSearchParams(filtros).toString();
     const endpoint = params ? `${CONFIG.ENDPOINTS.CLIENTES}/?${params}` : `${CONFIG.ENDPOINTS.CLIENTES}/`;
-    return this.request(endpoint);
+    const data = await this.request(endpoint);
+    // Handle paginated response from DRF
+    return Array.isArray(data) ? data : (data.results || []);
   }
 
   async getClienteById(id) {
@@ -213,7 +215,9 @@ class ApiService {
   async getNotasFiscais(filtros = {}) {
     const params = new URLSearchParams(filtros).toString();
     const endpoint = params ? `${CONFIG.ENDPOINTS.NOTAS_FISCAIS}/?${params}` : `${CONFIG.ENDPOINTS.NOTAS_FISCAIS}/`;
-    return this.request(endpoint);
+    const data = await this.request(endpoint);
+    // Handle paginated response from DRF
+    return Array.isArray(data) ? data : (data.results || []);
   }
 
   async getNotaFiscalById(id) {
@@ -358,7 +362,9 @@ class ApiService {
   async getLancamentos(filtros = {}) {
     const params = new URLSearchParams(filtros).toString();
     const endpoint = params ? `${CONFIG.ENDPOINTS.FINANCEIRO}/?${params}` : `${CONFIG.ENDPOINTS.FINANCEIRO}/`;
-    return this.request(endpoint);
+    const data = await this.request(endpoint);
+    // Handle paginated response from DRF
+    return Array.isArray(data) ? data : (data.results || []);
   }
 
   async getTransacoesFinanceiras(filtros = {}) {
@@ -402,7 +408,9 @@ class ApiService {
   async getProcessos(filtros = {}) {
     const params = new URLSearchParams(filtros).toString();
     const endpoint = params ? `${CONFIG.ENDPOINTS.JURIDICO}/?${params}` : `${CONFIG.ENDPOINTS.JURIDICO}/`;
-    return this.request(endpoint);
+    const data = await this.request(endpoint);
+    // Handle paginated response from DRF
+    return Array.isArray(data) ? data : (data.results || []);
   }
 
   async getProcessoById(id) {
@@ -427,6 +435,24 @@ class ApiService {
     return this.request(`${CONFIG.ENDPOINTS.JURIDICO}/processos/${id}/`, {
       method: 'DELETE'
     });
+  }
+
+  async buscarProcessoTribunal(numeroProcesso) {
+    return this.request(`${CONFIG.ENDPOINTS.JURIDICO}/search_court/`, {
+      method: 'POST',
+      body: { process_number: numeroProcesso }
+    });
+  }
+
+  async sincronizarProcesso(id) {
+    return this.request(`${CONFIG.ENDPOINTS.JURIDICO}/processos/${id}/sync_with_court/`, {
+      method: 'POST'
+    });
+  }
+
+  async relatorioHonorarios(lawyerId = null) {
+    const params = lawyerId ? `?lawyer_id=${lawyerId}` : '';
+    return this.request(`${CONFIG.ENDPOINTS.JURIDICO}/lawyer_fees_report/${params}`);
   }
 }
 

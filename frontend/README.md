@@ -1,21 +1,21 @@
-# 🎨 Frontend - Contabiliza.IA
+# Frontend - Contabiliza.IA
 
 Frontend moderno e responsivo para a plataforma de gestão contábil inteligente, construído com **HTML5, CSS3 (Tailwind CSS) e JavaScript Vanilla**.
 
-## ✨ Características
+## Características
 
-- ✅ Design responsivo (mobile-first)
-- ✅ Autenticação com JWT
-- ✅ Integração completa com API REST
-- ✅ Dashboard interativo com gráficos
-- ✅ CRUD de clientes, notas fiscais, financeiro
-- ✅ Relatórios e análises
-- ✅ Notificações em tempo real
-- ✅ Sem dependências pesadas (Vanilla JS)
-- ✅ Tailwind CSS para estilos
-- ✅ Suporte a temas
+- Design responsivo (mobile-first)
+- Autenticação com JWT
+- Integração completa com API REST
+- Dashboard interativo com gráficos
+- CRUD de clientes, notas fiscais, financeiro
+- Relatórios e análises
+- Notificações em tempo real
+- Sem dependências pesadas (Vanilla JS)
+- Tailwind CSS para estilos
+- Suporte a temas
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 frontend/
@@ -44,7 +44,7 @@ frontend/
 
 ```
 
-## 🚀 Início Rápido
+## Início Rápido
 
 ### 1. Instalar Dependências
 
@@ -68,7 +68,7 @@ Email: admin@test.com
 Senha: 123456
 ```
 
-## 🔧 Configuração
+## Configuração
 
 ### API Base URL
 
@@ -87,7 +87,7 @@ Ou crie um arquivo `.env.local`:
 API_BASE=http://localhost:8000/api
 ```
 
-## 📚 Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - **HTML5** - Estrutura semântica
 - **CSS3 + Tailwind CSS** - Estilização
@@ -95,59 +95,59 @@ API_BASE=http://localhost:8000/api
 - **Chart.js** - Gráficos interativos
 - **Fetch API** - Requisições HTTP
 
-## 🎯 Funcionalidades Por Página
+## Funcionalidades Por Página
 
-### 🏠 Landing Page (`index.html`)
+### Landing Page (`index.html`)
 - Apresentação da plataforma
 - Showcase de funcionalidades
 - Call-to-action para login
 
-### 🔐 Login (`pages/login.html`)
+### Login (`pages/login.html`)
 - Autenticação com email e senha
 - Validação de campos
 - Redirecionamento pós-login
 
-### 📊 Dashboard (`pages/dashboard.html`)
+### Dashboard (`pages/dashboard.html`)
 - Métricas principais (clientes, receita, notas)
 - Gráficos de faturamento mensal
 - Distribuição de serviços
 - Tabela de clientes recentes
 
-### 👥 Clientes (`pages/clientes.html`) *Em desenvolvimento*
+### Clientes (`pages/clientes.html`) *Em desenvolvimento*
 - Listagem de clientes
 - Criar novo cliente
 - Editar cliente
 - Excluir cliente
 - Busca e filtros
 
-### 📄 Notas Fiscais (`pages/notas-fiscais.html`) *Em desenvolvimento*
+### Notas Fiscais (`pages/notas-fiscais.html`) *Em desenvolvimento*
 - Listagem de NF-e
 - Importação de XML
 - Consulta SEFAZ
 - Autorização/Cancelamento
 
-### 💰 Financeiro (`pages/financeiro.html`) *Em desenvolvimento*
+### Financeiro (`pages/financeiro.html`) *Em desenvolvimento*
 - Lançamentos de receita/despesa
 - Fluxo de caixa
 - Projeções
 - Análises
 
-### 📈 Relatórios (`pages/relatorios.html`) *Em desenvolvimento*
+### Relatórios (`pages/relatorios.html`) *Em desenvolvimento*
 - DRE (Demonstração de Resultado)
 - Análises financeiras
 - Exportação (PDF/Excel)
 
-### 📚 Contábil (`pages/contabil.html`) *Em desenvolvimento*
+### Contábil (`pages/contabil.html`) *Em desenvolvimento*
 - Balanço patrimonial
 - Diário
 - Razão
 
-### ⚖️ Jurídico (`pages/juridico.html`) *Em desenvolvimento*
+### Jurídico (`pages/juridico.html`) *Em desenvolvimento*
 - Gestão de processos
 - Andamentos
 - Prazos e alertas
 
-## 🔑 Autenticação
+## Autenticação
 
 ### Fluxo de Login
 
@@ -175,7 +175,7 @@ if (!UTILS.isAuthenticated()) {
 }
 ```
 
-## 🎨 Componentes Tailwind
+## Componentes Tailwind
 
 ### Botões
 
@@ -211,7 +211,7 @@ if (!UTILS.isAuthenticated()) {
 <span class="badge-danger">Perigo</span>
 ```
 
-## 📊 Chamadas de API
+## Chamadas de API
 
 ### Clientes
 
@@ -267,7 +267,7 @@ await apiService.criarLancamento({
 const fluxo = await apiService.getFluxoCaixa('2024-01-01', '2024-12-31');
 ```
 
-## 🛠️ Funções Utilitárias
+## Funções Utilitárias
 
 ### Config & Utils (`src/js/config.js`)
 
@@ -315,7 +315,7 @@ UIHelper.sleep(1000);
 UIHelper.generateId();
 ```
 
-## 📱 Responsividade
+## Responsividade
 
 Todos os componentes são responsivos:
 
@@ -330,7 +330,7 @@ Todos os componentes são responsivos:
 </div>
 ```
 
-## 🌙 Dark Mode
+## Dark Mode
 
 Suportado via media queries:
 
@@ -340,14 +340,14 @@ Suportado via media queries:
 }
 ```
 
-## 🔍 SEO
+## SEO
 
 Todas as páginas incluem:
 - Meta tags apropriadas
 - Titles descritivos
 - Semantic HTML
 
-## ⚡ Performance
+## Performance
 
 - Tailwind CSS compilado
 - Lazy loading
@@ -355,7 +355,7 @@ Todas as páginas incluem:
 - Debounce em buscas
 - Minificação em produção
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### CORS Error
 Certifique-se que o backend tem CORS habilitado.
@@ -369,16 +369,16 @@ Verifique se Chart.js está carregado e o backend retorna dados.
 ### Estilos não aparecem
 Execute `npm run build:css` para compilar Tailwind.
 
-## 📝 Licença
+## Licença
 
 MIT - Veja LICENSE.md
 
-## 📞 Suporte
+## Suporte
 
 Para problemas ou sugestões, abra uma issue no repositório.
 
 ---
 
-**Desenvolvido com ❤️ para Contabiliza.IA**
+**Desenvolvido com dedicação para Contabiliza.IA**
 
 Última atualização: 11 de Novembro de 2025

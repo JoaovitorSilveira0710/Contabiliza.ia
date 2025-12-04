@@ -10,6 +10,7 @@ from .serializers import (
     HearingSerializer, LegalContractSerializer, LegalContractListSerializer,
     LegalDeadlineSerializer
 )
+from .services import CourtIntegrationService
 
 
 class LawyerViewSet(viewsets.ModelViewSet):
@@ -107,6 +108,132 @@ class LegalProcessViewSet(viewsets.ModelViewSet):
             'by_priority': list(by_priority),
             'total_estimated_value': str(total_estimated),
             'total_actual_value': str(total_actual)
+        })
+    
+    @action(detail=False, methods=['post'])
+    def search_court(self, request):
+        """
+        Busca informações de processo nos tribunais
+        Recebe: { "process_number": "0000000-00.0000.0.00.0000" }
+        """
+        process_number = request.data.get('process_number')
+        
+        if not process_number:
+            return Response(
+                {'error': 'Número do processo é obrigatório'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Busca nos sistemas dos tribunais
+        result = CourtIntegrationService.search_process(process_number)
+        
+        return Response(result)
+    
+    @action(detail=True, methods=['post'])
+    def sync_with_court(self, request, pk=None):
+        """
+        Sincroniza processo existente com dados do tribunal
+        """
+        process = self.get_object()
+        
+        # Busca dados atualizados
+        result = CourtIntegrationService.search_process(process.process_number)
+        
+        if not result.get('success'):
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Atualiza campos do processo
+        data = result.get('data', {})
+        
+        if data.get('vara'):
+            process.court = data['vara']
+        
+        if data.get('assunto'):
+            process.description = data['assunto']
+        
+        if data.get('status'):
+            process.status = data['status']
+        
+        if data.get('classe'):
+            process.case_class = data['classe']
+        
+        if data.get('valor_causa'):
+            try:
+                process.actual_value = float(data['valor_causa'])
+            except:
+                pass
+        
+        # Extrai nomes das partes
+        partes = data.get('partes', {})
+        opposing = []
+        if partes.get('reus'):
+            opposing.extend(partes['reus'])
+        if partes.get('outros'):
+            opposing.extend(partes['outros'])
+        
+        if opposing:
+            process.opposing_parties = ', '.join(opposing)
+        
+        process.last_sync_date = datetime.now()
+        process.save()
+        
+        return Response({
+            'message': 'Processo sincronizado com sucesso',
+            'process': LegalProcessSerializer(process).data,
+            'sync_data': result
+        })
+    
+    @action(detail=False, methods=['get'])
+    def lawyer_fees_report(self, request):
+        """
+        Relatório de honorários dos advogados
+        """
+        lawyer_id = request.query_params.get('lawyer_id')
+        
+        queryset = LegalProcess.objects.all()
+        if lawyer_id:
+            queryset = queryset.filter(lawyer_id=lawyer_id)
+        
+        report = []
+        for process in queryset:
+            if process.lawyer:
+                total_fee = process.calculate_lawyer_fee()
+                balance = process.get_lawyer_fee_balance()
+                
+                if total_fee > 0:
+                    report.append({
+                        'process_number': process.process_number,
+                        'process_title': process.title,
+                        'lawyer_name': process.lawyer.name,
+                        'lawyer_oab': f"{process.lawyer.oab_number}/{process.lawyer.oab_state}",
+                        'total_fee': str(total_fee),
+                        'paid_fee': str(process.lawyer_fee_paid),
+                        'balance': str(balance),
+                        'status': process.status,
+                    })
+        
+        # Agrupa por advogado
+        summary = {}
+        for item in report:
+            lawyer = item['lawyer_name']
+            if lawyer not in summary:
+                summary[lawyer] = {
+                    'lawyer_name': lawyer,
+                    'lawyer_oab': item['lawyer_oab'],
+                    'total_processes': 0,
+                    'total_fees': 0,
+                    'total_paid': 0,
+                    'total_balance': 0
+                }
+            
+            summary[lawyer]['total_processes'] += 1
+            summary[lawyer]['total_fees'] += float(item['total_fee'])
+            summary[lawyer]['total_paid'] += float(item['paid_fee'])
+            summary[lawyer]['total_balance'] += float(item['balance'])
+        
+        return Response({
+            'details': report,
+            'summary': list(summary.values())
         })
 
 

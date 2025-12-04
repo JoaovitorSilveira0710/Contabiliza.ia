@@ -87,19 +87,19 @@ class Product(models.Model):
     category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True, related_name='products', verbose_name='Categoria')
     unit = models.CharField('Unidade', max_length=10, choices=UNIT_TYPES, default='un')
     
-    # Estoque
+    # Stock
     current_stock = models.DecimalField('Estoque Atual', max_digits=10, decimal_places=2, default=0)
     minimum_stock = models.DecimalField('Estoque Mínimo', max_digits=10, decimal_places=2, default=0)
     maximum_stock = models.DecimalField('Estoque Máximo', max_digits=10, decimal_places=2, null=True, blank=True)
     
-    # Preços
+    # Prices
     cost_price = models.DecimalField('Preço de Custo', max_digits=10, decimal_places=2, default=0)
     sale_price = models.DecimalField('Preço de Venda', max_digits=10, decimal_places=2, default=0)
     
-    # Fornecedor padrão
+    # Default supplier
     default_supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True, blank=True, related_name='products', verbose_name='Fornecedor Padrão')
     
-    # Localização
+    # Location
     warehouse = models.ForeignKey(Warehouse, on_delete=models.SET_NULL, null=True, blank=True, related_name='products', verbose_name='Depósito')
     location = models.CharField('Localização', max_length=50, blank=True, help_text='Ex: Corredor A, Prateleira 3')
     
@@ -139,11 +139,11 @@ class StockMovement(models.Model):
     unit_cost = models.DecimalField('Custo Unitário', max_digits=10, decimal_places=2, null=True, blank=True)
     total_cost = models.DecimalField('Custo Total', max_digits=15, decimal_places=2, null=True, blank=True)
     
-    # Para transferências
+    # For transfers
     source_warehouse = models.ForeignKey(Warehouse, on_delete=models.SET_NULL, null=True, blank=True, related_name='outgoing_movements', verbose_name='Depósito Origem')
     destination_warehouse = models.ForeignKey(Warehouse, on_delete=models.SET_NULL, null=True, blank=True, related_name='incoming_movements', verbose_name='Depósito Destino')
     
-    # Referências
+    # References
     supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True, blank=True, related_name='movements', verbose_name='Fornecedor')
     document_number = models.CharField('Número do Documento', max_length=50, blank=True)
     
@@ -221,7 +221,7 @@ class StockCountItem(models.Model):
         return f"{self.stock_count.code} - {self.product.name}"
     
     def save(self, *args, **kwargs):
-        # Calcular diferença
+        # Calculate difference
         if self.counted_quantity is not None:
             self.difference = self.counted_quantity - self.system_quantity
         super().save(*args, **kwargs)

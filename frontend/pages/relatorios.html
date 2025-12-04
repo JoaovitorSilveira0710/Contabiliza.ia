@@ -646,8 +646,8 @@
 
             tbody.innerHTML = clientes.map(cliente => `
                 <tr class="hover:bg-gray-800/30 transition-all">
-                    <td class="px-4 py-3">${cliente.nome_razao_social || 'N/A'}</td>
-                    <td class="px-4 py-3 text-right">${UTILS.formatarCNPJ(cliente.cnpj_cpf || '')}</td>
+                    <td class="px-4 py-3">${cliente.name || 'N/A'}</td>
+                    <td class="px-4 py-3 text-right">${UTILS.formatarCNPJ(cliente.tax_id || '')}</td>
                     <td class="px-4 py-3 text-right">${cliente.ativo ? '<span class="text-green-400">Ativo</span>' : '<span class="text-red-400">Inativo</span>'}</td>
                     <td class="px-4 py-3 text-right text-gray-400 text-sm">${new Date(cliente.data_cadastro).toLocaleDateString('pt-BR')}</td>
                 </tr>

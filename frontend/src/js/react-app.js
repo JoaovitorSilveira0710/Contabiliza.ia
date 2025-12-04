@@ -306,13 +306,13 @@
 
   function statusBadgeClass(status) {
     const map = {
-      authorized: 'bg-green-600 text-white',
-      cancelled: 'bg-red-600 text-white',
-      pending: 'bg-yellow-500 text-gray-900',
-      draft: 'bg-gray-600 text-white',
-      denied: 'bg-orange-600 text-white'
+      authorized: 'bg-green-600/20 text-green-400 border border-green-600/30 rounded-md',
+      cancelled: 'bg-red-600/20 text-red-400 border border-red-600/30 rounded-md',
+      pending: 'bg-yellow-600/20 text-yellow-400 border border-yellow-600/30 rounded-md',
+      draft: 'bg-gray-600/20 text-gray-400 border border-gray-600/30 rounded-md',
+      denied: 'bg-orange-600/20 text-orange-400 border border-orange-600/30 rounded-md'
     };
-    return map[status] || 'bg-gray-600 text-white';
+    return map[status] || 'bg-gray-600/20 text-gray-400';
   }
 
   function statusLabel(status) {
@@ -341,9 +341,14 @@
         try {
           const resp = await window.apiService.getNotasFiscais();
           const list = Array.isArray(resp) ? resp : (resp?.results || []);
-          if (mounted) setData(list);
+          if (mounted) {
+            setData(list);
+            if (window.updateNotasStats) {
+              window.updateNotasStats(list);
+            }
+          }
         } catch (e) {
-          window.UTILS.showToast('Erro ao carregar notas', 'error');
+          window.UTILS.showToast('Error loading invoices', 'error');
         } finally {
           if (mounted) setLoading(false);
         }
@@ -376,13 +381,15 @@
     const autorizar = async (id) => {
       try {
         await window.apiService.autorizarNotaFiscal(id);
-        window.UTILS.showToast('Nota autorizada', 'success');
-        // refresh
+        window.UTILS.showToast('Invoice authorized', 'success');
         const resp = await window.apiService.getNotasFiscais();
         const list = Array.isArray(resp) ? resp : (resp?.results || []);
         setData(list);
+        if (window.updateNotasStats) {
+          window.updateNotasStats(list);
+        }
       } catch (e) {
-        window.UTILS.showToast('Erro ao autorizar', 'error');
+        window.UTILS.showToast('Error authorizing', 'error');
       }
     };
 
@@ -391,130 +398,260 @@
         window.UTILS.showToast('Gerando XML...', 'info');
         await window.apiService.downloadXMLNotaFiscal(id);
         window.UTILS.showToast('XML baixado com sucesso!', 'success');
-      }
-      catch (e) {
+      } catch (e) {
         console.error('Erro ao baixar XML:', e);
-        window.UTILS.showToast('Falha ao baixar XML', 'error');
+        window.UTILS.showToast('Failed to download XML', 'error');
       }
     };
+
     const downloadPDF = async (id) => {
       try {
         window.UTILS.showToast('Gerando PDF DANFE...', 'info');
         await window.apiService.downloadPDFNotaFiscal(id);
         window.UTILS.showToast('PDF baixado com sucesso!', 'success');
-      }
-      catch (e) {
+      } catch (e) {
         console.error('Erro ao baixar PDF:', e);
-        window.UTILS.showToast('Falha ao baixar PDF', 'error');
+        window.UTILS.showToast('Failed to download PDF', 'error');
       }
     };
 
-    if (loading) return React.createElement('div', { className: 'text-gray-300' }, 'Carregando...');
+    useEffect(() => {
+      const handler = () => {
+        const el = document.querySelector('input[placeholder*="🔍 Buscar"]');
+        if (el) el.focus();
+      };
+      window.addEventListener('react:focus-search', handler);
+      return () => window.removeEventListener('react:focus-search', handler);
+    }, []);
 
-    return React.createElement('div', null,
+    if (loading) {
+      return React.createElement('div', { className: 'flex items-center justify-center py-12' },
+        React.createElement('div', { className: 'text-center' },
+          React.createElement('i', { className: 'fas fa-spinner fa-spin text-4xl text-purple-600 mb-4' }),
+          React.createElement('p', { className: 'text-gray-400' }, 'Carregando notas fiscais...')
+        )
+      );
+    }
+
+    return React.createElement('div', { className: 'glass-card rounded-xl overflow-hidden' },
+      // Modal
       selectedNota && React.createElement('div', { 
         className: 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50',
         onClick: () => setSelectedNota(null)
       },
         React.createElement('div', { 
-          className: 'bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4',
+          className: 'bg-gray-800 rounded-xl p-8 max-w-3xl w-full mx-4 glass-card',
           onClick: e => e.stopPropagation()
         },
-          React.createElement('div', { className: 'flex justify-between items-center mb-4' },
-            React.createElement('h2', { className: 'text-xl font-bold text-white' }, `Nota Fiscal ${selectedNota.number}`),
+          React.createElement('div', { className: 'flex justify-between items-center mb-6' },
+            React.createElement('h2', { className: 'text-2xl font-bold text-white flex items-center gap-3' }, 
+              React.createElement('i', { className: 'fas fa-file-invoice text-purple-400' }),
+              `NFe ${selectedNota.number}-${selectedNota.series}`
+            ),
             React.createElement('button', { 
-              className: 'text-gray-400 hover:text-white text-2xl',
+              className: 'text-gray-400 hover:text-white text-3xl transition-colors',
               onClick: () => setSelectedNota(null)
             }, '×')
           ),
-          React.createElement('div', { className: 'space-y-3 text-white' },
-            React.createElement('div', { className: 'grid grid-cols-2 gap-3' },
-              React.createElement('div', null,
-                React.createElement('p', { className: 'text-gray-400 text-sm' }, 'Número'),
-                React.createElement('p', { className: 'font-semibold' }, selectedNota.number)
-              ),
-              React.createElement('div', null,
-                React.createElement('p', { className: 'text-gray-400 text-sm' }, 'Série'),
-                React.createElement('p', { className: 'font-semibold' }, selectedNota.series)
-              ),
-              React.createElement('div', null,
-                React.createElement('p', { className: 'text-gray-400 text-sm' }, 'Cliente'),
-                React.createElement('p', { className: 'font-semibold' }, selectedNota.client_name)
-              ),
-              React.createElement('div', null,
-                React.createElement('p', { className: 'text-gray-400 text-sm' }, 'Status'),
-                React.createElement('span', { className: `px-2 py-1 rounded text-sm font-semibold ${statusBadgeClass(selectedNota.status)}` }, statusLabel(selectedNota.status))
-              ),
-              React.createElement('div', null,
-                React.createElement('p', { className: 'text-gray-400 text-sm' }, 'Total'),
-                React.createElement('p', { className: 'font-semibold text-lg' }, window.UTILS.formatarReal(selectedNota.total_value || 0))
-              ),
-              React.createElement('div', null,
-                React.createElement('p', { className: 'text-gray-400 text-sm' }, 'Data de Emissão'),
-                React.createElement('p', { className: 'font-semibold' }, selectedNota.issue_date ? new Date(selectedNota.issue_date).toLocaleDateString('pt-BR') : '-')
+          React.createElement('div', { className: 'grid grid-cols-2 gap-4 mb-6' },
+            React.createElement('div', { className: 'bg-gray-700/30 p-4 rounded-lg' },
+              React.createElement('p', { className: 'text-gray-400 text-sm mb-1' }, 'Cliente'),
+              React.createElement('p', { className: 'font-semibold text-white' }, selectedNota.client_name || '-')
+            ),
+            React.createElement('div', { className: 'bg-gray-700/30 p-4 rounded-lg' },
+              React.createElement('p', { className: 'text-gray-400 text-sm mb-1' }, 'Status'),
+              React.createElement('span', { className: `inline-block px-3 py-1 text-sm font-semibold ${statusBadgeClass(selectedNota.status)}` }, 
+                statusLabel(selectedNota.status)
+              )
+            ),
+            React.createElement('div', { className: 'bg-gray-700/30 p-4 rounded-lg' },
+              React.createElement('p', { className: 'text-gray-400 text-sm mb-1' }, 'Valor Total'),
+              React.createElement('p', { className: 'font-semibold text-white text-lg' }, window.UTILS.formatarReal(selectedNota.total_value || 0))
+            ),
+            React.createElement('div', { className: 'bg-gray-700/30 p-4 rounded-lg' },
+              React.createElement('p', { className: 'text-gray-400 text-sm mb-1' }, 'Data de Emissão'),
+              React.createElement('p', { className: 'font-semibold text-white' }, 
+                selectedNota.issue_date ? new Date(selectedNota.issue_date).toLocaleDateString('pt-BR') : '-'
               )
             )
           ),
-          React.createElement('div', { className: 'flex gap-3 mt-6 pt-4 border-t border-gray-700' },
+          React.createElement('div', { className: 'flex gap-3 pt-4 border-t border-gray-700' },
+            React.createElement('button', {
+              className: 'flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center gap-2 transition-all',
+              onClick: () => {
+                try {
+                  const url = `/pages/nota-fiscal-view.html?id=${encodeURIComponent(selectedNota.id)}`;
+                  window.open(url, '_blank');
+                } catch (err) {
+                  console.error('Erro ao abrir visualização da NFe:', err);
+                  window.UTILS.showToast('Não foi possível abrir a visualização', 'error');
+                }
+              }
+            },
+              React.createElement('i', { className: 'fas fa-eye' }),
+              'Visualizar'
+            ),
             React.createElement('button', { 
-              className: 'flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded flex items-center justify-center gap-2',
+              className: 'flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 rounded-lg flex items-center justify-center gap-2 transition-all',
               onClick: () => downloadXML(selectedNota.id)
             }, 
               React.createElement('i', { className: 'fas fa-file-code' }),
               'Baixar XML'
             ),
             React.createElement('button', { 
-              className: 'flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded flex items-center justify-center gap-2',
+              className: 'flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 rounded-lg flex items-center justify-center gap-2 transition-all',
               onClick: () => downloadPDF(selectedNota.id)
             }, 
               React.createElement('i', { className: 'fas fa-file-pdf' }),
-              'Baixar PDF'
-            )
-          )
-        )
-      ),
-      React.createElement('div', { className: 'flex gap-3 mb-4' },
-        React.createElement('input', {
-          placeholder: 'Buscar...',
-          className: 'px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white',
-          value: query,
-          onChange: e => { setPage(1); setQuery(e.target.value); }
-        }),
-        React.createElement('select', {
-          className: 'px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white',
-          value: status,
-          onChange: e => { setPage(1); setStatus(e.target.value); }
-        },
-          React.createElement('option', { value: '' }, 'Todos'),
-          ['authorized','pending','draft','denied','cancelled'].map(s => React.createElement('option', { key: s, value: s }, statusLabel(s)))
-        )
-      ),
-      React.createElement('table', { className: 'w-full text-left' },
-        React.createElement('thead', null,
-          React.createElement('tr', null,
-            ['Número','Série','Cliente','Status','Total','Ações'].map(h => React.createElement('th', { key: h, className: 'px-3 py-2 text-gray-300' }, h))
-          )
-        ),
-        React.createElement('tbody', null,
-          pageItems.map(n => React.createElement('tr', { key: n.id, className: 'border-t border-gray-700' },
-            React.createElement('td', { className: 'px-3 py-2 text-white' }, n.number || '-'),
-            React.createElement('td', { className: 'px-3 py-2 text-white' }, n.series || '-'),
-            React.createElement('td', { className: 'px-3 py-2 text-white' }, n.client_name || '-'),
-            React.createElement('td', { className: 'px-3 py-2' },
-              React.createElement('span', { className: `px-2 py-1 rounded font-semibold ${statusBadgeClass(n.status)}` }, statusLabel(n.status))
+              'Baixar DANFE'
             ),
-            React.createElement('td', { className: 'px-3 py-2 text-white' }, window.UTILS.formatarReal(n.total_value || 0)),
-            React.createElement('td', { className: 'px-3 py-2 flex gap-2' },
-              React.createElement('button', { className: 'px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded', onClick: () => setSelectedNota(n) }, 'Visualizar'),
-              n.status !== 'authorized' && React.createElement('button', { className: 'px-3 py-1 bg-purple-600 hover:bg-purple-700 rounded', onClick: () => autorizar(n.id) }, 'Autorizar')
+            selectedNota.status !== 'authorized' && React.createElement('button', { 
+              className: 'flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg flex items-center justify-center gap-2 transition-all',
+              onClick: () => { autorizar(selectedNota.id); setSelectedNota(null); }
+            }, 
+              React.createElement('i', { className: 'fas fa-check-circle' }),
+              'Autorizar'
             )
-          ))
+          )
         )
       ),
-      React.createElement('div', { className: 'flex items-center gap-3 mt-3' },
-        React.createElement('button', { className: 'px-3 py-1 border border-gray-600 rounded', disabled: page<=1, onClick: () => setPage(p => Math.max(1, p-1)) }, 'Anterior'),
-        React.createElement('span', { className: 'text-gray-300' }, `${page} / ${totalPages}`),
-        React.createElement('button', { className: 'px-3 py-1 border border-gray-600 rounded', disabled: page>=totalPages, onClick: () => setPage(p => Math.min(totalPages, p+1)) }, 'Próxima')
+
+      // Filters
+      React.createElement('div', { className: 'p-6 bg-gray-800/50 border-b border-gray-700' },
+        React.createElement('div', { className: 'flex gap-4' },
+          React.createElement('input', {
+            placeholder: '🔍 Buscar por número, série ou cliente...',
+            className: 'flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors',
+            value: query,
+            onChange: e => { setPage(1); setQuery(e.target.value); }
+          }),
+          React.createElement('select', {
+            className: 'px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500 transition-colors',
+            value: status,
+            onChange: e => { setPage(1); setStatus(e.target.value); }
+          },
+            React.createElement('option', { value: '' }, 'Todos os Status'),
+            React.createElement('option', { value: 'authorized' }, '✅ Autorizadas'),
+            React.createElement('option', { value: 'pending' }, '⏳ Pendentes'),
+            React.createElement('option', { value: 'draft' }, '📝 Rascunho'),
+            React.createElement('option', { value: 'denied' }, '❌ Negadas'),
+            React.createElement('option', { value: 'cancelled' }, '🚫 Canceladas')
+          )
+        )
+      ),
+
+      // Table
+      React.createElement('div', { className: 'overflow-x-auto' },
+        React.createElement('table', { className: 'w-full' },
+          React.createElement('thead', { className: 'bg-gray-800/50' },
+            React.createElement('tr', null,
+              React.createElement('th', { className: 'px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider' }, 'Nota Fiscal'),
+              React.createElement('th', { className: 'px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider' }, 'Cliente'),
+              React.createElement('th', { className: 'px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider' }, 'Status'),
+              React.createElement('th', { className: 'px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider' }, 'Valor'),
+              React.createElement('th', { className: 'px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider' }, 'Data'),
+              React.createElement('th', { className: 'px-6 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider' }, 'Ações')
+            )
+          ),
+          React.createElement('tbody', { className: 'bg-gray-800/20 divide-y divide-gray-700' },
+            pageItems.length === 0 ? 
+              React.createElement('tr', null,
+                React.createElement('td', { colSpan: 6, className: 'px-6 py-12 text-center' },
+                  React.createElement('div', { className: 'text-gray-500' },
+                    React.createElement('i', { className: 'fas fa-inbox text-4xl mb-3' }),
+                    React.createElement('p', null, 'Nenhuma nota fiscal encontrada')
+                  )
+                )
+              ) :
+              pageItems.map(n => React.createElement('tr', { 
+                key: n.id, 
+                className: 'hover:bg-gray-700/30 transition-colors cursor-pointer',
+                onClick: () => setSelectedNota(n)
+              },
+                React.createElement('td', { className: 'px-6 py-4' },
+                  React.createElement('div', { className: 'flex items-center gap-3' },
+                    React.createElement('div', { className: 'w-10 h-10 bg-gradient-to-br from-green-600/20 to-emerald-600/20 rounded-lg flex items-center justify-center flex-shrink-0' },
+                      React.createElement('i', { className: 'fas fa-file-invoice text-green-400 text-sm' })
+                    ),
+                    React.createElement('div', null,
+                      React.createElement('div', { className: 'text-sm font-medium text-white' }, `#${n.number || '-'}`),
+                      React.createElement('div', { className: 'text-sm text-gray-400' }, `Série ${n.series || '-'}`)
+                    )
+                  )
+                ),
+                React.createElement('td', { className: 'px-6 py-4' },
+                  React.createElement('div', { className: 'text-sm text-white' }, n.client_name || '-')
+                ),
+                React.createElement('td', { className: 'px-6 py-4' },
+                  React.createElement('span', { className: `px-2.5 py-1 inline-flex text-xs leading-5 font-semibold ${statusBadgeClass(n.status)}` }, 
+                    statusLabel(n.status)
+                  )
+                ),
+                React.createElement('td', { className: 'px-6 py-4' },
+                  React.createElement('div', { className: 'text-sm font-medium text-white' }, window.UTILS.formatarReal(n.total_value || 0))
+                ),
+                React.createElement('td', { className: 'px-6 py-4' },
+                  React.createElement('div', { className: 'text-sm text-gray-300' }, 
+                    n.issue_date ? new Date(n.issue_date).toLocaleDateString('pt-BR') : '-'
+                  )
+                ),
+                React.createElement('td', { className: 'px-6 py-4 text-right' },
+                  React.createElement('div', { className: 'flex justify-end gap-2', onClick: e => e.stopPropagation() },
+                    React.createElement('button', {
+                      className: 'p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 rounded-lg transition-all',
+                      onClick: (e) => { 
+                        e.stopPropagation(); 
+                        try {
+                          const url = `/pages/nota-fiscal-view.html?id=${encodeURIComponent(n.id)}`;
+                          window.open(url, '_blank');
+                        } catch (err) {
+                          console.error('Erro ao abrir visualização da NFe:', err);
+                          window.UTILS.showToast('Não foi possível abrir a visualização', 'error');
+                        }
+                      },
+                      title: 'Visualizar DANFE'
+                    }, React.createElement('i', { className: 'fas fa-eye' })),
+                    React.createElement('button', { 
+                      className: 'p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all',
+                      onClick: (e) => { e.stopPropagation(); downloadXML(n.id); },
+                      title: 'Baixar XML'
+                    }, React.createElement('i', { className: 'fas fa-file-code' })),
+                    React.createElement('button', { 
+                      className: 'p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all',
+                      onClick: (e) => { e.stopPropagation(); downloadPDF(n.id); },
+                      title: 'Baixar DANFE'
+                    }, React.createElement('i', { className: 'fas fa-file-pdf' }))
+                  )
+                )
+              ))
+          )
+        )
+      ),
+
+      // Pagination
+      React.createElement('div', { className: 'px-6 py-4 bg-gray-800/40 border-t border-gray-700 flex items-center justify-between' },
+        React.createElement('div', { className: 'text-sm text-gray-400' }, 
+          `Mostrando ${pageItems.length} de ${filtered.length} nota${filtered.length !== 1 ? 's' : ''}`
+        ),
+        React.createElement('div', { className: 'flex items-center gap-2' },
+          React.createElement('button', { 
+            className: `px-4 py-2 border ${page <= 1 ? 'border-gray-700 text-gray-600 cursor-not-allowed' : 'border-gray-600 text-white hover:bg-gray-700'} rounded-lg transition-all`,
+            disabled: page <= 1,
+            onClick: () => setPage(p => Math.max(1, p - 1))
+          }, 
+            React.createElement('i', { className: 'fas fa-chevron-left mr-2' }),
+            'Anterior'
+          ),
+          React.createElement('span', { className: 'px-4 py-2 text-gray-300 font-medium' }, `${page} / ${totalPages}`),
+          React.createElement('button', { 
+            className: `px-4 py-2 border ${page >= totalPages ? 'border-gray-700 text-gray-600 cursor-not-allowed' : 'border-gray-600 text-white hover:bg-gray-700'} rounded-lg transition-all`,
+            disabled: page >= totalPages,
+            onClick: () => setPage(p => Math.min(totalPages, p + 1))
+          }, 
+            'Próxima',
+            React.createElement('i', { className: 'fas fa-chevron-right ml-2' })
+          )
+        )
       )
     );
   }
@@ -545,7 +682,7 @@
           const list = Array.isArray(resp) ? resp : (resp?.results || []);
           if (mounted) setData(list);
         } catch (e) {
-          window.UTILS.showToast('Erro ao carregar clientes', 'error');
+          window.UTILS.showToast('Error loading clients', 'error');
         } finally {
           if (mounted) setLoading(false);
         }
@@ -583,7 +720,7 @@
         setData(prev => prev.filter(c => c.id !== id));
         window.UTILS.showToast('Cliente excluído', 'success');
       } catch (e) {
-        window.UTILS.showToast('Erro ao excluir cliente', 'error');
+        window.UTILS.showToast('Error deleting client', 'error');
       }
     };
 
@@ -750,7 +887,7 @@
           }));
           if (mounted) setData(normalized);
         } catch (e) {
-          window.UTILS.showToast('Erro ao carregar transações', 'error');
+          window.UTILS.showToast('Error loading transactions', 'error');
         } finally {
           if (mounted) setLoading(false);
         }
@@ -939,7 +1076,7 @@
                   window.dispatchEvent(new Event('financeiro:refresh'));
                 }
               } catch (e) {
-                window.UTILS.showToast('Erro ao atualizar lançamento', 'error');
+                window.UTILS.showToast('Error updating entry', 'error');
               }
             } }, 'Salvar')
           )
@@ -1040,5 +1177,409 @@
   if (financeiroRootEl) {
     const root = ReactDOM.createRoot(financeiroRootEl);
     root.render(React.createElement(FinanceiroTable));
+  }
+})();
+
+// ===== React Clientes Table =====
+(function(){
+  const { useState, useEffect, useMemo } = React;
+
+  function statusBadgeClass(status) {
+    const isActive = status === 'active' || status === 'ativo';
+    return isActive 
+      ? 'bg-green-600/20 text-green-400 border border-green-600/30 rounded-md'
+      : 'bg-red-600/20 text-red-400 border border-red-600/30 rounded-md';
+  }
+
+  function statusLabel(status) {
+    const isActive = status === 'active' || status === 'ativo';
+    return isActive ? 'Ativo' : 'Inativo';
+  }
+
+  function ClientesTable() {
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [query, setQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    const [page, setPage] = useState(1);
+    const [selectedClient, setSelectedClient] = useState(null);
+    const pageSize = 10;
+
+    const loadData = async () => {
+      try {
+        const resp = await window.apiService.getClientes();
+        const list = Array.isArray(resp) ? resp : (resp?.results || []);
+        setData(list);
+      } catch (e) {
+        window.UTILS.showToast('Erro ao carregar clientes', 'error');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    useEffect(() => {
+      loadData();
+    }, []);
+
+    useEffect(() => {
+      window.openClientModalFromReact = (clientId) => {
+        const client = data.find(c => c.id === clientId);
+        if (client) setSelectedClient(client);
+      };
+    }, [data]);
+
+    const filtered = useMemo(() => {
+      let list = data;
+      if (query) {
+        const q = query.toLowerCase();
+        list = list.filter(c =>
+          String(c.name || '').toLowerCase().includes(q) ||
+          String(c.trade_name || '').toLowerCase().includes(q) ||
+          String(c.tax_id || '').toLowerCase().includes(q) ||
+          String(c.email || '').toLowerCase().includes(q)
+        );
+      }
+      if (statusFilter) {
+        list = list.filter(c => c.status === statusFilter);
+      }
+      return list;
+    }, [data, query, statusFilter]);
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    const pageItems = useMemo(() => {
+      const start = (page - 1) * pageSize;
+      return filtered.slice(start, start + pageSize);
+    }, [filtered, page]);
+
+    useEffect(() => {
+      const handler = () => {
+        const el = document.querySelector('input[placeholder*="Buscar por nome, CPF/CNPJ"]');
+        if (el) el.focus();
+      };
+      window.addEventListener('react:focus-search', handler);
+      return () => window.removeEventListener('react:focus-search', handler);
+    }, []);
+
+    if (loading) {
+      return React.createElement('div', { className: 'flex items-center justify-center py-12' },
+        React.createElement('div', { className: 'text-center' },
+          React.createElement('i', { className: 'fas fa-spinner fa-spin text-4xl text-purple-600 mb-4' }),
+          React.createElement('p', { className: 'text-gray-400' }, 'Carregando clientes...')
+        )
+      );
+    }
+
+    if (filtered.length === 0 && !query && !statusFilter) {
+      return React.createElement('div', { className: 'text-center py-12' },
+        React.createElement('i', { className: 'fas fa-inbox text-5xl text-gray-700 mb-4' }),
+        React.createElement('p', { className: 'text-gray-400 mb-4' }, 'Nenhum cliente cadastrado'),
+        React.createElement('button', { 
+          className: 'px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all',
+          onClick: () => window.openClientModal && window.openClientModal()
+        }, 'Criar Primeiro Cliente')
+      );
+    }
+
+    return React.createElement('div', { className: 'glass-card rounded-xl overflow-hidden' },
+      selectedClient && React.createElement('div', { 
+        className: 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4',
+        onClick: () => setSelectedClient(null)
+      },
+        React.createElement('div', { 
+          className: 'bg-gray-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto',
+          onClick: e => e.stopPropagation()
+        },
+          React.createElement('div', { className: 'border-b border-gray-700 p-6' },
+            React.createElement('div', { className: 'flex justify-between items-start mb-4' },
+              React.createElement('h2', { className: 'text-2xl font-bold text-white' }, 
+                selectedClient.name || selectedClient.trade_name || 'Client'
+              ),
+              React.createElement('button', { 
+                className: 'text-gray-400 hover:text-white',
+                onClick: () => setSelectedClient(null)
+              }, React.createElement('i', { className: 'fas fa-times text-xl' }))
+            ),
+            React.createElement('div', { className: 'flex items-center gap-3 flex-wrap' },
+              React.createElement('span', { className: `px-3 py-1 rounded-full text-xs font-semibold ${selectedClient.status === 'active' ? 'bg-green-600/20 text-green-400 border border-green-600/30' : 'bg-red-600/20 text-red-400 border border-red-600/30'}` },
+                statusLabel(selectedClient.status)
+              ),
+              React.createElement('span', { className: 'text-sm text-gray-400' }, 
+                window.UTILS.formatarCNPJ(selectedClient.tax_id) || '-'
+              )
+            )
+          ),
+          
+          React.createElement('div', { className: 'p-6' },
+            React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-6 mb-6' },
+              React.createElement('div', null,
+                React.createElement('h3', { className: 'text-sm font-semibold text-purple-400 uppercase mb-3 flex items-center gap-2' },
+                  React.createElement('i', { className: 'fas fa-envelope' }),
+                  'Contact'
+                ),
+                React.createElement('div', { className: 'space-y-3' },
+                  React.createElement('div', null,
+                    React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Email'),
+                    React.createElement('div', { className: 'flex items-center justify-between gap-2' },
+                      React.createElement('p', { className: 'text-sm text-white break-all' }, selectedClient.email || '-'),
+                      selectedClient.email && React.createElement('div', { className: 'flex gap-1' },
+                        React.createElement('a', { 
+                          className: 'text-blue-400 hover:text-blue-300 text-xs', 
+                          href: `mailto:${selectedClient.email}`,
+                          title: 'Enviar email'
+                        }, React.createElement('i', { className: 'fas fa-envelope' })),
+                        React.createElement('button', { 
+                          className: 'text-gray-400 hover:text-white text-xs',
+                          onClick: () => {
+                            navigator.clipboard.writeText(selectedClient.email);
+                            window.UTILS.showToast('Email copiado!', 'success');
+                          }
+                        }, React.createElement('i', { className: 'fas fa-copy' }))
+                      )
+                    )
+                  ),
+                  React.createElement('div', null,
+                    React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Telefone'),
+                    React.createElement('div', { className: 'flex items-center justify-between gap-2' },
+                      React.createElement('p', { className: 'text-sm text-white' }, selectedClient.phone || '-'),
+                      selectedClient.phone && React.createElement('div', { className: 'flex gap-1' },
+                        React.createElement('a', { 
+                          className: 'text-green-400 hover:text-green-300 text-xs', 
+                          href: `https://wa.me/${String(selectedClient.phone).replace(/\D/g,'')}`,
+                          target: '_blank', rel: 'noopener noreferrer', title: 'WhatsApp'
+                        }, React.createElement('i', { className: 'fab fa-whatsapp' })),
+                        React.createElement('button', { 
+                          className: 'text-gray-400 hover:text-white text-xs',
+                          onClick: () => {
+                            navigator.clipboard.writeText(String(selectedClient.phone).replace(/\D/g,''));
+                            window.UTILS.showToast('Telefone copiado!', 'success');
+                          }
+                        }, React.createElement('i', { className: 'fas fa-copy' }))
+                      )
+                    )
+                  )
+                )
+              ),
+              
+              // Documentos
+              React.createElement('div', null,
+                React.createElement('h3', { className: 'text-sm font-semibold text-blue-400 uppercase mb-3 flex items-center gap-2' },
+                  React.createElement('i', { className: 'fas fa-file-alt' }),
+                  'Documentos'
+                ),
+                React.createElement('div', { className: 'space-y-3' },
+                  React.createElement('div', null,
+                    React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Inscrição Estadual'),
+                    React.createElement('p', { className: 'text-sm text-white' }, selectedClient.state_registration || '-')
+                  ),
+                  React.createElement('div', null,
+                    React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Inscrição Municipal'),
+                    React.createElement('p', { className: 'text-sm text-white' }, selectedClient.municipal_registration || '-')
+                  ),
+                  selectedClient.person_type && React.createElement('div', null,
+                    React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Tipo de Pessoa'),
+                    React.createElement('p', { className: 'text-sm text-white' },
+                      selectedClient.person_type === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'
+                    )
+                  )
+                )
+              ),
+              
+              React.createElement('div', null,
+                React.createElement('h3', { className: 'text-sm font-semibold text-green-400 uppercase mb-3 flex items-center gap-2' },
+                  React.createElement('i', { className: 'fas fa-info-circle' }),
+                  'Information'
+                ),
+                React.createElement('div', { className: 'space-y-3' },
+                  React.createElement('div', null,
+                    React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Registration Date'),
+                    React.createElement('p', { className: 'text-sm text-white' }, 
+                      selectedClient.created_at ? new Date(selectedClient.created_at).toLocaleDateString('pt-BR') : '01/12/2025'
+                    )
+                  ),
+                  selectedClient.activity && React.createElement('div', null,
+                    React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Activity'),
+                    React.createElement('p', { className: 'text-sm text-white' }, selectedClient.activity)
+                  ),
+                  selectedClient.tax_regime && React.createElement('div', null,
+                    React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Tax Regime'),
+                    React.createElement('p', { className: 'text-sm text-white' }, selectedClient.tax_regime)
+                  )
+                )
+              )
+            ),
+            
+            React.createElement('div', { className: 'border-t border-gray-700 pt-6' },
+              React.createElement('h3', { className: 'text-sm font-semibold text-orange-400 uppercase mb-4 flex items-center gap-2' },
+                React.createElement('i', { className: 'fas fa-map-marker-alt' }),
+                'Address'
+              ),
+              React.createElement('div', { className: 'grid grid-cols-2 md:grid-cols-4 gap-4' },
+                React.createElement('div', null,
+                  React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'ZIP Code'),
+                  React.createElement('p', { className: 'text-sm text-white' }, selectedClient.zip_code || '-')
+                ),
+                React.createElement('div', { className: 'col-span-2' },
+                  React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Street'),
+                  React.createElement('p', { className: 'text-sm text-white' }, selectedClient.street || '-')
+                ),
+                React.createElement('div', null,
+                  React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Number'),
+                  React.createElement('p', { className: 'text-sm text-white' }, selectedClient.number || '-')
+                ),
+                React.createElement('div', null,
+                  React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Complemento'),
+                  React.createElement('p', { className: 'text-sm text-white' }, selectedClient.complement || '-')
+                ),
+                React.createElement('div', null,
+                  React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Bairro'),
+                  React.createElement('p', { className: 'text-sm text-white' }, selectedClient.neighborhood || '-')
+                ),
+                React.createElement('div', null,
+                  React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Cidade'),
+                  React.createElement('p', { className: 'text-sm text-white' }, selectedClient.city || '-')
+                ),
+                React.createElement('div', null,
+                  React.createElement('p', { className: 'text-xs text-gray-400 uppercase mb-1' }, 'Estado'),
+                  React.createElement('p', { className: 'text-sm text-white' }, selectedClient.state || '-')
+                )
+              )
+            )
+          ),
+          
+          // Footer
+          React.createElement('div', { className: 'border-t border-gray-700 p-6 flex justify-end gap-3' },
+            React.createElement('button', { 
+              className: 'px-6 py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all',
+              onClick: () => setSelectedClient(null)
+            }, 'Fechar'),
+            React.createElement('button', { 
+              className: 'px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:shadow-lg transition-all',
+              onClick: () => {
+                setSelectedClient(null);
+                if (window.editClient) window.editClient(selectedClient.id);
+              }
+            }, 'Editar Cliente')
+          )
+        )
+      ),
+
+
+      // Tabela
+      React.createElement('div', { className: 'overflow-x-auto' },
+        React.createElement('table', { className: 'w-full' },
+          React.createElement('thead', { className: 'bg-gray-800/50 border-b border-gray-700' },
+            React.createElement('tr', null,
+              React.createElement('th', { className: 'px-6 py-4 text-left text-sm font-semibold text-gray-300' },
+                React.createElement('i', { className: 'fas fa-user mr-2 text-purple-400' }),
+                'Cliente'
+              ),
+              React.createElement('th', { className: 'px-6 py-4 text-left text-sm font-semibold text-gray-300' },
+                React.createElement('i', { className: 'fas fa-id-card mr-2 text-purple-400' }),
+                'CNPJ/CPF'
+              ),
+              React.createElement('th', { className: 'px-6 py-4 text-left text-sm font-semibold text-gray-300' },
+                React.createElement('i', { className: 'fas fa-envelope mr-2 text-purple-400' }),
+                'Email'
+              ),
+              React.createElement('th', { className: 'px-6 py-4 text-left text-sm font-semibold text-gray-300' },
+                React.createElement('i', { className: 'fas fa-info-circle mr-2 text-purple-400' }),
+                'Status'
+              ),
+              React.createElement('th', { className: 'px-6 py-4 text-right text-sm font-semibold text-gray-300' },
+                React.createElement('i', { className: 'fas fa-cog mr-2 text-purple-400' }),
+                'Ações'
+              )
+            )
+          ),
+          React.createElement('tbody', { className: 'divide-y divide-gray-700' },
+            pageItems.length === 0 ? React.createElement('tr', null,
+              React.createElement('td', { className: 'px-6 py-8 text-center text-gray-400', colspan: '5' },
+                React.createElement('i', { className: 'fas fa-search text-3xl mb-2' }),
+                React.createElement('p', null, 'Nenhum cliente encontrado com os filtros aplicados')
+              )
+            ) : pageItems.map(c =>
+              React.createElement('tr', { 
+                key: c.id,
+                className: 'hover:bg-gray-700/30 transition-colors cursor-pointer',
+                onClick: () => setSelectedClient(c)
+              },
+                React.createElement('td', { className: 'px-6 py-4' },
+                  React.createElement('div', { className: 'flex items-center gap-3' },
+                    React.createElement('div', { className: 'w-10 h-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center' },
+                      React.createElement('i', { className: 'fas fa-user text-white' })
+                    ),
+                    React.createElement('div', null,
+                      React.createElement('div', { className: 'text-sm font-medium text-white' }, c.name || c.trade_name || '-'),
+                      c.trade_name && c.name && React.createElement('div', { className: 'text-xs text-gray-400' }, c.name)
+                    )
+                  )
+                ),
+                React.createElement('td', { className: 'px-6 py-4' },
+                  React.createElement('div', { className: 'text-sm text-gray-300' }, window.UTILS.formatarCNPJ(c.tax_id) || '-')
+                ),
+                React.createElement('td', { className: 'px-6 py-4' },
+                  React.createElement('div', { className: 'text-sm text-gray-300' }, c.email || '-')
+                ),
+                React.createElement('td', { className: 'px-6 py-4' },
+                  React.createElement('span', { className: `px-2.5 py-1 inline-flex text-xs leading-5 font-semibold ${statusBadgeClass(c.status)}` },
+                    statusLabel(c.status)
+                  )
+                ),
+                React.createElement('td', { className: 'px-6 py-4 text-right' },
+                  React.createElement('div', { className: 'flex items-center justify-end gap-2', onClick: e => e.stopPropagation() },
+                    React.createElement('button', { 
+                      className: 'p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 rounded-lg transition-all',
+                      onClick: () => setSelectedClient(c),
+                      title: 'Ver detalhes'
+                    }, React.createElement('i', { className: 'fas fa-eye' })),
+                    React.createElement('button', { 
+                      className: 'p-2 text-purple-400 hover:text-purple-300 hover:bg-purple-400/10 rounded-lg transition-all',
+                      onClick: () => window.editClient && window.editClient(c.id),
+                      title: 'Editar'
+                    }, React.createElement('i', { className: 'fas fa-edit' })),
+                    React.createElement('button', { 
+                      className: 'p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-all',
+                      onClick: () => window.deleteClient && window.deleteClient(c.id),
+                      title: 'Excluir'
+                    }, React.createElement('i', { className: 'fas fa-trash' }))
+                  )
+                )
+              )
+            )
+          )
+        )
+      ),
+
+      React.createElement('div', { className: 'p-4 border-t border-gray-700/50 flex items-center justify-between' },
+        React.createElement('div', { className: 'text-sm text-gray-400' },
+          `Mostrando ${pageItems.length} de ${filtered.length} cliente(s)`
+        ),
+        React.createElement('div', { className: 'flex items-center gap-2' },
+          React.createElement('button', { 
+            className: `px-4 py-2 rounded-lg transition-all ${page <= 1 ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed' : 'bg-gray-700 text-white hover:bg-gray-600'}`,
+            disabled: page <= 1,
+            onClick: () => setPage(p => Math.max(1, p - 1))
+          }, 
+            React.createElement('i', { className: 'fas fa-chevron-left' })
+          ),
+          React.createElement('span', { className: 'px-4 py-2 text-gray-300' }, 
+            `Página ${page} de ${totalPages}`
+          ),
+          React.createElement('button', { 
+            className: `px-4 py-2 rounded-lg transition-all ${page >= totalPages ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed' : 'bg-gray-700 text-white hover:bg-gray-600'}`,
+            disabled: page >= totalPages,
+            onClick: () => setPage(p => Math.min(totalPages, p + 1))
+          }, 
+            React.createElement('i', { className: 'fas fa-chevron-right' })
+          )
+        )
+      )
+    );
+  }
+
+  const clientesRootEl = document.getElementById('react-clientes-table-root');
+  if (clientesRootEl) {
+    const root = ReactDOM.createRoot(clientesRootEl);
+    root.render(React.createElement(ClientesTable));
   }
 })();

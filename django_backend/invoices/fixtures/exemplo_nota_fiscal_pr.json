@@ -1,0 +1,227 @@
+{
+  "nota_fiscal": {
+    "numero": "3401814",
+    "serie": "890",
+    "tipo": "nfe",
+    "modelo": "55",
+    "chave_acesso": "41251178393592000146558900034818141871789595",
+    "protocolo": "141250404644212 27/11/2025 08:44",
+    "data_emissao": "2025-11-27T08:44:00",
+    "natureza_operacao": "venda_producao",
+    "tipo_operacao": "saida",
+    "cfop": "5101"
+  },
+  "emitente": {
+    "nome": "ADRIANE THIEVES ARAUJO DE AZEVEDO",
+    "cpf": "96633476949",
+    "inscricao_estadual": "9588805457",
+    "endereco": {
+      "logradouro": "Estrada para São Geraldinho",
+      "numero": "S/N",
+      "complemento": "Interior",
+      "bairro": "Campina do Simão",
+      "municipio": "Campina do Simão",
+      "codigo_municipio": "4104808",
+      "uf": "PR",
+      "cep": "85148000",
+      "telefone": ""
+    }
+  },
+  "destinatario": {
+    "nome": "Cooperativa Agroindustrial Aliança de Carnes Nobres",
+    "cnpj": "10015928000284",
+    "inscricao_estadual": "",
+    "endereco": {
+      "logradouro": "PR 170,SN ZONA RURAL, KM 395",
+      "numero": "SN",
+      "complemento": "",
+      "bairro": "ZONA RURAL",
+      "municipio": "ENTRE RIOS",
+      "codigo_municipio": "4108304",
+      "uf": "PR",
+      "cep": "85138300",
+      "telefone": "9079795205"
+    }
+  },
+  "produtos": [
+    {
+      "codigo": "1636-88-00",
+      "descricao": "BOCS PARA ABATE",
+      "ncm": "01628000",
+      "cst": "00",
+      "cfop": "5101",
+      "unidade": "KG",
+      "quantidade": 10000.0000,
+      "valor_unitario": 6.30,
+      "valor_total": 63000.00,
+      "impostos": {
+        "icms": {
+          "origem": "0",
+          "cst": "00",
+          "aliquota": 0.00,
+          "valor": 0.00,
+          "base_calculo": 0.00
+        },
+        "ipi": {
+          "aliquota": 0.00,
+          "valor": 0.00
+        },
+        "pis": {
+          "cst": "01",
+          "aliquota": 0.00,
+          "valor": 0.00
+        },
+        "cofins": {
+          "cst": "01",
+          "aliquota": 0.00,
+          "valor": 0.00
+        }
+      }
+    },
+    {
+      "codigo": "1160-52",
+      "descricao": "VACAS PARA ABATE",
+      "ncm": "01628000",
+      "cst": "00",
+      "cfop": "5101",
+      "unidade": "KG",
+      "quantidade": 10000.0000,
+      "valor_unitario": 4.30,
+      "valor_total": 43000.00,
+      "impostos": {
+        "icms": {
+          "origem": "0",
+          "cst": "00",
+          "aliquota": 0.00,
+          "valor": 0.00,
+          "base_calculo": 0.00
+        },
+        "ipi": {
+          "aliquota": 0.00,
+          "valor": 0.00
+        },
+        "pis": {
+          "cst": "01",
+          "aliquota": 0.00,
+          "valor": 0.00
+        },
+        "cofins": {
+          "cst": "01",
+          "aliquota": 0.00,
+          "valor": 0.00
+        }
+      }
+    },
+    {
+      "codigo": "1160-53",
+      "descricao": "NOVILHOS PARA ABATE",
+      "ncm": "01628000",
+      "cst": "00",
+      "cfop": "5101",
+      "unidade": "KG",
+      "quantidade": 2000.0000,
+      "valor_unitario": 5.50,
+      "valor_total": 11000.00,
+      "impostos": {
+        "icms": {
+          "origem": "0",
+          "cst": "00",
+          "aliquota": 0.00,
+          "valor": 0.00,
+          "base_calculo": 0.00
+        },
+        "ipi": {
+          "aliquota": 0.00,
+          "valor": 0.00
+        },
+        "pis": {
+          "cst": "01",
+          "aliquota": 0.00,
+          "valor": 0.00
+        },
+        "cofins": {
+          "cst": "01",
+          "aliquota": 0.00,
+          "valor": 0.00
+        }
+      }
+    }
+  ],
+  "totais": {
+    "produtos": 117000.00,
+    "servicos": 0.00,
+    "frete": 0.00,
+    "seguro": 0.00,
+    "desconto": 0.00,
+    "outras_despesas": 0.00,
+    "valor_total": 117000.00
+  },
+  "impostos": {
+    "icms": {
+      "base_calculo": 0.00,
+      "valor": 0.00,
+      "base_calculo_st": 0.00,
+      "valor_st": 0.00
+    },
+    "ipi": {
+      "valor": 0.00
+    },
+    "pis": {
+      "valor": 0.00
+    },
+    "cofins": {
+      "valor": 0.00
+    },
+    "issqn": {
+      "valor": 0.00,
+      "base_calculo": 0.00
+    }
+  },
+  "transporte": {
+    "modalidade_frete": "0",
+    "modalidade_frete_desc": "0-Emitente (CIF)",
+    "transportadora": {
+      "razao_social": "",
+      "cnpj_cpf": "",
+      "inscricao_estadual": "",
+      "endereco": "",
+      "municipio": "",
+      "uf": "",
+      "codigo_antt": ""
+    },
+    "volumes": {
+      "quantidade": "",
+      "especie": "",
+      "marca": "",
+      "numeracao": "",
+      "peso_bruto": "",
+      "peso_liquido": ""
+    },
+    "veiculo": {
+      "placa": "",
+      "uf": ""
+    }
+  },
+  "informacoes_adicionais": {
+    "complementares": "Informações complementares/NFF-e enviada por ADRIANE THIEVES ARAUJO DE AZEVEDO, CPF: 966.334.769-49",
+    "fisco": ""
+  },
+  "configuracoes": {
+    "ambiente": "1",
+    "ambiente_desc": "Produção",
+    "regime_tributario": "3",
+    "regime_tributario_desc": "Regime Normal",
+    "indicador_destinatario": "1",
+    "indicador_destinatario_desc": "Operação Interna",
+    "indicador_ie_destinatario": "9",
+    "indicador_ie_destinatario_desc": "Não Contribuinte",
+    "consumidor_final": "0",
+    "consumidor_final_desc": "Normal",
+    "presenca_comprador": "0",
+    "presenca_comprador_desc": "Não se aplica",
+    "indicador_pagamento": "0",
+    "indicador_pagamento_desc": "À vista",
+    "meio_pagamento": "99",
+    "meio_pagamento_desc": "Outros"
+  }
+}

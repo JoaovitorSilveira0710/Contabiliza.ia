@@ -34,6 +34,8 @@ class LegalProcessSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
     hearings_count = serializers.SerializerMethodField()
     deadlines_count = serializers.SerializerMethodField()
+    total_lawyer_fee = serializers.SerializerMethodField()
+    lawyer_fee_balance = serializers.SerializerMethodField()
     
     class Meta:
         model = LegalProcess
@@ -42,16 +44,27 @@ class LegalProcessSerializer(serializers.ModelSerializer):
             'client', 'client_name', 'lawyer', 'lawyer_name', 'court',
             'status', 'priority', 'start_date', 'estimated_end_date', 'actual_end_date',
             'estimated_value', 'actual_value', 'notes',
+            'lawyer_fee_percentage', 'lawyer_fee_fixed', 'lawyer_fee_paid', 'lawyer_fee_notes',
+            'total_lawyer_fee', 'lawyer_fee_balance',
+            'opposing_parties', 'case_class', 'last_sync_date',
             'hearings_count', 'deadlines_count',
             'created_by', 'created_by_name', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'client_name', 'lawyer_name', 'created_by_name', 'hearings_count', 'deadlines_count']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'client_name', 'lawyer_name', 
+                           'created_by_name', 'hearings_count', 'deadlines_count', 
+                           'total_lawyer_fee', 'lawyer_fee_balance', 'last_sync_date']
     
     def get_hearings_count(self, obj):
         return obj.hearings.count()
     
     def get_deadlines_count(self, obj):
         return obj.deadlines.filter(status='pending').count()
+    
+    def get_total_lawyer_fee(self, obj):
+        return str(obj.calculate_lawyer_fee())
+    
+    def get_lawyer_fee_balance(self, obj):
+        return str(obj.get_lawyer_fee_balance())
 
 
 class LegalProcessListSerializer(serializers.ModelSerializer):

@@ -1,6 +1,6 @@
 /**
- * API Helper - Sincronizado com Django Backend
- * Última atualização: 2025-12-01
+ * API Helper - Synchronized with Django Backend
+ * Last update: 2025-12-01
  */
 
 class API {
@@ -9,7 +9,7 @@ class API {
   }
 
   /**
-   * Helper para fazer requisições HTTP
+   * Helper to make HTTP requests
    */
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
@@ -38,13 +38,13 @@ class API {
         UTILS.clearToken();
         UTILS.clearCurrentUser();
         window.location.href = '/pages/login.html';
-        throw new Error('Não autorizado');
+        throw new Error('Unauthorized');
       }
 
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || data.message || 'Erro na requisição');
+        throw new Error(data.error || data.message || 'Request error');
       }
 
       return data;

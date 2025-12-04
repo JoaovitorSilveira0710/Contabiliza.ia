@@ -52,23 +52,23 @@ const CONFIG = {
     NOTIFICACOES: '/notifications'
   },
 
-  // Settings
   TIMEOUT: 30000,
   RETRY_ATTEMPTS: 3,
   
-  // Mensagens
   MESSAGES: {
-    SUCCESS: 'Operação realizada com sucesso!',
-    ERROR: 'Erro ao processar requisição',
-    LOADING: 'Carregando...',
-    UNAUTHORIZED: 'Acesso não autorizado. Faça login novamente.',
-    NOT_FOUND: 'Recurso não encontrado',
-    VALIDATION_ERROR: 'Erro de validação. Verifique os dados.',
-  }
+    SUCCESS: 'Operation completed successfully!',
+    ERROR: 'Error processing request',
+    LOADING: 'Loading...',
+    UNAUTHORIZED: 'Access unauthorized. Please log in again.',
+    NOT_FOUND: 'Resource not found',
+    VALIDATION_ERROR: 'Validation error. Check the data.',
+  },
+
+  paranaCoatUrl: localStorage.getItem('PARANA_COAT_URL') || '/assets/brasao-parana.png'
 };
 
 /**
- * Utilitários globais
+ * Global utilities
  */
 const UTILS = {
   /**

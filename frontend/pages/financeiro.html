@@ -914,7 +914,7 @@
                 const listaOrdenada = clientes
                     .map(c => ({
                         id: c.id,
-                        nome: c.name || c.trade_name || c.nome_razao_social || c.nome_fantasia || c.razao_social || c.nome || `Cliente ${c.id}`
+                        nome: c.name || c.trade_name || `Cliente ${c.id}`
                     }))
                     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
 

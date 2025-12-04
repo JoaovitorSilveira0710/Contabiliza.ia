@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400">
+  <defs>
+    <style>
+      .bg { fill: #5b1b8f; }
+      .icon { fill: none; stroke: #ffffff; stroke-width: 18; stroke-linecap: round; stroke-linejoin: round; }
+      .bar { fill: none; stroke: #ffffff; stroke-width: 18; stroke-linecap: round; }
+      .text { font: 700 96px 'Poppins', 'Segoe UI', Arial, sans-serif; fill: #ffffff; }
+      .dot { fill: #ffffff; }
+
+      /* Animations (subtle, can be removed if you want static) */
+      .line-anim { stroke-dasharray: 520; stroke-dashoffset: 520; animation: draw 1.8s ease-out forwards; }
+      .head-anim { stroke-dasharray: 720; stroke-dashoffset: 720; animation: draw 1.8s ease-out 0.3s forwards; }
+      .pulse { animation: pulse 2.2s ease-in-out infinite; }
+      @keyframes draw { to { stroke-dashoffset: 0; } }
+      @keyframes pulse { 0%,100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.25); opacity: 1; } }
+    </style>
+  </defs>
+
+  <!-- Background (optional) -->
+  <rect class="bg" x="0" y="0" width="900" height="400" rx="0"/>
+
+  <!-- Group logo left -->
+  <g transform="translate(80,60)">
+    <!-- Document shape -->
+    <path class="icon" d="M 40 10 H 220 L 270 60 V 300 H 40 Z"/>
+    <path class="icon" d="M 220 10 V 60 H 270"/>
+
+    <!-- Bars (chart) -->
+    <line class="bar" x1="80" y1="260" x2="80" y2="210"/>
+    <line class="bar" x1="120" y1="260" x2="120" y2="180"/>
+    <line class="bar" x1="160" y1="260" x2="160" y2="150"/>
+
+    <!-- Trend line with nodes -->
+    <path class="icon line-anim" d="M 80 210 L 120 180 L 160 150 L 200 130"/>
+    <circle class="dot pulse" cx="80" cy="210" r="8"/>
+    <circle class="dot pulse" cx="120" cy="180" r="8"/>
+    <circle class="dot pulse" cx="160" cy="150" r="8"/>
+
+    <!-- AI head to the right -->
+    <g transform="translate(300,90)">
+      <path class="icon head-anim" d="M 40 180 C 40 120 60 90 95 70 C 130 50 150 30 162 18 C 174 34 198 60 220 78 C 250 102 265 128 265 180 C 230 180 200 200 160 208 C 120 216 80 210 40 180 Z"/>
+      <!-- Circuits inside head -->
+      <line class="icon" x1="130" y1="120" x2="130" y2="160"/>
+      <line class="icon" x1="165" y1="120" x2="165" y2="160"/>
+      <circle class="dot pulse" cx="130" cy="160" r="7"/>
+      <circle class="dot pulse" cx="165" cy="160" r="7"/>
+    </g>
+  </g>
+
+  <!-- Text on right -->
+  <text class="text" x="420" y="245">contabiliza</text>
+  <text class="text" x="420" y="330">.ia</text>
+</svg>

@@ -8,11 +8,13 @@
   <link rel="icon" href="/src/styles/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/dist/styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="/src/js/config.js?v=20251124"></script>
-  <script src="/src/js/ui-helper.js?v=20251124"></script>
-  <script src="/src/js/api-service.js?v=20251124"></script>
-  <link rel="stylesheet" href="/src/styles/globals.css?v=20251124">
+  <script src="/src/js/config.js?v=20251202"></script>
+  <script src="/src/js/ui-helper.js?v=20251202"></script>
+  <script src="/src/js/api-service.js?v=20251202"></script>
+  <link rel="stylesheet" href="/src/styles/globals.css?v=20251202">
 </head>
 <body class="bg-gray-900 text-white">
   <!-- Toast -->
@@ -159,20 +161,10 @@
         <!-- Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Revenue Chart -->
-          <div class="glass-card p-6">
-            <h3 class="text-lg font-bold text-white mb-4">Faturamento Mensal</h3>
-            <div style="height: 300px; position: relative;">
-              <canvas id="revenueChart"></canvas>
-            </div>
-          </div>
+          <div id="revenueChartRoot"></div>
 
           <!-- Pie Chart -->
-          <div class="glass-card p-6">
-            <h3 class="text-lg font-bold text-white mb-4">Distribuição de Serviços</h3>
-            <div style="height: 300px; position: relative;">
-              <canvas id="servicesChart"></canvas>
-            </div>
-          </div>
+          <div id="categoryChartRoot"></div>
         </div>
 
         <!-- Recent Clients -->
@@ -182,17 +174,17 @@
           </div>
           <div class="overflow-x-auto">
             <table class="w-full">
-              <thead class="bg-gray-800/50 border-b border-gray-700">
+              <thead class="bg-gray-800/50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Nome</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">CNPJ</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Ação</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Cliente</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">CPF/CNPJ</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
-              <tbody id="clientesTable" class="divide-y divide-gray-700">
+              <tbody id="clientesTable" class="bg-gray-800/20">
                 <tr>
-                  <td colspan="4" class="px-6 py-8 text-center text-gray-600">Carregando...</td>
+                  <td colspan="4" class="px-6 py-8 text-center text-gray-400">Carregando...</td>
                 </tr>
               </tbody>
             </table>
@@ -203,9 +195,10 @@
   </div>
 
   <script>
-    let revenueChart = null;
-    let servicesChart = null;
+    const { useState, useEffect, useMemo } = React;
     let autoRefreshInterval = null;
+    let revenueChartRoot = null;
+    let categoryChartRoot = null;
 
     // Verificar autenticação e inserir link Configurações (Master/Admin)
     (function authAndConfigLink(){
@@ -280,16 +273,16 @@
     async function loadDashboard() {
       try {
         // Buscar dados reais das APIs
-        const [clientesResp, lancamentosResp, notasResp, processosResp] = await Promise.all([
-          apiService.getClientes().catch(() => []),
-          apiService.getLancamentos().catch(() => []),
-          apiService.getNotasFiscais().catch(() => []),
-          apiService.getProcessos().catch(() => [])
+        const [clientesResp, transacoesResp, notasResp, processosResp] = await Promise.all([
+          apiService.getClientes().catch(() => ({ results: [] })),
+          apiService.getTransacoesFinanceiras().catch(() => ({ results: [] })),
+          apiService.getNotasFiscais().catch(() => ({ results: [] })),
+          apiService.getProcessos().catch(() => ({ results: [] }))
         ]);
 
         // Normalizar respostas paginadas (DRF) para arrays simples
         const clientesData = Array.isArray(clientesResp) ? clientesResp : (clientesResp?.results || []);
-        const lancamentosData = Array.isArray(lancamentosResp) ? lancamentosResp : (lancamentosResp?.results || []);
+        const transacoesData = Array.isArray(transacoesResp) ? transacoesResp : (transacoesResp?.results || []);
         const notasData = Array.isArray(notasResp) ? notasResp : (notasResp?.results || []);
         const processosData = Array.isArray(processosResp) ? processosResp : (processosResp?.results || []);
 
@@ -297,11 +290,11 @@
         const totalClientes = Array.isArray(clientesData) ? clientesData.length : 0;
         document.getElementById('totalClientes').textContent = totalClientes;
 
-        // Processar lançamentos financeiros
-        const lancamentos = Array.isArray(lancamentosData) ? lancamentosData : [];
-        const receitasMes = lancamentos
-          .filter(l => l.tipo === 'receita' && l.pago)
-          .reduce((sum, l) => sum + (l.valor || 0), 0);
+        // Processar transações financeiras
+        const transacoes = Array.isArray(transacoesData) ? transacoesData : [];
+        const receitasMes = transacoes
+          .filter(t => t.transaction_type === 'revenue' && (t.status === 'received' || t.status === 'paid'))
+          .reduce((sum, t) => sum + (parseFloat(t.final_amount || t.amount) || 0), 0);
         document.getElementById('totalReceita').textContent = UTILS.formatarReal(receitasMes);
 
         // Processar notas fiscais
@@ -310,18 +303,15 @@
 
         // Processar processos jurídicos ativos
         const processosAtivos = Array.isArray(processosData) 
-          ? processosData.filter(p => p.status !== 'concluido').length 
+          ? processosData.filter(p => p.status && p.status !== 'closed' && p.status !== 'finished').length 
           : 0;
         document.getElementById('totalPendencias').textContent = processosAtivos;
 
         // Carregar clientes recentes
         loadClientes();
 
-        // Inicializar gráficos com dados reais
-        initCharts({
-          lancamentos: lancamentos,
-          servicos: notasData
-        });
+        // Inicializar gráficos com dados reais usando React
+        renderCharts({ transacoes, notas: notasData });
 
       } catch (error) {
         console.error('Erro ao carregar dashboard:', error);
@@ -331,11 +321,22 @@
 
     async function loadClientes() {
       try {
+        console.log('🔄 Loading clients...');
         const clientes = await apiService.getClientes();
+        console.log('✅ Clients response:', clientes);
+        
         const clientesArray = Array.isArray(clientes) ? clientes : (clientes?.results || []);
         const clientesRecentes = clientesArray.slice(0, 5);
         
+        console.log('📊 Recent clients (5):', clientesRecentes);
+        
         const tbody = document.getElementById('clientesTable');
+        
+        if (!tbody) {
+          console.error('❌ Table body not found!');
+          return;
+        }
+        
         tbody.innerHTML = '';
 
         if (clientesRecentes.length === 0) {
@@ -343,82 +344,103 @@
           return;
         }
 
-        clientesRecentes.forEach(cliente => {
+        clientesRecentes.forEach((cliente, index) => {
+          console.log(`Building row ${index + 1}:`, cliente);
+          const isActive = cliente.status === 'active' || cliente.status === 'ativo';
+          const clientName = cliente.trade_name || cliente.name || 'N/A';
+          const clientEmail = cliente.email || 'Sem email';
+          const clientTaxId = cliente.tax_id || '';
+          
           const row = document.createElement('tr');
-          row.className = 'hover:bg-gray-700/50 transition-colors';
+          row.className = 'border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors';
           row.innerHTML = `
-            <td class="px-6 py-4 text-sm text-white">${cliente.nome_razao_social || 'N/A'}</td>
-            <td class="px-6 py-4 text-sm text-gray-300">${UTILS.formatarCNPJ(cliente.cnpj_cpf || '')}</td>
-            <td class="px-6 py-4 text-sm">
-              <span class="px-2 py-1 rounded-full text-xs font-semibold ${cliente.ativo ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'}">
-                ${cliente.ativo ? 'Ativo' : 'Inativo'}
+            <td class="px-6 py-4">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-building text-white text-sm"></i>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-sm font-medium text-white truncate">${clientName}</div>
+                  <div class="text-sm text-gray-400 truncate">${clientEmail}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-300">${UTILS.formatarCNPJ(clientTaxId)}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${isActive ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'}">
+                ${isActive ? 'Ativo' : 'Inativo'}
               </span>
             </td>
-            <td class="px-6 py-4 text-sm">
-              <a href="/pages/clientes.html?id=${cliente.id}" class="text-purple-400 hover:text-purple-300 transition-colors">Ver detalhes</a>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              <button onclick="window.location.href='/pages/clientes.html?id=${cliente.id}'" class="text-purple-400 hover:text-purple-300 font-medium transition-colors">
+                <i class="fas fa-eye mr-1"></i>Ver detalhes
+              </button>
             </td>
           `;
           tbody.appendChild(row);
         });
+        
+        console.log('✅ Clients table updated successfully!');
 
       } catch (error) {
-        console.error('Erro ao carregar clientes:', error);
+        console.error('❌ Error loading clients:', error);
         const tbody = document.getElementById('clientesTable');
-        tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-red-400">Erro ao carregar clientes</td></tr>';
+        if (tbody) {
+          tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-red-400"><i class="fas fa-exclamation-triangle mr-2"></i>Erro ao carregar clientes</td></tr>';
+        }
       }
     }
 
-    function initCharts(data) {
-      // Destruir gráficos antigos se existirem
-      if (revenueChart) {
-        revenueChart.destroy();
-        revenueChart = null;
-      }
-      if (servicesChart) {
-        servicesChart.destroy();
-        servicesChart = null;
-      }
+    // React Components for Charts
+    function RevenueChart({ transacoes }) {
+      const canvasRef = React.useRef(null);
+      const chartRef = React.useRef(null);
 
-      // Processar dados de lançamentos
-      const lancamentos = data.lancamentos || [];
-      
-      // Agrupar por mês (últimos 6 meses)
-      const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      const hoje = new Date();
-      const labels = [];
-      const receitasPorMes = [];
-      const despesasPorMes = [];
+      useEffect(() => {
+        if (!canvasRef.current || !transacoes) return;
 
-      for (let i = 5; i >= 0; i--) {
-        const data = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
-        labels.push(meses[data.getMonth()]);
-        
-        const receitas = lancamentos
-          .filter(l => {
-            const lData = new Date(l.data_vencimento);
-            return l.tipo === 'receita' && 
-                   lData.getMonth() === data.getMonth() && 
-                   lData.getFullYear() === data.getFullYear();
-          })
-          .reduce((sum, l) => sum + (l.valor || 0), 0);
-        
-        const despesas = lancamentos
-          .filter(l => {
-            const lData = new Date(l.data_vencimento);
-            return l.tipo === 'despesa' && 
-                   lData.getMonth() === data.getMonth() && 
-                   lData.getFullYear() === data.getFullYear();
-          })
-          .reduce((sum, l) => sum + (l.valor || 0), 0);
-        
-        receitasPorMes.push(receitas);
-        despesasPorMes.push(despesas);
-      }
+        // Destroy old chart
+        if (chartRef.current) {
+          chartRef.current.destroy();
+        }
 
-      // Revenue Chart - Evolução de Faturamento (DARK THEME)
-      const revenueCtx = document.getElementById('revenueChart');
-      if (revenueCtx) {
-        revenueChart = new Chart(revenueCtx, {
+        // Process transaction data
+        const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const hoje = new Date();
+        const labels = [];
+        const receitasPorMes = [];
+        const despesasPorMes = [];
+
+        for (let i = 5; i >= 0; i--) {
+          const data = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+          labels.push(meses[data.getMonth()]);
+          
+          const receitas = transacoes
+            .filter(t => {
+              const tData = new Date(t.due_date || t.payment_date);
+              return t.transaction_type === 'revenue' && 
+                     tData.getMonth() === data.getMonth() && 
+                     tData.getFullYear() === data.getFullYear();
+            })
+            .reduce((sum, t) => sum + parseFloat(t.final_amount || t.amount || 0), 0);
+          
+          const despesas = transacoes
+            .filter(t => {
+              const tData = new Date(t.due_date || t.payment_date);
+              return t.transaction_type === 'expense' && 
+                     tData.getMonth() === data.getMonth() && 
+                     tData.getFullYear() === data.getFullYear();
+            })
+            .reduce((sum, t) => sum + parseFloat(t.final_amount || t.amount || 0), 0);
+          
+          receitasPorMes.push(receitas);
+          despesasPorMes.push(despesas);
+        }
+
+        // Create chart
+        chartRef.current = new Chart(canvasRef.current, {
           type: 'line',
           data: {
             labels: labels,
@@ -487,65 +509,92 @@
             }
           }
         });
-      }
 
-      // Services Chart - Distribuição de Serviços (DARK THEME)
-      const servicesCtx = document.getElementById('servicesChart');
-      
-      if (servicesCtx) {
-        const notas = data.servicos || [];
-        
-        // Se houver notas, analisar por valor total
+        return () => {
+          if (chartRef.current) {
+            chartRef.current.destroy();
+          }
+        };
+      }, [transacoes]);
+
+      return React.createElement('div', { className: 'glass-card p-6' },
+        React.createElement('h3', { className: 'text-lg font-bold text-white mb-4' }, 'Faturamento Mensal'),
+        React.createElement('div', { style: { height: '300px', position: 'relative' } },
+          React.createElement('canvas', { ref: canvasRef })
+        )
+      );
+    }
+
+    function CategoryChart({ transacoes }) {
+      const canvasRef = React.useRef(null);
+      const chartRef = React.useRef(null);
+
+      useEffect(() => {
+        if (!canvasRef.current || !transacoes) return;
+
+        // Destroy old chart
+        if (chartRef.current) {
+          chartRef.current.destroy();
+        }
+
+        // Calculate totals by category
         let labelsPie = [];
         let dataPie = [];
         
-        if (notas.length > 0) {
-          // Calcular valor total por cliente ou serviço
-          const servicosPorValor = {};
+        if (transacoes.length > 0) {
+          const categoriasPorValor = {};
           
-          notas.forEach((nota, index) => {
-            // Usar destinatário ou número da nota como categoria
-            let categoria = nota.destinatario_nome || nota.cliente_nome || `Serviço ${index + 1}`;
+          transacoes.forEach((t) => {
+            const categoria = t.category_name || 'Sem Categoria';
+            const valor = parseFloat(t.final_amount || t.amount || 0);
             
-            // Simplificar o nome se for muito longo
-            if (categoria.length > 25) {
-              categoria = categoria.substring(0, 22) + '...';
+            const isPago = t.status === 'paid' || t.status === 'received' || t.status === 'pago';
+            if (isPago && valor > 0) {
+              categoriasPorValor[categoria] = (categoriasPorValor[categoria] || 0) + valor;
             }
-            
-            const valor = nota.valor_total || nota.valor || 0;
-            servicosPorValor[categoria] = (servicosPorValor[categoria] || 0) + valor;
           });
           
-          // Pegar os top 5 serviços por valor
-          const sorted = Object.entries(servicosPorValor)
+          const sorted = Object.entries(categoriasPorValor)
             .sort((a, b) => b[1] - a[1])
-            .slice(0, 5);
+            .slice(0, 8);
           
           labelsPie = sorted.map(s => s[0]);
           dataPie = sorted.map(s => s[1]);
         }
         
-        // Se não houver dados suficientes, usar distribuição de exemplo
         if (dataPie.length === 0) {
-          labelsPie = ['Contabilidade', 'Fiscal', 'Folha de Pagamento', 'Consultoria', 'Outros'];
-          dataPie = [45, 30, 15, 8, 2];
+          labelsPie = ['Sem dados'];
+          dataPie = [1];
         }
 
-        servicesChart = new Chart(servicesCtx, {
+        // Create chart
+        chartRef.current = new Chart(canvasRef.current, {
           type: 'doughnut',
           data: {
             labels: labelsPie,
             datasets: [{
               data: dataPie,
               backgroundColor: [
-                '#8B5CF6',
-                '#10B981', 
-                '#F59E0B',
-                '#EF4444',
-                '#3B82F6'
+                'rgba(139, 92, 246, 0.8)',
+                'rgba(16, 185, 129, 0.8)',
+                'rgba(245, 158, 11, 0.8)',
+                'rgba(239, 68, 68, 0.8)',
+                'rgba(59, 130, 246, 0.8)',
+                'rgba(236, 72, 153, 0.8)',
+                'rgba(14, 165, 233, 0.8)',
+                'rgba(168, 85, 247, 0.8)'
               ],
-              borderColor: '#1F2937',
-              borderWidth: 2
+              borderColor: [
+                'rgba(139, 92, 246, 1)',
+                'rgba(16, 185, 129, 1)',
+                'rgba(245, 158, 11, 1)',
+                'rgba(239, 68, 68, 1)',
+                'rgba(59, 130, 246, 1)',
+                'rgba(236, 72, 153, 1)',
+                'rgba(14, 165, 233, 1)',
+                'rgba(168, 85, 247, 1)'
+              ],
+              borderWidth: 3
             }]
           },
           options: {
@@ -556,24 +605,63 @@
                 display: true,
                 position: 'bottom',
                 labels: {
-                  color: '#E5E7EB',
+                  color: '#9ca3af',
                   font: { size: 12 },
-                  padding: 15
+                  padding: 15,
+                  usePointStyle: true,
+                  pointStyle: 'circle'
                 }
               },
               tooltip: {
+                backgroundColor: 'rgba(31, 41, 55, 0.95)',
+                titleColor: '#fff',
+                bodyColor: '#e5e7eb',
+                borderColor: 'rgba(139, 92, 246, 0.5)',
+                borderWidth: 1,
+                padding: 12,
                 callbacks: {
                   label: function(context) {
+                    if (context.label === 'Sem dados') return 'Nenhuma transação paga';
                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                     const percent = ((context.parsed / total) * 100).toFixed(1);
-                    return context.label + ': ' + context.parsed + ' (' + percent + '%)';
+                    const value = UTILS.formatarReal(context.parsed);
+                    return context.label + ': ' + value + ' (' + percent + '%)';
                   }
                 }
               }
             }
           }
         });
+
+        return () => {
+          if (chartRef.current) {
+            chartRef.current.destroy();
+          }
+        };
+      }, [transacoes]);
+
+      return React.createElement('div', { className: 'glass-card p-6' },
+        React.createElement('h3', { className: 'text-lg font-bold text-white mb-4' }, 'Distribuição por Categoria'),
+        React.createElement('div', { style: { height: '300px', position: 'relative' } },
+          React.createElement('canvas', { ref: canvasRef })
+        )
+      );
+    }
+
+    function renderCharts(data) {
+      const transacoes = data.transacoes || [];
+
+      // Render Revenue Chart
+      if (!revenueChartRoot) {
+        revenueChartRoot = ReactDOM.createRoot(document.getElementById('revenueChartRoot'));
       }
+      revenueChartRoot.render(React.createElement(RevenueChart, { transacoes }));
+
+      // Render Category Chart
+      if (!categoryChartRoot) {
+        categoryChartRoot = ReactDOM.createRoot(document.getElementById('categoryChartRoot'));
+      }
+      categoryChartRoot.render(React.createElement(CategoryChart, { transacoes }));
     }
 
     function logout() {

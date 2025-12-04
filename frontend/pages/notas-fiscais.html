@@ -208,7 +208,7 @@
 
     <!-- Emit Modal -->
     <div id="emitirModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-        <div class="bg-gray-800 rounded-xl p-8 max-w-4xl w-full mx-4 my-8 glass-card">
+        <div class="bg-gray-800 rounded-xl p-6 max-w-3xl w-full mx-4 my-6 glass-card">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold flex items-center gap-2">
                     <i class="fas fa-file-invoice text-green-400"></i>
@@ -219,60 +219,82 @@
                 </button>
             </div>
 
-            <form id="emitirForm" onsubmit="handleEmitir(event)" class="space-y-6">
+            <form id="emitirForm" onsubmit="handleEmitir(event)" class="space-y-4">
                 <!-- Dados do Destinatário -->
-                <div class="bg-gray-700/30 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-4 text-purple-400"><i class="fas fa-clipboard-list"></i> Dados do Destinatário</h3>
+                <div class="bg-gray-700/30 p-3 rounded-lg">
+                    <h3 class="text-base font-semibold mb-3 text-purple-400"><i class="fas fa-clipboard-list"></i> Dados do Destinatário</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium mb-2">Cliente *</label>
-                            <select id="emitir_cliente_id" required class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <label class="block text-sm font-medium mb-1">Cliente *</label>
+                            <select id="emitir_cliente_id" required class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600 text-sm">
                                 <option value="">Selecione um cliente</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium mb-2">CNPJ/CPF Destinatário *</label>
-                            <input type="text" id="emitir_cnpj_destinatario" required placeholder="00.000.000/0000-00" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                            <label class="block text-sm font-medium mb-1">CNPJ/CPF Destinatário *</label>
+                            <input type="text" id="emitir_cnpj_destinatario" required placeholder="00.000.000/0000-00" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 text-sm">
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium mb-2">Nome/Razão Social *</label>
-                            <input type="text" id="emitir_nome_destinatario" required placeholder="Nome ou Razão Social" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                            <label class="block text-sm font-medium mb-1">Nome/Razão Social *</label>
+                            <input type="text" id="emitir_nome_destinatario" required placeholder="Nome ou Razão Social" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 text-sm">
                         </div>
                     </div>
                 </div>
 
                 <!-- Dados da Nota -->
-                <div class="bg-gray-700/30 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-4 text-purple-400"><i class="fas fa-file-invoice"></i> Dados da Nota</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-gray-700/30 p-3 rounded-lg">
+                    <h3 class="text-base font-semibold mb-3 text-purple-400"><i class="fas fa-file-invoice"></i> Dados da Nota</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                         <div>
-                            <label class="block text-sm font-medium mb-2">Número *</label>
-                            <input type="text" id="emitir_numero" required placeholder="12345" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                            <label class="block text-sm font-medium mb-1">Número *</label>
+                            <input type="text" id="emitir_numero" required placeholder="12345" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 text-sm">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium mb-2">Série *</label>
-                            <input type="text" id="emitir_serie" required value="1" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <label class="block text-sm font-medium mb-1">Série *</label>
+                            <input type="text" id="emitir_serie" required value="1" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600 text-sm">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium mb-2">Modelo *</label>
-                            <select id="emitir_modelo" required class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <label class="block text-sm font-medium mb-1">Modelo *</label>
+                            <select id="emitir_modelo" required class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600 text-sm">
                                 <option value="nfe">NFe (55)</option>
                                 <option value="nfce">NFCe (65)</option>
                                 <option value="nfse">NFSe</option>
                             </select>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-sm font-medium mb-2">Tipo *</label>
-                            <select id="emitir_tipo" required class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <label class="block text-sm font-medium mb-1">Tipo *</label>
+                            <select id="emitir_tipo" required class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600 text-sm">
                                 <option value="saida">Saída</option>
                                 <option value="entrada">Entrada</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium mb-2">UF de Origem *</label>
-                            <select id="emitir_uf" required class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600">
+                            <label class="block text-sm font-medium mb-1">UF do Emitente *</label>
+                            <select id="emitir_uf_emitente" required class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600 text-sm">
+                                <option value="">Selecione</option>
+                                <option value="MG" selected>Minas Gerais - MG</option>
+                                <option value="SP">São Paulo - SP</option>
+                                <option value="RJ">Rio de Janeiro - RJ</option>
+                                <option value="ES">Espírito Santo - ES</option>
+                                <option value="PR">Paraná - PR</option>
+                                <option value="SC">Santa Catarina - SC</option>
+                                <option value="RS">Rio Grande do Sul - RS</option>
+                                <option value="BA">Bahia - BA</option>
+                                <option value="PE">Pernambuco - PE</option>
+                                <option value="CE">Ceará - CE</option>
+                                <option value="DF">Distrito Federal - DF</option>
+                                <option value="GO">Goiás - GO</option>
+                                <option value="MT">Mato Grosso - MT</option>
+                                <option value="MS">Mato Grosso do Sul - MS</option>
+                                <option value="AM">Amazonas - AM</option>
+                                <option value="PA">Pará - PA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">UF do Destinatário *</label>
+                            <select id="emitir_uf" required class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-600 text-sm">
                                 <option value="">Selecione</option>
                                 <option value="SP">São Paulo - SP</option>
                                 <option value="RJ">Rio de Janeiro - RJ</option>
@@ -293,32 +315,32 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium mb-2">CNPJ Emitente *</label>
-                            <input type="text" id="emitir_cnpj_emitente" required placeholder="00.000.000/0000-00" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                            <label class="block text-sm font-medium mb-1">CNPJ Emitente *</label>
+                            <input type="text" id="emitir_cnpj_emitente" required placeholder="00.000.000/0000-00" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 text-sm">
                         </div>
                     </div>
                 </div>
 
                 <!-- Valores -->
-                <div class="bg-gray-700/30 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-4 text-purple-400">💰 Valores</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="bg-gray-700/30 p-3 rounded-lg">
+                    <h3 class="text-base font-semibold mb-3 text-purple-400">💰 Valores</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                         <div>
-                            <label class="block text-sm font-medium mb-2">Valor Produtos *</label>
-                            <input type="number" id="emitir_valor_produtos" required min="0" step="0.01" placeholder="0,00" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                            <label class="block text-sm font-medium mb-1">Valor Produtos *</label>
+                            <input type="number" id="emitir_valor_produtos" required min="0" step="0.01" placeholder="0,00" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 text-sm">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium mb-2">Valor Serviços</label>
-                            <input type="number" id="emitir_valor_servicos" min="0" step="0.01" value="0" placeholder="0,00" class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600">
+                            <label class="block text-sm font-medium mb-1">Valor Serviços</label>
+                            <input type="number" id="emitir_valor_servicos" min="0" step="0.01" value="0" placeholder="0,00" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 text-sm">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium mb-2">Base de Cálculo *</label>
-                            <input type="number" id="emitir_base_calculo" required min="0" step="0.01" readonly class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white font-semibold">
+                            <label class="block text-sm font-medium mb-1">Base de Cálculo *</label>
+                            <input type="number" id="emitir_base_calculo" required min="0" step="0.01" readonly class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white font-semibold text-sm">
                         </div>
                     </div>
 
                     <!-- Impostos -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3 p-2 bg-gray-800/50 rounded-lg border border-gray-700">
                         <div>
                             <label class="block text-xs text-gray-400 mb-1" id="label_icms">ICMS</label>
                             <input type="number" id="emitir_icms" readonly class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-sm text-green-400 font-semibold">
@@ -338,26 +360,26 @@
                     </div>
 
                     <!-- Totais -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-purple-900/20 rounded-lg border border-purple-600/30">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-2 bg-purple-900/20 rounded-lg border border-purple-600/30">
                         <div>
-                            <label class="block text-sm text-gray-400 mb-1">Total de Impostos</label>
-                            <input type="number" id="emitir_total_impostos" readonly class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white font-bold text-lg">
+                            <label class="block text-xs text-gray-400 mb-1">Total de Impostos</label>
+                            <input type="number" id="emitir_total_impostos" readonly class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white font-bold text-base">
                         </div>
                         <div>
-                            <label class="block text-sm text-gray-400 mb-1">Valor Total da Nota *</label>
-                            <input type="number" id="emitir_valor_total" required min="0" step="0.01" readonly class="w-full px-4 py-2 bg-gray-700 border border-purple-600 rounded-lg text-purple-400 font-bold text-lg">
+                            <label class="block text-xs text-gray-400 mb-1">Valor Total da Nota *</label>
+                            <input type="number" id="emitir_valor_total" required min="0" step="0.01" readonly class="w-full px-3 py-2 bg-gray-700 border border-purple-600 rounded-lg text-purple-400 font-bold text-base">
                         </div>
                     </div>
                 </div>
 
                 <!-- Observações -->
                 <div>
-                    <label class="block text-sm font-medium mb-2">Observações</label>
-                    <textarea id="emitir_observacoes" rows="3" placeholder="Informações adicionais..." class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600"></textarea>
+                    <label class="block text-sm font-medium mb-1">Observações</label>
+                    <textarea id="emitir_observacoes" rows="2" placeholder="Informações adicionais..." class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-600 text-sm"></textarea>
                 </div>
 
                 <!-- Status de Emissão -->
-                <div id="emissaoStatus" class="hidden bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
+                <div id="emissaoStatus" class="hidden bg-blue-900/20 border border-blue-600/30 rounded-lg p-3">
                     <div class="flex items-center gap-3">
                         <i class="fas fa-spinner fa-spin text-blue-400 text-xl"></i>
                         <div>
@@ -368,7 +390,7 @@
                 </div>
 
                 <!-- Botões -->
-                <div class="flex gap-3 justify-end pt-4 border-t border-gray-700">
+                <div class="flex gap-3 justify-end pt-3 border-t border-gray-700">
                     <button type="button" onclick="closeEmitirModal()" class="px-6 py-2 border border-gray-600 rounded-lg hover:bg-gray-700 transition-all">
                         Cancelar
                     </button>
@@ -631,7 +653,16 @@
                 document.getElementById('fileInput')?.addEventListener('change', handleFileSelection);
                 document.getElementById('emitir_valor_produtos')?.addEventListener('input', calcularValorTotal);
                 document.getElementById('emitir_valor_servicos')?.addEventListener('input', calcularValorTotal);
-                document.getElementById('emitir_uf')?.addEventListener('change', calcularValorTotal);
+                
+                // Listeners para UF com reset do aviso
+                document.getElementById('emitir_uf')?.addEventListener('change', () => {
+                    avisoInterestatualMostrado = false;
+                    calcularValorTotal();
+                });
+                document.getElementById('emitir_uf_emitente')?.addEventListener('change', () => {
+                    avisoInterestatualMostrado = false;
+                    calcularValorTotal();
+                });
                 
                 if (typeof feather !== 'undefined') {
                     feather.replace();
@@ -640,6 +671,33 @@
                 console.error('⚠️ Erro ao configurar listeners:', error);
             }
         });
+
+        // Carregar estatísticas das notas
+        async function loadNotasStats() {
+            try {
+                const data = await apiService.getNotasFiscais();
+                const notas = Array.isArray(data) ? data : (data?.results || []);
+                updateNotasStats(notas);
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        // Função para atualizar estatísticas (chamada pelo React também)
+        window.updateNotasStats = function(notas) {
+            const total = notas.length;
+            const autorizadas = notas.filter(n => n.status === 'authorized').length;
+            const canceladas = notas.filter(n => n.status === 'cancelled').length;
+            const totalValue = notas.reduce((sum, n) => sum + (parseFloat(n.total_value || n.valor_total) || 0), 0);
+
+            document.getElementById('totalNfe').textContent = total;
+            document.getElementById('autorizadas').textContent = autorizadas;
+            document.getElementById('canceladas').textContent = canceladas;
+            document.getElementById('totalValue').textContent = UTILS.formatarReal(totalValue);
+        };
+
+        // Chamar ao carregar a página
+        loadNotasStats();
 
         // DESABILITADO - Usando React agora
         async function loadNotas() {
@@ -936,42 +994,14 @@
 
         let currentXmlData = null;
 
-        function openClientChoiceModal(xmlData) {
-            currentXmlData = xmlData;
-            
-            // Preencher informações do emissor
-            const emissorInfo = document.getElementById('emissorInfo');
-            if (xmlData.emissor) {
-                const doc = xmlData.emissor.cnpj || '';
-                emissorInfo.textContent = `${xmlData.emissor.nome || xmlData.emissor.fantasia || 'Sem nome'} - ${doc ? (doc.length > 11 ? 'CNPJ' : 'CPF') + ': ' + doc : 'Sem documento'}`;
-            }
-            
-            // Preencher informações do destinatário
-            const destInfo = document.getElementById('destinatarioInfo');
-            if (xmlData.destinatario) {
-                const doc = xmlData.destinatario.cnpj || '';
-                destInfo.textContent = `${xmlData.destinatario.nome || 'Sem nome'} - ${doc ? (doc.length > 11 ? 'CNPJ' : 'CPF') + ': ' + doc : 'Sem documento'}`;
-            }
-            
-            document.getElementById('clientChoiceModal').classList.remove('hidden');
-        }
-
-        function closeClientChoiceModal() {
-            document.getElementById('clientChoiceModal').classList.add('hidden');
-            currentXmlData = null;
-            // Continuar importação pulando cadastro
-            continueImportAfterRegister();
-        }
-
-        function selectClientType(tipo) {
-            if (!currentXmlData) return;
-            
-            // Fechar modal de escolha
-            document.getElementById('clientChoiceModal').classList.add('hidden');
-            
-            // Abrir modal de cadastro com o tipo escolhido
-            openClientRegisterModal(currentXmlData, tipo);
-        }
+        // Função openClientChoiceModal já está definida no React (react-app.js)
+        // Não é necessário redefinir aqui
+        
+        // Função closeClientChoiceModal já está definida no React
+        // Não é necessário redefinir aqui
+        
+        // Função selectClientType já está definida no React
+        // Não é necessário redefinir aqui
 
         function openClientRegisterModal(xmlData, tipo = 'destinatario') {
             const clientData = tipo === 'emissor' ? xmlData.emissor : xmlData.destinatario;
@@ -1329,11 +1359,12 @@
             }
         }
 
-        function showToast(message, type) {
+        function showToast(message, type = 'info') {
             const toast = document.createElement('div');
-            toast.className = `fixed bottom-6 right-6 px-6 py-3 rounded-lg text-white z-50 ${
-                type === 'success' ? 'bg-green-600' : 'bg-red-600'
-            }`;
+            const bgColor = type === 'success' ? 'bg-green-600' : 
+                           type === 'warning' ? 'bg-yellow-600' : 
+                           type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+            toast.className = `fixed bottom-6 right-6 px-6 py-3 rounded-lg text-white z-50 shadow-lg ${bgColor}`;
             toast.textContent = message;
             document.body.appendChild(toast);
 
@@ -1348,19 +1379,52 @@
                 
                 select.innerHTML = '<option value="">Selecione um cliente</option>' +
                     clientes.map(c => `
-                        <option value="${c.id}" data-cnpj="${c.cnpj_cpf}" data-nome="${c.nome_razao_social}" data-uf="${c.uf || 'SP'}">
-                            ${c.nome_razao_social} - ${c.cnpj_cpf}
+                        <option value="${c.id}" 
+                                data-cnpj="${c.tax_id || ''}" 
+                                data-nome="${c.name || ''}" 
+                                data-uf="${c.state || 'SP'}"
+                                data-cidade="${c.city || ''}"
+                                data-endereco="${c.street || ''}"
+                                data-numero="${c.number || ''}"
+                                data-bairro="${c.neighborhood || ''}"
+                                data-cep="${c.zip_code || ''}"
+                                data-email="${c.email || ''}"
+                                data-telefone="${c.phone || ''}">
+                            ${c.name || 'Sem nome'} - ${c.tax_id || 'Sem CPF/CNPJ'}
                         </option>
                     `).join('');
                 
                 // Preencher campos ao selecionar cliente
-                select.addEventListener('change', (e) => {
+                select.addEventListener('change', async (e) => {
                     const option = e.target.selectedOptions[0];
                     if (option.value) {
-                        document.getElementById('emitir_cnpj_destinatario').value = option.dataset.cnpj;
-                        document.getElementById('emitir_nome_destinatario').value = option.dataset.nome;
+                        const clientId = option.value;
+                        
+                        // Preencher campos básicos do data-attribute
+                        document.getElementById('emitir_cnpj_destinatario').value = option.dataset.cnpj || '';
+                        document.getElementById('emitir_nome_destinatario').value = option.dataset.nome || '';
                         document.getElementById('emitir_uf').value = option.dataset.uf || 'SP';
-                        calcularValorTotal(); // Recalcular impostos com novo UF
+                        
+                        // Buscar dados completos do cliente via API
+                        try {
+                            const clientData = await apiService.getClienteById(clientId);
+                            if (clientData) {
+                                // Preencher todos os campos do destinatário
+                                document.getElementById('emitir_cnpj_destinatario').value = clientData.tax_id || '';
+                                document.getElementById('emitir_nome_destinatario').value = clientData.name || '';
+                                document.getElementById('emitir_uf').value = clientData.state || 'SP';
+                                
+                                // Exibir informações do cliente
+                                console.log('Cliente selecionado:', clientData);
+                                showToast(`✓ Cliente ${clientData.name} carregado com sucesso!`, 'success');
+                            }
+                        } catch (error) {
+                            console.error('Erro ao buscar dados do cliente:', error);
+                            showToast('⚠️ Erro ao carregar dados completos do cliente', 'warning');
+                        }
+                        
+                        // Recalcular impostos com o novo UF
+                        calcularValorTotal();
                     }
                 });
             } catch (error) {
@@ -1396,19 +1460,50 @@
         const ALIQUOTA_PIS_SIMPLES = 0.0038;   // ~0.38%
         const ALIQUOTA_COFINS_SIMPLES = 0.0114; // ~1.14%
 
+        // Variável para controlar se já mostrou o aviso de operação interestadual
+        let avisoInterestatualMostrado = false;
+        
         function calcularValorTotal() {
             const produtos = parseFloat(document.getElementById('emitir_valor_produtos').value) || 0;
             const servicos = parseFloat(document.getElementById('emitir_valor_servicos').value) || 0;
-            const uf = document.getElementById('emitir_uf').value;
+            const ufDestinatario = document.getElementById('emitir_uf').value;
+            const ufEmitente = document.getElementById('emitir_uf_emitente')?.value || 'MG'; // UF padrão do emitente
             const baseCalculo = produtos + servicos;
             
-            if (!uf) {
-                alert('Selecione a UF para calcular os impostos corretamente');
+            console.log('🧮 Calculando impostos:', { produtos, servicos, ufEmitente, ufDestinatario, baseCalculo });
+            
+            // Só calcular se houver valor e UF do destinatário
+            if (!ufDestinatario || baseCalculo === 0) {
+                console.warn('⚠️ Aguardando valores ou UF do destinatário');
                 return;
             }
             
-            // Buscar alíquota de ICMS por UF
-            const aliquotaICMS = ALIQUOTAS_ICMS[uf] || 0.18; // Default 18%
+            // Verificar se é operação interestadual
+            const isInterestadual = ufEmitente && ufDestinatario && ufEmitente !== ufDestinatario;
+            
+            // Buscar alíquota de ICMS
+            let aliquotaICMS = 0;
+            let icmsInfo = '';
+            
+            if (isInterestadual) {
+                // Operação interestadual - ICMS zerado ou reduzido
+                aliquotaICMS = 0;
+                icmsInfo = 'Op. Interestadual';
+                console.log('📦 Operação Interestadual detectada:', ufEmitente, '→', ufDestinatario);
+                
+                // Exibir aviso apenas uma vez
+                if (!avisoInterestatualMostrado) {
+                    showToast(`⚠️ Operação Interestadual (${ufEmitente} → ${ufDestinatario}): ICMS não destacado`, 'warning');
+                    avisoInterestatualMostrado = true;
+                }
+            } else {
+                // Operação interna - ICMS normal
+                aliquotaICMS = ALIQUOTAS_ICMS[ufDestinatario] || 0.18;
+                icmsInfo = `${(aliquotaICMS * 100).toFixed(0)}%`;
+                console.log('📦 Operação Interna:', ufDestinatario, 'ICMS:', icmsInfo);
+                // Resetar flag quando for operação interna
+                avisoInterestatualMostrado = false;
+            }
             
             // Assumir Lucro Real (pode ser ajustado com seletor de regime)
             const aliquotaPIS = ALIQUOTA_PIS_REAL;
@@ -1424,8 +1519,10 @@
             const totalImpostos = icms + pis + cofins + iss;
             const valorTotal = baseCalculo; // Nota: impostos já inclusos no valor
             
+            console.log('💰 Impostos calculados:', { icms, pis, cofins, iss, totalImpostos, valorTotal });
+            
             // Atualizar labels com as alíquotas
-            document.getElementById('label_icms').textContent = `ICMS (${(aliquotaICMS * 100).toFixed(0)}%)`;
+            document.getElementById('label_icms').textContent = `ICMS (${icmsInfo})`;
             document.getElementById('label_pis').textContent = `PIS (${(aliquotaPIS * 100).toFixed(2)}%)`;
             document.getElementById('label_cofins').textContent = `COFINS (${(aliquotaCOFINS * 100).toFixed(1)}%)`;
             document.getElementById('label_iss').textContent = `ISS (${(aliquotaISS * 100).toFixed(0)}%)`;
@@ -1443,6 +1540,9 @@
         function openEmitirModal() {
             document.getElementById('emitirModal').classList.remove('hidden');
             
+            // Resetar flag de aviso interestadual
+            avisoInterestatualMostrado = false;
+            
             // Gerar número sequencial automático
             const proximoNumero = Math.floor(Math.random() * 90000) + 10000;
             document.getElementById('emitir_numero').value = proximoNumero;
@@ -1452,6 +1552,9 @@
             document.getElementById('emitirModal').classList.add('hidden');
             document.getElementById('emitirForm').reset();
             document.getElementById('emissaoStatus').classList.add('hidden');
+            
+            // Resetar flag de aviso interestadual
+            avisoInterestatualMostrado = false;
         }
 
         async function handleEmitir(event) {
@@ -1466,9 +1569,27 @@
                 const number = document.getElementById('emitir_numero').value;
                 const series = document.getElementById('emitir_serie').value || '1';
                 const invoice_type = document.getElementById('emitir_modelo').value;
+                const model_code = invoice_type === 'nfce' ? '65' : '55';
                 const client = document.getElementById('emitir_cliente_id').value;
-                const issuer_name = 'Sua Empresa Ltda';
+                
+                // Dados do Emitente
+                const issuer_name = 'ANDRE DE ARAUJO SILVA'; // TODO: buscar do banco de dados
                 const issuer_tax_id = document.getElementById('emitir_cnpj_emitente').value;
+                const issuer_state = document.getElementById('emitir_uf_emitente').value;
+                const issuer_city = 'Dom Bosco'; // TODO: buscar do banco
+                const issuer_address = 'FAZENDA RIO PRETO'; // TODO: buscar do banco
+                const issuer_number = 'SN'; // TODO: buscar do banco
+                const issuer_district = 'ZONA RURAL'; // TODO: buscar do banco
+                const issuer_zip_code = '38654-000'; // TODO: buscar do banco
+                const issuer_state_registration = '0023150260429'; // TODO: buscar do banco
+                
+                // Dados do Destinatário (buscar do cliente selecionado)
+                const clientSelect = document.getElementById('emitir_cliente_id');
+                const selectedOption = clientSelect.options[clientSelect.selectedIndex];
+                const receiver_name = document.getElementById('emitir_nome_destinatario').value;
+                const receiver_tax_id = document.getElementById('emitir_cnpj_destinatario').value;
+                const receiver_state = document.getElementById('emitir_uf').value;
+                
                 const issue_date = new Date().toISOString();
                 const notes = document.getElementById('emitir_observacoes').value || '';
                 const icms_base = parseFloat(document.getElementById('emitir_base_calculo').value) || 0;
@@ -1476,11 +1597,23 @@
                 const pis_value = parseFloat(document.getElementById('emitir_pis').value) || 0;
                 const cofins_value = parseFloat(document.getElementById('emitir_cofins').value) || 0;
                 const iss_value = parseFloat(document.getElementById('emitir_iss').value) || 0;
+                
                 const payload = {
-                    number, series, invoice_type, client, issuer_name, issuer_tax_id,
+                    number, series, invoice_type, model_code, client,
+                    // Emitente
+                    issuer_name, issuer_tax_id, issuer_state, issuer_city,
+                    issuer_address, issuer_number, issuer_district, issuer_zip_code,
+                    issuer_state_registration,
+                    // Destinatário
+                    receiver_name, receiver_tax_id, receiver_state,
+                    // Datas e valores
                     issue_date, due_date: null, discount: 0, shipping: 0, insurance: 0, other_expenses: 0,
                     icms_base, icms_value, ipi_value: 0, pis_value, cofins_value, iss_value,
-                    notes, additional_info: '', items: []
+                    notes, additional_info: '', items: [],
+                    // Operação
+                    operation_nature: 'venda_producao',
+                    operation_type: 'saida',
+                    cfop: '5101'
                 };
                 console.log('Criando nota (payload):', payload);
                 const nota = await apiService.criarNotaFiscal(payload);

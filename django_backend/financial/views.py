@@ -198,11 +198,11 @@ class FinancialTransactionViewSet(viewsets.ModelViewSet):
         
         if not all([start_date, end_date, category_id, account_id]):
             return Response(
-                {'error': 'Campos obrigatórios: start_date, end_date, category_id, account_id'},
+                {'error': 'Required fields: start_date, end_date, category_id, account_id'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Buscar notas autorizadas no período
+        # Search for authorized invoices in the period
         invoices = Invoice.objects.filter(
             status='authorized',
             issue_date__gte=start_date,
@@ -211,12 +211,12 @@ class FinancialTransactionViewSet(viewsets.ModelViewSet):
         
         imported = 0
         for invoice in invoices:
-            # Verificar se já existe transação para esta nota
+            # Check if transaction already exists for this invoice
             exists = AccountsReceivable.objects.filter(invoice_number=invoice.number).exists()
             if exists:
                 continue
             
-            # Criar transação
+            # Create transaction
             transaction = FinancialTransaction.objects.create(
                 transaction_type='revenue',
                 description=f"NF-e {invoice.number}/{invoice.series} - {invoice.client.name}",
@@ -348,7 +348,7 @@ class CashFlowViewSet(viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Implementar lógica de geração de fluxo de caixa
+        # Implement cash flow generation logic
         # ...
         
-        return Response({'message': 'Fluxo de caixa gerado com sucesso'})
+        return Response({'message': 'Cash flow generated successfully'})

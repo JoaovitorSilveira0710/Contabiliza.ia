@@ -12,14 +12,14 @@ from decimal import Decimal
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def dashboard_overview(request):
-    """Dashboard principal com visão geral do sistema"""
+    """Main dashboard with system overview"""
     
-    # Período
+    # Period
     today = datetime.now()
     first_day_month = today.replace(day=1)
     thirty_days_ago = today - timedelta(days=30)
     
-    # Clientes
+    # Clients
     clients_stats = {
         'total': Client.objects.count(),
         'active': Client.objects.filter(status='active').count(),
@@ -28,7 +28,7 @@ def dashboard_overview(request):
         'pessoa_juridica': Client.objects.filter(person_type='PJ').count(),
     }
     
-    # Notas Fiscais
+    # Invoices
     invoices_stats = {
         'total': Invoice.objects.count(),
         'authorized': Invoice.objects.filter(status='authorized').count(),
@@ -37,26 +37,26 @@ def dashboard_overview(request):
         'this_month': Invoice.objects.filter(issue_date__gte=first_day_month).count(),
     }
     
-    # Valores financeiros
+    # Financial values
     financial_stats = Invoice.objects.filter(status='authorized').aggregate(
         total_value=Sum('total_value'),
         total_taxes=Sum('icms_value') + Sum('ipi_value') + Sum('pis_value') + Sum('cofins_value'),
         avg_value=Avg('total_value')
     )
     
-    # Faturamento mensal
+    # Monthly revenue
     month_revenue = Invoice.objects.filter(
         status='authorized',
         issue_date__gte=first_day_month
     ).aggregate(total=Sum('total_value'))['total'] or Decimal('0.00')
     
-    # Faturamento últimos 30 dias
+    # Revenue from last 30 days
     recent_revenue = Invoice.objects.filter(
         status='authorized',
         issue_date__gte=thirty_days_ago
     ).aggregate(total=Sum('total_value'))['total'] or Decimal('0.00')
     
-    # Top 5 clientes (por valor de notas)
+    # Top 5 clients (by invoice value)
     top_clients = Client.objects.annotate(
         total_invoiced=Sum('invoices__total_value', filter=Q(invoices__status='authorized'))
     ).order_by('-total_invoiced')[:5].values('id', 'name', 'tax_id', 'total_invoiced')
@@ -79,9 +79,9 @@ def dashboard_overview(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def revenue_chart(request):
-    """Dados para gráfico de faturamento mensal"""
+    """Data for monthly revenue chart"""
     
-    # Últimos 12 meses
+    # Last 12 months
     twelve_months_ago = datetime.now() - timedelta(days=365)
     
     monthly_revenue = Invoice.objects.filter(
@@ -142,15 +142,15 @@ def invoices_by_type(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def recent_activities(request):
-    """Atividades recentes do sistema"""
+    """Recent system activities"""
     
-    # Últimas 10 notas fiscais
+    # Last 10 invoices
     recent_invoices = Invoice.objects.select_related('client', 'created_by').order_by('-created_at')[:10].values(
         'id', 'number', 'series', 'status', 'total_value', 'created_at',
         'client__name', 'created_by__first_name', 'created_by__last_name'
     )
     
-    # Últimos 10 clientes cadastrados
+    # Last 10 registered clients
     recent_clients = Client.objects.select_related('created_by').order_by('-created_at')[:10].values(
         'id', 'name', 'tax_id', 'status', 'created_at',
         'created_by__first_name', 'created_by__last_name'
@@ -165,9 +165,9 @@ def recent_activities(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def taxes_summary(request):
-    """Resumo de impostos"""
+    """Tax summary"""
     
-    # Período
+    # Period
     start_date = request.query_params.get('start_date')
     end_date = request.query_params.get('end_date')
     
@@ -201,9 +201,9 @@ def taxes_summary(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def weekly_performance(request):
-    """Desempenho semanal"""
+    """Weekly performance"""
     
-    # Últimas 8 semanas
+    # Last 8 weeks
     eight_weeks_ago = datetime.now() - timedelta(weeks=8)
     
     weekly_data = Invoice.objects.filter(

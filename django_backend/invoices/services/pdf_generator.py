@@ -1,7 +1,7 @@
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.graphics.barcode import code128
@@ -12,7 +12,7 @@ from datetime import datetime
 
 
 class InvoicePDFGenerator:
-    """Gerador de PDF para DANFE (Documento Auxiliar da Nota Fiscal Eletrônica) - Layout Padrão SEFAZ"""
+    """Gerador de PDF para DANFE - Nota Fiscal do Produtor Rural (Layout SEFAZ-PR)"""
     
     def __init__(self, invoice):
         self.invoice = invoice
